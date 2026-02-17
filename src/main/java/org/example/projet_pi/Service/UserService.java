@@ -22,7 +22,7 @@ public class UserService implements IUserService {
 
     @Override
     public User updateUser(User user) {
-        // Comme dans ComplaintService, save() mettra à jour si l'ID existe
+
         return userRepository.save(user);
     }
 
