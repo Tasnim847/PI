@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="14fa5459-663b-4e4b-b81a-a98c3a049e04" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/projet_pi/Controller/ClaimController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/projet_pi/Controller/ClaimController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/projet_pi/Controller/CompensationController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/projet_pi/Controller/CompensationController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/projet_pi/Controller/ComplaintController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/projet_pi/Controller/ComplaintController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/projet_pi/Controller/CreditController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/projet_pi/Controller/CreditController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/projet_pi/Controller/InsuranceContractController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/projet_pi/Controller/InsuranceContractController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/projet_pi/Controller/InsuranceProductController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/projet_pi/Controller/InsuranceProductController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/projet_pi/Controller/NewsController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/projet_pi/Controller/NewsController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/projet_pi/Service/ClaimService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/projet_pi/Service/ClaimService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/projet_pi/Service/CompensationService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/projet_pi/Service/CompensationService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/projet_pi/Service/ComplaintService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/projet_pi/Service/ComplaintService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/projet_pi/Service/CreditService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/projet_pi/Service/CreditService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/projet_pi/Service/IClaimService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/projet_pi/Service/IClaimService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/projet_pi/Service/ICompensationService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/projet_pi/Service/ICompensationService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/projet_pi/Service/IComplaintService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/projet_pi/Service/IComplaintService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/projet_pi/Service/ICreditService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/projet_pi/Service/ICreditService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/projet_pi/Service/IInsuranceContractService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/projet_pi/Service/IInsuranceContractService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/projet_pi/Service/IInsuranceProductService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/projet_pi/Service/IInsuranceProductService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/projet_pi/Service/INewsService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/projet_pi/Service/INewsService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/projet_pi/Service/InsuranceContractService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/projet_pi/Service/InsuranceContractService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/projet_pi/Service/InsuranceProductService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/projet_pi/Service/InsuranceProductService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/projet_pi/Service/NewsService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/projet_pi/Service/NewsService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/projet_pi/entity/Claim.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/projet_pi/entity/Claim.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/projet_pi/entity/InsuranceContract.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/projet_pi/entity/InsuranceContract.java" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Enum" />
+        <option value="Class" />
+        <option value="Interface" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;Tasnim847&quot;
+  }
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/Tasnim847/Projet_PI.git&quot;,
+    &quot;accountId&quot;: &quot;0fc76079-5f79-430f-b9b6-832d758a2802&quot;
+  }
+}</component>
+  <component name="MavenImportPreferences">
+    <option name="generalSettings">
+      <MavenGeneralSettings>
+        <option name="mavenHomeTypeForPersistence" value="WRAPPER" />
+      </MavenGeneralSettings>
+    </option>
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 8
+}</component>
+  <component name="ProjectId" id="39FKhnLGcvwvy04Nzfc6MS4mE9Z" />
+  <component name="ProjectLevelVcsManager">
+    <ConfirmationsSetting value="1" id="Add" />
+  </component>
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;RequestMappingsPanelOrder0&quot;: &quot;0&quot;,
+    &quot;RequestMappingsPanelOrder1&quot;: &quot;1&quot;,
+    &quot;RequestMappingsPanelWidth0&quot;: &quot;75&quot;,
+    &quot;RequestMappingsPanelWidth1&quot;: &quot;75&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;Spring Boot.ProjetPiApplication.executor&quot;: &quot;Run&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;tasnim&quot;,
+    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  }
+}</component>
+  <component name="RunManager">
+    <configuration name="ProjetPiApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <module name="Projet_PI" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="org.example.projet_pi.ProjetPiApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+  </component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-jdk-9823dce3aa75-a94e463ab2e7-intellij.indexing.shared.core-IU-243.26053.27" />
+        <option value="bundled-js-predefined-d6986cc7102b-1632447f56bf-JavaScript-IU-243.26053.27" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="14fa5459-663b-4e4b-b81a-a98c3a049e04" name="Changes" comment="" />
+      <created>1770286503090</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1770286503090</updated>
+      <workItem from="1770286504343" duration="1862000" />
+      <workItem from="1770727080204" duration="4228000" />
+      <workItem from="1770799645596" duration="14000" />
+      <workItem from="1770912162562" duration="4591000" />
+      <workItem from="1770916926842" duration="1679000" />
+      <workItem from="1770919728014" duration="3844000" />
+      <workItem from="1770932050378" duration="742000" />
+      <workItem from="1770970369678" duration="1313000" />
+      <workItem from="1770984972052" duration="707000" />
+      <workItem from="1771077008816" duration="3118000" />
+      <workItem from="1771165011677" duration="512000" />
+      <workItem from="1771242786208" duration="1782000" />
+      <workItem from="1771261939246" duration="15000" />
+      <workItem from="1771262510783" duration="4389000" />
+      <workItem from="1771281262968" duration="37000" />
+      <workItem from="1771319928263" duration="210000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+</project>
