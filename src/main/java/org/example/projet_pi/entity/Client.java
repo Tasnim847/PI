@@ -1,6 +1,7 @@
 package org.example.projet_pi.entity;
 
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.Entity;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
@@ -14,9 +15,11 @@ public class Client extends User {
 
 
     @ManyToOne
+    @JsonBackReference("agentAssurance-clients")
     private AgentAssurance agentAssurance;
 
     @ManyToOne
+    @JsonBackReference("agentFinance-clients")
     private AgentFinance agentFinance;
 
 
@@ -36,4 +39,3 @@ public class Client extends User {
     @OneToMany(mappedBy = "client")
     private List<Document> documents = new ArrayList<>();
 }
-
