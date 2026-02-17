@@ -8,13 +8,13 @@ import java.util.List;
 
 @Repository
 public interface TransactionRepository extends JpaRepository<Transaction, Long> {
-    //crud
-    // 🔹 Trouver toutes les transactions d’un compte spécifique
+
+    //  Trouver toutes les transactions d’un compte spécifique
     List<Transaction> findByAccountAccountId(Long accountId);
 
-    // 🔹 Optionnel : transactions par type (DEPOSIT / WITHDRAW)
+    //  transactions par type (DEPOSIT / WITHDRAW)
     List<Transaction> findByType(String type);
 
-    // 🔹 Optionnel : transactions supérieures à un certain montant
+    // transactions supérieures à un certain montant
     List<Transaction> findByAmountGreaterThan(double amount);
 }
