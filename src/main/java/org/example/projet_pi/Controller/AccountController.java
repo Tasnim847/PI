@@ -12,30 +12,30 @@ import java.util.List;
 @CrossOrigin(origins = "*")
 public class AccountController {
 
-    //crud
+
     @Autowired
     private AccountRepository accountRepository;
 
-    // 🔹 Get all accounts
-    @GetMapping
+    //  Get all accounts
+    @GetMapping("/allaccount")
     public List<Account> getAllAccounts() {
         return accountRepository.findAll();
     }
 
-    // 🔹 Get account by id
+    //  Get account by id
     @GetMapping("/{id}")
     public Account getAccountById(@PathVariable Long id) {
         return accountRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Account not found with id " + id));
     }
 
-    // 🔹 Create new account
-    @PostMapping
+    //  Create new account
+    @PostMapping("/addaccount")
     public Account createAccount(@RequestBody Account account) {
         return accountRepository.save(account);
     }
 
-    // 🔹 Update account
+    //  Update account
     @PutMapping("/{id}")
     public Account updateAccount(@PathVariable Long id, @RequestBody Account accountDetails) {
         Account account = accountRepository.findById(id)
@@ -49,7 +49,7 @@ public class AccountController {
         return accountRepository.save(account);
     }
 
-    // 🔹 Delete account
+    //  Delete account
     @DeleteMapping("/{id}")
     public String deleteAccount(@PathVariable Long id) {
         Account account = accountRepository.findById(id)

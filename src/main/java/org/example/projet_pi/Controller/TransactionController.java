@@ -22,7 +22,7 @@ public class TransactionController {
     private AccountRepository accountRepository;
 
     // 🔹 Get all transactions
-    @GetMapping
+    @GetMapping("/alltransaction")
     public List<Transaction> getAllTransactions() {
         return transactionRepository.findAll();
     }
@@ -50,7 +50,7 @@ public class TransactionController {
         transaction.setAccount(account);
         transaction.setDate(LocalDate.now());
 
-        // 💰 Mise à jour automatique du solde
+        //  Mise à jour automatique du solde
         if (transaction.getType().equalsIgnoreCase("DEPOSIT")) {
             account.setBalance(account.getBalance() + transaction.getAmount());
         } else if (transaction.getType().equalsIgnoreCase("WITHDRAW")) {
@@ -71,7 +71,7 @@ public class TransactionController {
 
         Account account = transaction.getAccount();
 
-        // 💰 Ajustement du solde : retirer l'ancien montant
+        //  Ajustement du solde : retirer l'ancien montant
         if (transaction.getType().equalsIgnoreCase("DEPOSIT")) {
             account.setBalance(account.getBalance() - transaction.getAmount());
         } else if (transaction.getType().equalsIgnoreCase("WITHDRAW")) {
@@ -83,7 +83,7 @@ public class TransactionController {
         transaction.setType(transactionDetails.getType());
         transaction.setDate(LocalDate.now());
 
-        // 💰 Ajouter le nouveau montant
+        //  Ajouter le nouveau montant
         if (transaction.getType().equalsIgnoreCase("DEPOSIT")) {
             account.setBalance(account.getBalance() + transaction.getAmount());
         } else if (transaction.getType().equalsIgnoreCase("WITHDRAW")) {
