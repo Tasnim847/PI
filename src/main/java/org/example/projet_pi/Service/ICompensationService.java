@@ -1,21 +1,18 @@
 package org.example.projet_pi.Service;
 
-import org.example.projet_pi.entity.Compensation;
+import org.example.projet_pi.Dto.CompensationDTO;
 
 import java.util.List;
 
 public interface ICompensationService {
 
-    //Iservice
+    CompensationDTO addCompensation(CompensationDTO dto);
 
-    public Compensation addCompensation(Compensation compensation);
+    CompensationDTO updateCompensation(CompensationDTO dto);
 
-    public Compensation updateCompensation(Compensation compensation);
+    void deleteCompensation(Long id);
 
-    public void deleteCompensation(Long id);
+    CompensationDTO getCompensationById(Long id);
 
-    public Compensation getCompensationById(Long id);
-
-    public List<Compensation> getAllCompensations();
-
+    List<CompensationDTO> getAllCompensations();
 }
