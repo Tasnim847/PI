@@ -1,21 +1,19 @@
 package org.example.projet_pi.Service;
 
-import org.example.projet_pi.entity.InsuranceContract;
+
+import org.example.projet_pi.Dto.InsuranceContractDTO;
 
 import java.util.List;
 
 public interface IInsuranceContractService {
 
-    //Iservice
+    InsuranceContractDTO addContract(InsuranceContractDTO dto);
 
-    public InsuranceContract addContract(InsuranceContract contract);
+    InsuranceContractDTO updateContract(InsuranceContractDTO dto);
 
-    public InsuranceContract updateContract(InsuranceContract contract);
+    void deleteContract(Long id);
 
-    public void deleteContract(Long id);
+    InsuranceContractDTO getContractById(Long id);
 
-    public InsuranceContract getContractById(Long id);
-
-    public List<InsuranceContract> getAllContracts();
-
+    List<InsuranceContractDTO> getAllContracts();
 }

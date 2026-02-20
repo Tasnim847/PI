@@ -6,10 +6,17 @@
   <component name="ChangeListManager">
     <list default="true" id="14fa5459-663b-4e4b-b81a-a98c3a049e04" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/projet_pi/Controller/AccountController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/projet_pi/Controller/AccountController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/projet_pi/Controller/TransactionController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/projet_pi/Controller/TransactionController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/projet_pi/Repository/AccountRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/projet_pi/Repository/AccountRepository.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/projet_pi/Repository/TransactionRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/projet_pi/Repository/TransactionRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/projet_pi/Controller/ClaimController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/projet_pi/Controller/ClaimController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/projet_pi/Controller/CompensationController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/projet_pi/Controller/CompensationController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/projet_pi/Controller/InsuranceContractController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/projet_pi/Controller/InsuranceContractController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/projet_pi/Service/ClaimService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/projet_pi/Service/ClaimService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/projet_pi/Service/CompensationService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/projet_pi/Service/CompensationService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/projet_pi/Service/IClaimService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/projet_pi/Service/IClaimService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/projet_pi/Service/ICompensationService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/projet_pi/Service/ICompensationService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/projet_pi/Service/IInsuranceContractService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/projet_pi/Service/IInsuranceContractService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/projet_pi/Service/InsuranceContractService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/projet_pi/Service/InsuranceContractService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/projet_pi/entity/Claim.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/projet_pi/entity/Claim.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/projet_pi/entity/RiskClaim.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/projet_pi/entity/RiskClaim.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -19,9 +26,9 @@
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
       <list>
-        <option value="Class" />
-        <option value="Interface" />
         <option value="Enum" />
+        <option value="Interface" />
+        <option value="Class" />
       </list>
     </option>
   </component>
@@ -34,15 +41,15 @@
     &quot;assignee&quot;: &quot;Tasnim847&quot;
   }
 }</component>
-  <component name="GithubPullRequestsUISettings">{
-  &quot;selectedUrlAndAccountId&quot;: {
-    &quot;url&quot;: &quot;https://github.com/Tasnim847/Projet_PI.git&quot;,
-    &quot;accountId&quot;: &quot;0fc76079-5f79-430f-b9b6-832d758a2802&quot;
+  <component name="GithubPullRequestsUISettings"><![CDATA[{
+  "selectedUrlAndAccountId": {
+    "url": "https://github.com/Tasnim847/PI.git",
+    "accountId": "0fc76079-5f79-430f-b9b6-832d758a2802"
   }
-}</component>
-  <component name="HttpClientOnboardingState"><![CDATA[{
-  "isOnboardingCommentShown": true
 }]]></component>
+  <component name="HttpClientOnboardingState">{
+  &quot;isOnboardingCommentShown&quot;: true
+}</component>
   <component name="MavenImportPreferences">
     <option name="generalSettings">
       <MavenGeneralSettings>
@@ -76,7 +83,7 @@
     "RunOnceActivity.git.unshallow": "true",
     "RunOnceActivity.typescript.service.memoryLimit.init": "true",
     "Spring Boot.ProjetPiApplication.executor": "Run",
-    "git-widget-placeholder": "molka",
+    "git-widget-placeholder": "master",
     "ignore.virus.scanning.warn.message": "true",
     "kotlin-language-version-configured": "true",
     "last_opened_file_path": "C:/Users/asus/Desktop/pi/PI",
@@ -107,8 +114,8 @@
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-jdk-30f59d01ecdd-2fc7cc6b9a17-intellij.indexing.shared.core-IU-253.30387.90" />
-        <option value="bundled-js-predefined-d6986cc7102b-9b0f141eb926-JavaScript-IU-253.30387.90" />
+        <option value="bundled-jdk-9823dce3aa75-a94e463ab2e7-intellij.indexing.shared.core-IU-243.26053.27" />
+        <option value="bundled-js-predefined-d6986cc7102b-1632447f56bf-JavaScript-IU-243.26053.27" />
       </set>
     </attachedChunks>
   </component>
@@ -138,6 +145,7 @@
       <workItem from="1771319928263" duration="210000" />
       <workItem from="1771322365972" duration="306000" />
       <workItem from="1771327671946" duration="630000" />
+      <workItem from="1771590709704" duration="9873000" />
     </task>
     <servers />
   </component>
