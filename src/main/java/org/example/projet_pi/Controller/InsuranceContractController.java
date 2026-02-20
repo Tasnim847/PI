@@ -2,7 +2,7 @@ package org.example.projet_pi.Controller;
 
 import lombok.AllArgsConstructor;
 import org.example.projet_pi.Service.IInsuranceContractService;
-import org.example.projet_pi.entity.InsuranceContract;
+import org.example.projet_pi.Dto.InsuranceContractDTO;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -12,36 +12,30 @@ import java.util.List;
 @RequestMapping("/contrats")
 public class InsuranceContractController {
 
-    IInsuranceContractService insuranceContractService;
+    private final IInsuranceContractService contractService;
 
-    //crude
-
-    @PostMapping("/addContrat")
-    public InsuranceContract addContract(@RequestBody InsuranceContract contract) {
-        InsuranceContract contract1 = insuranceContractService.addContract(contract);
-        return contract1;
+    @PostMapping("/add")
+    public InsuranceContractDTO addContract(@RequestBody InsuranceContractDTO dto) {
+        return contractService.addContract(dto);
     }
 
-    @PutMapping("/updateContrat")
-    public InsuranceContract updateContract(@RequestBody InsuranceContract contract) {
-        InsuranceContract contract1 = insuranceContractService.updateContract(contract);
-        return contract1;
+    @PutMapping("/update")
+    public InsuranceContractDTO updateContract(@RequestBody InsuranceContractDTO dto) {
+        return contractService.updateContract(dto);
     }
 
-    @DeleteMapping("/deleteContrat/{id}")
-    public void deleteContract(@PathVariable("id") Long id) {
-        insuranceContractService.deleteContract(id);
+    @DeleteMapping("/delete/{id}")
+    public void deleteContract(@PathVariable Long id) {
+        contractService.deleteContract(id);
     }
 
-    @GetMapping("/getContrat/{id}")
-    public InsuranceContract getContractById(@PathVariable("id") Long id) {
-        InsuranceContract contract1 = insuranceContractService.getContractById(id);
-        return contract1;
+    @GetMapping("/{id}")
+    public InsuranceContractDTO getContractById(@PathVariable Long id) {
+        return contractService.getContractById(id);
     }
 
-    @GetMapping("/allContrat")
-    public List<InsuranceContract> getAllContracts() {
-        List<InsuranceContract> contracts = insuranceContractService.getAllContracts();
-        return contracts;
+    @GetMapping("/all")
+    public List<InsuranceContractDTO> getAllContracts() {
+        return contractService.getAllContracts();
     }
 }
