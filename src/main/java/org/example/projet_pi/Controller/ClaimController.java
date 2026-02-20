@@ -33,13 +33,13 @@ public class ClaimController {
     }
 
     // Récupérer un Claim par id
-    @GetMapping("/{id}")
+    @GetMapping("/getClaim/{id}")
     public ClaimDTO getClaimById(@PathVariable Long id) {
         return claimService.getClaimById(id);
     }
 
     // Récupérer tous les Claims
-    @GetMapping("/all")
+    @GetMapping("/allClaim")
     public List<ClaimDTO> getAllClaims() {
         return claimService.getAllClaims();
     }
