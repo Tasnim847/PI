@@ -1,20 +1,19 @@
 package org.example.projet_pi.Service;
 
-import org.example.projet_pi.entity.Claim;
+import org.example.projet_pi.Dto.ClaimDTO;
 
 import java.util.List;
 
+
 public interface IClaimService {
-//Iservice
 
-    public Claim addClaim(Claim claim);
+    ClaimDTO addClaim(ClaimDTO claimDTO);
 
-    public Claim updateClaim(Claim claim);
+    ClaimDTO updateClaim(ClaimDTO claimDTO);
 
-    public void deleteClaim(Long id);
+    void deleteClaim(Long id);
 
-    public Claim getClaimById(Long id);
+    ClaimDTO getClaimById(Long id);
 
-    public List<Claim> getAllClaims();
-
+    List<ClaimDTO> getAllClaims();
 }

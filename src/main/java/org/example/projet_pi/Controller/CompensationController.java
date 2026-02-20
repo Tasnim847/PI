@@ -2,7 +2,7 @@ package org.example.projet_pi.Controller;
 
 import lombok.AllArgsConstructor;
 import org.example.projet_pi.Service.ICompensationService;
-import org.example.projet_pi.entity.Compensation;
+import org.example.projet_pi.Dto.CompensationDTO;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -12,35 +12,30 @@ import java.util.List;
 @RequestMapping("/compensations")
 public class CompensationController {
 
-    ICompensationService compensationService;
+    private final ICompensationService compensationService;
 
-    @PostMapping("/addCompensation")
-    public Compensation addCompensation(@RequestBody Compensation compensation) {
-        Compensation newCompensation = compensationService.addCompensation(compensation);
-        return newCompensation;
+    @PostMapping("/add")
+    public CompensationDTO addCompensation(@RequestBody CompensationDTO dto) {
+        return compensationService.addCompensation(dto);
     }
 
-    @PutMapping("/updateCompensation")
-    public Compensation updateCompensation(@RequestBody Compensation compensation) {
-        Compensation newCompensation = compensationService.updateCompensation(compensation);
-        return newCompensation;
+    @PutMapping("/update")
+    public CompensationDTO updateCompensation(@RequestBody CompensationDTO dto) {
+        return compensationService.updateCompensation(dto);
     }
 
-    @DeleteMapping("/deleteCompensation/{id}")
-    public void deleteCompensation(@PathVariable("id") Long id) {
+    @DeleteMapping("/delete/{id}")
+    public void deleteCompensation(@PathVariable Long id) {
         compensationService.deleteCompensation(id);
     }
 
-    @GetMapping("/getCompensation/{id}")
-    public Compensation getCompensationById(@PathVariable("id") Long id) {
-        Compensation compensation = compensationService.getCompensationById(id);
-        return compensation;
+    @GetMapping("/{id}")
+    public CompensationDTO getCompensationById(@PathVariable Long id) {
+        return compensationService.getCompensationById(id);
     }
 
-    @GetMapping("/allCompensation")
-    public List<Compensation> getAllCompensations() {
-        List<Compensation> compensations = compensationService.getAllCompensations();
-        return compensations;
+    @GetMapping("/all")
+    public List<CompensationDTO> getAllCompensations() {
+        return compensationService.getAllCompensations();
     }
-
 }
