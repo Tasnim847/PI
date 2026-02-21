@@ -3,7 +3,10 @@ package org.example.projet_pi.entity;
 import jakarta.persistence.*;
 
 import java.util.Date;
+import java.util.List; // ✅ AJOUT
+
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference; // ✅ AJOUT
 
 
 @Entity
@@ -17,6 +20,7 @@ public class Credit {
     private double interestRate;
     private double monthlyPayment;
     private int durationInMonths;
+
     @Temporal(TemporalType.DATE)
     private java.util.Date startDate;
 
@@ -34,9 +38,16 @@ public class Credit {
     @ManyToOne
     private AgentFinance agentFinance;
 
+    // ✅ AJOUT : relation avec Repayment
+    @JsonManagedReference("credit-repayment")
+    @OneToMany(mappedBy = "credit", cascade = CascadeType.ALL)
+    private List<Repayment> repayments;
+
+
     public Long getCreditId() {
         return creditId;
     }
+
     public void setCreditId(Long creditId) {
         this.creditId = creditId;
     }
@@ -44,6 +55,7 @@ public class Credit {
     public double getAmount() {
         return amount;
     }
+
     public void setAmount(double amount) {
         this.amount = amount;
     }
@@ -55,8 +67,6 @@ public class Credit {
     public void setStartDate(Date startDate) {
         this.startDate = startDate;
     }
-
-
 
     public double getInterestRate() {
         return interestRate;
@@ -115,5 +125,14 @@ public class Credit {
     }
 
 
-}
+    // ✅ AJOUT : getters/setters repayments
 
+    public List<Repayment> getRepayments() {
+        return repayments;
+    }
+
+    public void setRepayments(List<Repayment> repayments) {
+        this.repayments = repayments;
+    }
+
+}

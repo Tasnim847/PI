@@ -14,4 +14,5 @@ public interface IRepaymentService {
     Repayment getRepaymentById(Long id);
 
     List<Repayment> getAllRepayments();
+    Repayment payCredit(Long creditId, Repayment repayment, boolean allowPartialIfOverpay);
 }
