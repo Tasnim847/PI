@@ -79,7 +79,7 @@ public class DocumentService implements IDocumentService {
 
         return DocumentMapper.toDTO(existing);
     }
-    
+
     @Override
     public void deleteDocument(Long id) {
         documentRepository.deleteById(id);

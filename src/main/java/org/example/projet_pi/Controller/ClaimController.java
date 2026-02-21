@@ -15,19 +15,19 @@ public class ClaimController {
     private final IClaimService claimService;
 
     // Ajouter un Claim
-    @PostMapping("/add")
+    @PostMapping("/addClaim")
     public ClaimDTO addClaim(@RequestBody ClaimDTO claimDTO) {
         return claimService.addClaim(claimDTO);
     }
 
     // Mettre à jour un Claim
-    @PutMapping("/update")
+    @PutMapping("/updateClaim")
     public ClaimDTO updateClaim(@RequestBody ClaimDTO claimDTO) {
         return claimService.updateClaim(claimDTO);
     }
 
     // Supprimer un Claim
-    @DeleteMapping("/delete/{id}")
+    @DeleteMapping("/deleteClaim/{id}")
     public void deleteClaim(@PathVariable Long id) {
         claimService.deleteClaim(id);
     }

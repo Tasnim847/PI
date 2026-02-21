@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import org.example.projet_pi.Repository.CompensationRepository;
 import org.example.projet_pi.Repository.ClaimRepository;
 import org.example.projet_pi.Dto.CompensationDTO;
+import org.example.projet_pi.entity.ClaimStatus;
 import org.example.projet_pi.entity.Compensation;
 import org.example.projet_pi.entity.Claim;
 import org.example.projet_pi.Mapper.CompensationMapper;
@@ -21,11 +22,31 @@ public class CompensationService implements ICompensationService {
 
     @Override
     public CompensationDTO addCompensation(CompensationDTO dto) {
+
+        if (dto.getClaimId() == null) {
+            throw new IllegalArgumentException("claimId ne peut pas être null !");
+        }
+
         Claim claim = claimRepository.findById(dto.getClaimId())
                 .orElseThrow(() -> new RuntimeException("Claim not found"));
 
+        // ✅ RÈGLE MÉTIER
+        if (claim.getStatus() != ClaimStatus.APPROVED) {
+            throw new RuntimeException("La compensation ne peut être ajoutée que si le claim est APPROVED !");
+        }
+
+        // Vérifier qu'il n'y a pas déjà une compensation
+        if (claim.getCompensation() != null) {
+            throw new RuntimeException("Ce claim possède déjà une compensation !");
+        }
+
         Compensation compensation = CompensationMapper.toEntity(dto, claim);
         compensation = compensationRepository.save(compensation);
+
+        // ✅ Mettre automatiquement le status du claim à COMPENSATED
+        claim.setStatus(ClaimStatus.COMPENSATED);
+        claim.setCompensation(compensation);
+        claimRepository.save(claim);
 
         return CompensationMapper.toDTO(compensation);
     }

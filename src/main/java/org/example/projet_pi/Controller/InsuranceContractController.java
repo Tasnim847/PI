@@ -14,27 +14,27 @@ public class InsuranceContractController {
 
     private final IInsuranceContractService contractService;
 
-    @PostMapping("/add")
+    @PostMapping("/addCont")
     public InsuranceContractDTO addContract(@RequestBody InsuranceContractDTO dto) {
         return contractService.addContract(dto);
     }
 
-    @PutMapping("/update")
+    @PutMapping("/updateCont")
     public InsuranceContractDTO updateContract(@RequestBody InsuranceContractDTO dto) {
         return contractService.updateContract(dto);
     }
 
-    @DeleteMapping("/delete/{id}")
+    @DeleteMapping("/deleteCont/{id}")
     public void deleteContract(@PathVariable Long id) {
         contractService.deleteContract(id);
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/getCont/{id}")
     public InsuranceContractDTO getContractById(@PathVariable Long id) {
         return contractService.getContractById(id);
     }
 
-    @GetMapping("/all")
+    @GetMapping("/allCont")
     public List<InsuranceContractDTO> getAllContracts() {
         return contractService.getAllContracts();
     }
