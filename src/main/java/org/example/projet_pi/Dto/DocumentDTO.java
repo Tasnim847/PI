@@ -14,5 +14,7 @@ public class DocumentDTO {
     private String filePath;       // chemin ou URL du fichier
     private LocalDateTime uploadDate; // date/heure d'upload
 
+    private String status;
+
     private Long claimId;          // référence à un Claim (facultatif si le document n'est pas lié à un claim)
 }

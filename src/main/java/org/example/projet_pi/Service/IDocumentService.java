@@ -16,5 +16,7 @@ public interface IDocumentService {
 
     List<DocumentDTO> getAllDocuments();
 
-    List<DocumentDTO> getDocumentsByClaimId(Long claimId); // optionnel
+    List<DocumentDTO> getDocumentsByClaimId(Long claimId);
+
+    List<DocumentDTO> getDocumentsByClientId(Long clientId);
 }

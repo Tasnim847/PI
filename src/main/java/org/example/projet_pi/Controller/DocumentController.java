@@ -14,27 +14,27 @@ public class DocumentController {
 
     private final IDocumentService documentService;
 
-    @PostMapping("/add")
+    @PostMapping("/addDoc")
     public DocumentDTO addDocument(@RequestBody DocumentDTO dto) {
         return documentService.addDocument(dto);
     }
 
-    @PutMapping("/update")
+    @PutMapping("/updateDoc")
     public DocumentDTO updateDocument(@RequestBody DocumentDTO dto) {
         return documentService.updateDocument(dto);
     }
 
-    @DeleteMapping("/delete/{id}")
+    @DeleteMapping("/deleteDoc/{id}")
     public void deleteDocument(@PathVariable Long id) {
         documentService.deleteDocument(id);
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/getDoc/{id}")
     public DocumentDTO getDocumentById(@PathVariable Long id) {
         return documentService.getDocumentById(id);
     }
 
-    @GetMapping("/all")
+    @GetMapping("/allDoc")
     public List<DocumentDTO> getAllDocuments() {
         return documentService.getAllDocuments();
     }
@@ -42,5 +42,10 @@ public class DocumentController {
     @GetMapping("/claim/{claimId}")
     public List<DocumentDTO> getDocumentsByClaim(@PathVariable Long claimId) {
         return documentService.getDocumentsByClaimId(claimId);
+    }
+
+    @GetMapping("/client/{clientId}")
+    public List<DocumentDTO> getDocumentsByClient(@PathVariable Long clientId) {
+        return documentService.getDocumentsByClientId(clientId);
     }
 }

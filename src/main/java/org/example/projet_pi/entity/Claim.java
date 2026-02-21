@@ -6,6 +6,7 @@ import jakarta.persistence.Id;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -29,13 +30,16 @@ public class Claim {
     private ClaimStatus status;
 
     @ManyToOne
+    private Client client;
+
+    @ManyToOne
     private InsuranceContract contract;
 
     @OneToOne(mappedBy = "claim", cascade = CascadeType.ALL)
     private Compensation compensation;
 
     @OneToMany(mappedBy = "claim", cascade = CascadeType.ALL)
-    private List<Document> documents;
+    private List<Document> documents= new ArrayList<>();
 
     @OneToOne(mappedBy = "claim", cascade = CascadeType.ALL)
     private RiskClaim riskClaim;

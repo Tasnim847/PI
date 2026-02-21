@@ -3,6 +3,7 @@ package org.example.projet_pi.Mapper;
 import org.example.projet_pi.Dto.DocumentDTO;
 import org.example.projet_pi.entity.Claim;
 import org.example.projet_pi.entity.Document;
+import org.example.projet_pi.entity.DocumentStatus;
 
 public class DocumentMapper {
 
@@ -16,6 +17,9 @@ public class DocumentMapper {
         dto.setType(document.getType());
         dto.setFilePath(document.getFilePath());
         dto.setUploadDate(document.getUploadDate());
+
+        if (document.getStatus() != null)
+            dto.setStatus(document.getStatus().name());
 
         if (document.getClaim() != null)
             dto.setClaimId(document.getClaim().getClaimId());
@@ -33,8 +37,10 @@ public class DocumentMapper {
         document.setType(dto.getType());
         document.setFilePath(dto.getFilePath());
         document.setUploadDate(dto.getUploadDate());
-
         document.setClaim(claim);
+
+        if (dto.getStatus() != null)
+            document.setStatus(DocumentStatus.valueOf(dto.getStatus()));
 
         return document;
     }
