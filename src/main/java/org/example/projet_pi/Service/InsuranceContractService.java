@@ -3,10 +3,7 @@ package org.example.projet_pi.Service;
 import lombok.AllArgsConstructor;
 import org.example.projet_pi.Dto.InsuranceContractDTO;
 import org.example.projet_pi.Mapper.InsuranceContractMapper;
-import org.example.projet_pi.Repository.AgentAssuranceRepository;
-import org.example.projet_pi.Repository.ClientRepository;
-import org.example.projet_pi.Repository.InsuranceContractRepository;
-import org.example.projet_pi.Repository.InsuranceProductRepository;
+import org.example.projet_pi.Repository.*;
 import org.example.projet_pi.entity.*;
 import org.springframework.stereotype.Service;
 
@@ -24,31 +21,27 @@ public class InsuranceContractService implements IInsuranceContractService {
     private final ClientRepository clientRepository;
     private final AgentAssuranceRepository agentRepository;
     private final InsuranceProductRepository productRepository;
+    private final RiskClaimRepository riskClaimRepository;
 
     @Override
     public InsuranceContractDTO addContract(InsuranceContractDTO dto) {
-        // Conversion DTO -> Entity
+
         InsuranceContract contract = InsuranceContractMapper.toEntity(dto);
 
-        // 🔹 Vérification logique métier de base
         if (contract.getStartDate() == null || contract.getEndDate() == null) {
-            throw new RuntimeException("Les dates de début et fin doivent être fournies !");
-        }
-        if (contract.getEndDate().before(contract.getStartDate())) {
-            throw new RuntimeException("La date de fin doit être après la date de début !");
-        }
-        if (contract.getPremium() <= 0) {
-            throw new RuntimeException("La prime doit être positive !");
-        }
-        if (dto.getPaymentFrequency() == null) {
-            throw new RuntimeException("La fréquence de paiement doit être définie !");
+            throw new RuntimeException("Dates obligatoires");
         }
 
-        // 🔹 Récupérer les références depuis la base
+        if (contract.getPremium() <= 0) {
+            throw new RuntimeException("Prime invalide");
+        }
+
         Client client = clientRepository.findById(dto.getClientId())
                 .orElseThrow(() -> new RuntimeException("Client not found"));
+
         AgentAssurance agent = agentRepository.findById(dto.getAgentAssuranceId())
                 .orElseThrow(() -> new RuntimeException("Agent not found"));
+
         InsuranceProduct product = productRepository.findById(dto.getProductId())
                 .orElseThrow(() -> new RuntimeException("Product not found"));
 
@@ -56,20 +49,29 @@ public class InsuranceContractService implements IInsuranceContractService {
         contract.setAgentAssurance(agent);
         contract.setProduct(product);
 
-        // 🔹 Définir la fréquence de paiement
         contract.setPaymentFrequency(
-                Enum.valueOf(org.example.projet_pi.entity.PaymentFrequency.class, dto.getPaymentFrequency())
+                Enum.valueOf(PaymentFrequency.class, dto.getPaymentFrequency())
         );
 
-        // 🔹 Sauvegarder le contrat
-        contract = contractRepository.save(contract);
+        // 🔥 CALCUL DU RISQUE AVANT SAUVEGARDE
+        RiskClaim riskClaim = calculateRisk(contract);
 
-        // 🔹 Générer les paiements planifiés selon la fréquence choisie
-        generateScheduledPayments(contract);
+        // Lier bidirectionnellement
+        riskClaim.setContract(contract);
+        contract.setRiskClaim(riskClaim);
+
+        // 🔥 Si HIGH ➜ Contrat annulé automatiquement
+        if ("HIGH".equals(riskClaim.getRiskLevel())) {
+            contract.setStatus(ContractStatus.CANCELLED);
+        } else {
+            contract.setStatus(ContractStatus.ACTIVE);
+        }
+
+        // ✅ UNE SEULE SAUVEGARDE (cascade enregistre RiskClaim)
+        contract = contractRepository.save(contract);
 
         return InsuranceContractMapper.toDTO(contract);
     }
-
     /**
      * Génère automatiquement les paiements planifiés selon la fréquence de paiement du contrat
      */
@@ -187,4 +189,54 @@ public class InsuranceContractService implements IInsuranceContractService {
                 .map(InsuranceContractMapper::toDTO)
                 .collect(Collectors.toList());
     }
+
+    private RiskClaim calculateRisk(InsuranceContract contract) {
+
+        RiskClaim riskClaim = new RiskClaim();
+        riskClaim.setContract(contract);
+
+        double score = 0;
+
+        // 🔹 Logique métier intelligente
+
+        // Prime élevée = risque élevé
+        if (contract.getPremium() > 10000) {
+            score += 40;
+        } else if (contract.getPremium() > 5000) {
+            score += 25;
+        } else {
+            score += 10;
+        }
+
+        // Franchise faible = risque plus élevé
+        if (contract.getDeductible() < 200) {
+            score += 30;
+        } else {
+            score += 10;
+        }
+
+        // Plafond élevé = plus risqué
+        if (contract.getCoverageLimit() > 50000) {
+            score += 30;
+        } else {
+            score += 10;
+        }
+
+        riskClaim.setRiskScore(score);
+
+        // Déterminer le niveau
+        if (score >= 80) {
+            riskClaim.setRiskLevel("HIGH");
+            riskClaim.setEvaluationNote("Contrat à haut risque");
+        } else if (score >= 50) {
+            riskClaim.setRiskLevel("MEDIUM");
+            riskClaim.setEvaluationNote("Contrat à risque modéré");
+        } else {
+            riskClaim.setRiskLevel("LOW");
+            riskClaim.setEvaluationNote("Contrat à faible risque");
+        }
+
+        return riskClaim;
+    }
+
 }

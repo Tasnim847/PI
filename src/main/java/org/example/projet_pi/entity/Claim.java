@@ -41,7 +41,6 @@ public class Claim {
     @OneToMany(mappedBy = "claim", cascade = CascadeType.ALL)
     private List<Document> documents= new ArrayList<>();
 
-    @OneToOne(mappedBy = "claim", cascade = CascadeType.ALL)
-    private RiskClaim riskClaim;
+
 
 }

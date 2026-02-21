@@ -1,6 +1,7 @@
 package org.example.projet_pi.Controller;
 
 import lombok.AllArgsConstructor;
+import org.example.projet_pi.Dto.RiskClaimDTO;
 import org.example.projet_pi.Service.IRiskClaimService;
 import org.example.projet_pi.entity.RiskClaim;
 import org.springframework.web.bind.annotation.*;
@@ -12,18 +13,16 @@ import java.util.List;
 @RequestMapping("/riskclaims")
 public class RiskClaimController {
 
-    IRiskClaimService riskClaimService;
+    private IRiskClaimService riskClaimService;
 
     @PostMapping("/addRiskClaim")
-    public RiskClaim addRiskClaim(@RequestBody RiskClaim riskClaim) {
-        RiskClaim newRiskClaim = riskClaimService.addRiskClaim(riskClaim);
-        return newRiskClaim;
+    public RiskClaimDTO addRiskClaim(@RequestBody RiskClaimDTO dto) {
+        return riskClaimService.addRiskClaim(dto);
     }
 
     @PutMapping("/updateRiskClaim")
-    public RiskClaim updateRiskClaim(@RequestBody RiskClaim riskClaim) {
-        RiskClaim newRiskClaim = riskClaimService.updateRiskClaim(riskClaim);
-        return newRiskClaim;
+    public RiskClaimDTO updateRiskClaim(@RequestBody RiskClaimDTO dto) {
+        return riskClaimService.updateRiskClaim(dto);
     }
 
     @DeleteMapping("/deleteRiskClaim/{id}")
@@ -32,14 +31,12 @@ public class RiskClaimController {
     }
 
     @GetMapping("/getRiskClaim/{id}")
-    public RiskClaim getRiskClaimById(@PathVariable Long id) {
-        RiskClaim riskClaim = riskClaimService.getRiskClaimById(id);
-        return riskClaim;
+    public RiskClaimDTO getRiskClaimById(@PathVariable Long id) {
+        return riskClaimService.getRiskClaimById(id);
     }
 
     @GetMapping("/allRiskClaims")
-    public List<RiskClaim> getAllRiskClaims() {
-        List<RiskClaim> riskClaims = riskClaimService.getAllRiskClaims();
-        return riskClaims;
+    public List<RiskClaimDTO> getAllRiskClaims() {
+        return riskClaimService.getAllRiskClaims();
     }
 }

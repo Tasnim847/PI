@@ -26,7 +26,9 @@ public class InsuranceContract {
     @Enumerated(EnumType.STRING)
     private ContractStatus status;
 
-    // ✅ Nouveau champ : fréquence de paiement
+    @OneToOne(mappedBy = "contract", cascade = CascadeType.ALL)
+    private RiskClaim riskClaim;
+
     @Enumerated(EnumType.STRING)
     private PaymentFrequency paymentFrequency;
 
