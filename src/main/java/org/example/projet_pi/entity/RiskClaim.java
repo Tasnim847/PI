@@ -17,8 +17,10 @@ public class RiskClaim {
     private String riskLevel;
     private String evaluationNote;
 
+
     @OneToOne
-    private Claim claim;
+    @JoinColumn(name = "contract_id")
+    private InsuranceContract contract;
 
 }
 

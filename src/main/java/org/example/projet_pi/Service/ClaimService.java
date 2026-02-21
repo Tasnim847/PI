@@ -18,8 +18,6 @@ public class ClaimService implements IClaimService {
 
     private ClaimRepository claimRepository;
     private InsuranceContractRepository contractRepository;
-    private CompensationRepository compensationRepository;
-    private RiskClaimRepository riskClaimRepository;
     private DocumentRepository documentRepository;
     private ClientRepository clientRepository;
 
@@ -90,9 +88,6 @@ public class ClaimService implements IClaimService {
 
         claim.setDocuments(documents);
 
-        // Calculer le RiskClaim
-        RiskClaim riskClaim = calculateRisk(claim);
-        claim.setRiskClaim(riskClaim);
 
         // Sauvegarder le claim (cascade sauvegardera aussi les documents et RiskClaim)
         Claim savedClaim = claimRepository.save(claim);
@@ -135,23 +130,7 @@ public class ClaimService implements IClaimService {
 
         Claim updatedClaim = claimRepository.save(claim);
 
-        // RiskClaim
-        RiskClaim riskClaim = updatedClaim.getRiskClaim();
-        if (riskClaim == null) {
-            riskClaim = calculateRisk(updatedClaim);
-        } else {
-            double score = updatedClaim.getClaimedAmount() / 1000;
-            riskClaim.setRiskScore(score);
-            if (score < 5) riskClaim.setRiskLevel("LOW");
-            else if (score < 10) riskClaim.setRiskLevel("MEDIUM");
-            else riskClaim.setRiskLevel("HIGH");
-            riskClaim.setEvaluationNote("Automatique : basé sur le montant réclamé");
-        }
 
-        riskClaim.setClaim(updatedClaim);
-        riskClaimRepository.save(riskClaim);
-
-        updatedClaim.setRiskClaim(riskClaim);
         claimRepository.save(updatedClaim);
 
         return ClaimMapper.toDTO(updatedClaim);
@@ -175,25 +154,5 @@ public class ClaimService implements IClaimService {
                 .stream()
                 .map(ClaimMapper::toDTO)
                 .collect(Collectors.toList());
-    }
-
-    private RiskClaim calculateRisk(Claim claim) {
-        RiskClaim riskClaim = new RiskClaim();
-        riskClaim.setClaim(claim);
-
-        double score = claim.getClaimedAmount() / 1000; // Exemple
-        riskClaim.setRiskScore(score);
-
-        if (score < 5) {
-            riskClaim.setRiskLevel("LOW");
-        } else if (score < 10) {
-            riskClaim.setRiskLevel("MEDIUM");
-        } else {
-            riskClaim.setRiskLevel("HIGH");
-        }
-
-        riskClaim.setEvaluationNote("Automatique : basé sur le montant réclamé");
-
-        return riskClaim;
     }
 }
