@@ -31,8 +31,25 @@ public class RepaymentController {
         repaymentService.deleteRepayment(id);
     }
 
+    // ✅ (optionnel mais utile) récupérer un repayment par id
+    @GetMapping("/getRepayment/{id}")
+    public Repayment getRepaymentById(@PathVariable Long id) {
+        return repaymentService.getRepaymentById(id);
+    }
+
     @GetMapping("/allRepayment")
     public List<Repayment> getAllRepayments() {
         return repaymentService.getAllRepayments();
+    }
+
+    // ✅ METIER : payer un crédit
+    // Exemple: POST /Repayment/pay/5?allowPartialIfOverpay=true
+    @PostMapping("/pay-credit/{creditId}")
+    public Repayment payCredit(
+            @PathVariable Long creditId,
+            @RequestParam(name = "allowPartialIfOverpay", defaultValue = "true") boolean allowPartialIfOverpay,
+            @RequestBody Repayment repayment
+    ) {
+        return repaymentService.payCredit(creditId, repayment, allowPartialIfOverpay);
     }
 }
