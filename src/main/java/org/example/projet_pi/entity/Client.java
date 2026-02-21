@@ -2,6 +2,7 @@ package org.example.projet_pi.entity;
 
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
@@ -69,6 +70,14 @@ public class Client extends User {
         this.documents = documents;
     }
 
+    public List<Claim> getClaims() {
+        return claims;
+    }
+
+    public void setClaims(List<Claim> claims) {
+        this.claims = claims;
+    }
+
     @ManyToOne
     @JsonBackReference("agentAssurance-clients")
     private AgentAssurance agentAssurance;
@@ -93,4 +102,7 @@ public class Client extends User {
 
     @OneToMany(mappedBy = "client")
     private List<Document> documents = new ArrayList<>();
+
+    @OneToMany(mappedBy = "client", cascade = CascadeType.ALL)
+    private List<Claim> claims = new ArrayList<>();
 }

@@ -1,6 +1,7 @@
 package org.example.projet_pi.Service;
 
 import lombok.AllArgsConstructor;
+import org.example.projet_pi.Dto.DocumentDTO;
 import org.example.projet_pi.Repository.*;
 import org.example.projet_pi.Dto.ClaimDTO;
 import org.example.projet_pi.entity.*;
@@ -20,116 +21,140 @@ public class ClaimService implements IClaimService {
     private CompensationRepository compensationRepository;
     private RiskClaimRepository riskClaimRepository;
     private DocumentRepository documentRepository;
+    private ClientRepository clientRepository;
 
     @Override
     public ClaimDTO addClaim(ClaimDTO claimDTO) {
-
-        // Vérifier que contractId n'est pas null
+        // Vérification des IDs essentiels
         if (claimDTO.getContractId() == null) {
             throw new IllegalArgumentException("Le contractId ne peut pas être null !");
         }
+        if (claimDTO.getClientId() == null) {
+            throw new IllegalArgumentException("Le clientId ne peut pas être null !");
+        }
 
-        // Récupérer le contrat
+        // Récupérer le contrat et le client
         InsuranceContract contract = contractRepository.findById(claimDTO.getContractId())
                 .orElseThrow(() -> new RuntimeException(
                         "Le contrat avec l'id " + claimDTO.getContractId() + " n'existe pas !"));
 
-        // Créer le Claim
+        Client client = clientRepository.findById(claimDTO.getClientId())
+                .orElseThrow(() -> new RuntimeException(
+                        "Le client avec l'id " + claimDTO.getClientId() + " n'existe pas !"));
+
+        // Validation métier : montant ne doit pas dépasser le plafond
+        if (claimDTO.getClaimedAmount() > contract.getCoverageLimit()) {
+            throw new RuntimeException("Le montant réclamé dépasse le plafond du contrat !");
+        }
+
+        // Validation métier : pas plus d’un claim actif pour ce client et ce contrat
+        boolean hasActiveClaim = claimRepository.findAll()
+                .stream()
+                .filter(c -> c.getContract() != null && c.getClient() != null) // Protection null
+                .anyMatch(c -> c.getContract().getContractId().equals(contract.getContractId())
+                        && c.getClient().getId().equals(client.getId())
+                        && (c.getStatus() == ClaimStatus.DECLARED || c.getStatus() == ClaimStatus.IN_REVIEW));
+        if (hasActiveClaim) {
+            throw new RuntimeException("Ce client a déjà un claim actif pour ce contrat !");
+        }
+
+        // Création du Claim
         Claim claim = new Claim();
         claim.setClaimDate(claimDTO.getClaimDate());
         claim.setClaimedAmount(claimDTO.getClaimedAmount());
         claim.setApprovedAmount(claimDTO.getApprovedAmount());
         claim.setDescription(claimDTO.getDescription());
-
-        // Conversion String -> Enum
-        if (claimDTO.getStatus() != null) {
-            claim.setStatus(ClaimStatus.valueOf(claimDTO.getStatus()));
-        }
-
         claim.setContract(contract);
+        claim.setClient(client);
+        claim.setStatus(claimDTO.getStatus() != null ? ClaimStatus.valueOf(claimDTO.getStatus()) : ClaimStatus.DECLARED);
 
-        // Ajouter les documents si présents
+        // Création des documents depuis DocumentDTO
         List<Document> documents = new ArrayList<>();
-        if (claimDTO.getDocumentIds() != null) {
-            for (Long docId : claimDTO.getDocumentIds()) {
-                Document doc = documentRepository.findById(docId)
-                        .orElseThrow(() -> new RuntimeException(
-                                "Document avec l'id " + docId + " introuvable !"));
+        if (claimDTO.getDocuments() != null) {
+            for (DocumentDTO docDTO : claimDTO.getDocuments()) {
+                Document doc = new Document();
+                doc.setName(docDTO.getName());
+                doc.setType(docDTO.getType());
+                doc.setFilePath(docDTO.getFilePath());
+                doc.setUploadDate(docDTO.getUploadDate());
+                doc.setClaim(claim);   // liaison au claim
+                doc.setClient(client); // liaison au client
                 documents.add(doc);
             }
         }
-        claim.setDocuments(documents);
 
-        // Sauvegarder le claim
-        Claim savedClaim = claimRepository.save(claim);
-
-        // Retourner le DTO
-        ClaimDTO result = new ClaimDTO();
-        result.setClaimId(savedClaim.getClaimId());
-        result.setClaimDate(savedClaim.getClaimDate());
-        result.setClaimedAmount(savedClaim.getClaimedAmount());
-        result.setApprovedAmount(savedClaim.getApprovedAmount());
-        result.setDescription(savedClaim.getDescription());
-        result.setStatus(savedClaim.getStatus().name());
-        result.setContractId(savedClaim.getContract().getContractId());
-
-        if (!documents.isEmpty()) {
-            List<Long> docIds = new ArrayList<>();
-            for (Document d : documents) docIds.add(d.getDocumentId());
-            result.setDocumentIds(docIds);
+        // Validation métier : documents obligatoires si IN_REVIEW
+        if (claim.getStatus() == ClaimStatus.IN_REVIEW && documents.isEmpty()) {
+            throw new RuntimeException("Tous les documents obligatoires doivent être fournis pour IN_REVIEW !");
         }
 
-        return result;
+        claim.setDocuments(documents);
+
+        // Calculer le RiskClaim
+        RiskClaim riskClaim = calculateRisk(claim);
+        claim.setRiskClaim(riskClaim);
+
+        // Sauvegarder le claim (cascade sauvegardera aussi les documents et RiskClaim)
+        Claim savedClaim = claimRepository.save(claim);
+
+        return ClaimMapper.toDTO(savedClaim);
     }
 
     @Override
     public ClaimDTO updateClaim(ClaimDTO claimDTO) {
-        if (claimDTO.getClaimId() == null) {
-            throw new IllegalArgumentException("claimId ne peut pas être null !");
-        }
+        if (claimDTO.getClaimId() == null) throw new IllegalArgumentException("claimId ne peut pas être null !");
 
         Claim claim = claimRepository.findById(claimDTO.getClaimId())
                 .orElseThrow(() -> new RuntimeException("Claim introuvable !"));
 
+        // Champs simples
         if (claimDTO.getClaimDate() != null) claim.setClaimDate(claimDTO.getClaimDate());
         claim.setClaimedAmount(claimDTO.getClaimedAmount());
         claim.setApprovedAmount(claimDTO.getApprovedAmount());
         if (claimDTO.getDescription() != null) claim.setDescription(claimDTO.getDescription());
 
-        if (claimDTO.getStatus() != null) {
-            claim.setStatus(ClaimStatus.valueOf(claimDTO.getStatus()));
-        }
+        // Statut
+        if (claimDTO.getStatus() != null) claim.setStatus(ClaimStatus.valueOf(claimDTO.getStatus()));
 
-        // Mettre à jour documents si fournis
+        // Documents (ajout / suppression automatique grâce à orphanRemoval)
         if (claimDTO.getDocumentIds() != null) {
-            List<Document> documents = new ArrayList<>();
+            List<Document> newDocuments = new ArrayList<>();
             for (Long docId : claimDTO.getDocumentIds()) {
                 Document doc = documentRepository.findById(docId)
                         .orElseThrow(() -> new RuntimeException("Document introuvable !"));
-                documents.add(doc);
+                doc.setClaim(claim);
+                newDocuments.add(doc);
             }
-            claim.setDocuments(documents);
+            claim.getDocuments().clear();
+            claim.getDocuments().addAll(newDocuments);
+        }
+
+        if (claim.getStatus() == ClaimStatus.IN_REVIEW && (claim.getDocuments() == null || claim.getDocuments().isEmpty())) {
+            throw new RuntimeException("Tous les documents obligatoires doivent être fournis pour IN_REVIEW !");
         }
 
         Claim updatedClaim = claimRepository.save(claim);
 
-        // Retour DTO
-        ClaimDTO result = new ClaimDTO();
-        result.setClaimId(updatedClaim.getClaimId());
-        result.setClaimDate(updatedClaim.getClaimDate());
-        result.setClaimedAmount(updatedClaim.getClaimedAmount());
-        result.setApprovedAmount(updatedClaim.getApprovedAmount());
-        result.setDescription(updatedClaim.getDescription());
-        result.setStatus(updatedClaim.getStatus().name());
-        result.setContractId(updatedClaim.getContract().getContractId());
-
-        if (updatedClaim.getDocuments() != null) {
-            List<Long> docIds = new ArrayList<>();
-            for (Document d : updatedClaim.getDocuments()) docIds.add(d.getDocumentId());
-            result.setDocumentIds(docIds);
+        // RiskClaim
+        RiskClaim riskClaim = updatedClaim.getRiskClaim();
+        if (riskClaim == null) {
+            riskClaim = calculateRisk(updatedClaim);
+        } else {
+            double score = updatedClaim.getClaimedAmount() / 1000;
+            riskClaim.setRiskScore(score);
+            if (score < 5) riskClaim.setRiskLevel("LOW");
+            else if (score < 10) riskClaim.setRiskLevel("MEDIUM");
+            else riskClaim.setRiskLevel("HIGH");
+            riskClaim.setEvaluationNote("Automatique : basé sur le montant réclamé");
         }
 
-        return result;
+        riskClaim.setClaim(updatedClaim);
+        riskClaimRepository.save(riskClaim);
+
+        updatedClaim.setRiskClaim(riskClaim);
+        claimRepository.save(updatedClaim);
+
+        return ClaimMapper.toDTO(updatedClaim);
     }
 
     @Override

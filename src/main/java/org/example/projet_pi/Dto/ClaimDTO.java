@@ -17,8 +17,10 @@ public class ClaimDTO {
     private String description;
     private String status;
 
+    private Long clientId;
     private Long contractId;
     private Long compensationId;
     private Long riskClaimId;
     private List<Long> documentIds;
+    private List<DocumentDTO> documents;
 }

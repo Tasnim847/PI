@@ -12,4 +12,6 @@ public interface DocumentRepository extends JpaRepository<Document, Long> {
 
     // Optionnel : récupérer tous les documents d'un Claim
     List<Document> findByClaimClaimId(Long claimId);
+
+    List<Document> findByClientId(Long clientId);
 }
