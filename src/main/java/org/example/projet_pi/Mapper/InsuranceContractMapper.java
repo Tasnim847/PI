@@ -18,7 +18,8 @@ public class InsuranceContractMapper {
         dto.setPremium(contract.getPremium());
         dto.setDeductible(contract.getDeductible());
         dto.setCoverageLimit(contract.getCoverageLimit());
-        dto.setStatus(contract.getStatus().name());
+        dto.setStatus(contract.getStatus() != null ? contract.getStatus().name() : null);
+        dto.setPaymentFrequency(contract.getPaymentFrequency() != null ? contract.getPaymentFrequency().name() : null);
 
         if (contract.getClient() != null) dto.setClientId(contract.getClient().getId());
         if (contract.getProduct() != null) dto.setProductId(contract.getProduct().getProductId());
@@ -39,7 +40,7 @@ public class InsuranceContractMapper {
         return dto;
     }
 
-    // DTO -> Entity (attention aux relations à gérer depuis le Service)
+    // DTO -> Entity
     public static InsuranceContract toEntity(InsuranceContractDTO dto) {
         if (dto == null) return null;
 
@@ -51,9 +52,11 @@ public class InsuranceContractMapper {
         contract.setDeductible(dto.getDeductible());
         contract.setCoverageLimit(dto.getCoverageLimit());
 
-        // status à gérer
         if (dto.getStatus() != null) {
             contract.setStatus(Enum.valueOf(org.example.projet_pi.entity.ContractStatus.class, dto.getStatus()));
+        }
+        if (dto.getPaymentFrequency() != null) {
+            contract.setPaymentFrequency(Enum.valueOf(org.example.projet_pi.entity.PaymentFrequency.class, dto.getPaymentFrequency()));
         }
 
         return contract;
