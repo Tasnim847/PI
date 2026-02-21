@@ -26,9 +26,7 @@ public class ClaimMapper {
         if (claim.getCompensation() != null) {
             dto.setCompensationId(claim.getCompensation().getCompensationId());
         }
-        if (claim.getRiskClaim() != null) {
-            dto.setRiskClaimId(claim.getRiskClaim().getRiskId()); // corrigé ici
-        }
+
 
         if (claim.getDocuments() != null) {
             dto.setDocumentIds(
@@ -58,7 +56,6 @@ public class ClaimMapper {
         claim.setDescription(dto.getDescription());
         claim.setContract(contract);
         claim.setCompensation(compensation);
-        claim.setRiskClaim(riskClaim);
         claim.setDocuments(documents);
 
         return claim;

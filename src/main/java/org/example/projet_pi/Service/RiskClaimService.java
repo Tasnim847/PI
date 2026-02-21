@@ -1,7 +1,11 @@
 package org.example.projet_pi.Service;
 
 import lombok.AllArgsConstructor;
+import org.example.projet_pi.Dto.RiskClaimDTO;
+import org.example.projet_pi.Mapper.RiskClaimMapper;
+import org.example.projet_pi.Repository.InsuranceContractRepository;
 import org.example.projet_pi.Repository.RiskClaimRepository;
+import org.example.projet_pi.entity.InsuranceContract;
 import org.example.projet_pi.entity.RiskClaim;
 import org.springframework.stereotype.Service;
 
@@ -11,16 +15,38 @@ import java.util.List;
 @AllArgsConstructor
 public class RiskClaimService implements IRiskClaimService {
 
-    RiskClaimRepository riskClaimRepository;
+    private RiskClaimRepository riskClaimRepository;
+    private InsuranceContractRepository contractRepository;
 
     @Override
-    public RiskClaim addRiskClaim(RiskClaim riskClaim) {
-        return riskClaimRepository.save(riskClaim);
+    public RiskClaimDTO addRiskClaim(RiskClaimDTO dto) {
+
+        RiskClaim riskClaim = RiskClaimMapper.toEntity(dto);
+
+        if (dto.getContractId() != null) {
+            InsuranceContract contract = contractRepository.findById(dto.getContractId())
+                    .orElseThrow(() -> new RuntimeException("Contract not found"));
+            riskClaim.setContract(contract);
+        }
+
+        riskClaim = riskClaimRepository.save(riskClaim);
+
+        return RiskClaimMapper.toDTO(riskClaim);
     }
 
     @Override
-    public RiskClaim updateRiskClaim(RiskClaim riskClaim) {
-        return riskClaimRepository.save(riskClaim);
+    public RiskClaimDTO updateRiskClaim(RiskClaimDTO dto) {
+
+        RiskClaim riskClaim = riskClaimRepository.findById(dto.getRiskId())
+                .orElseThrow(() -> new RuntimeException("Risk not found"));
+
+        riskClaim.setRiskScore(dto.getRiskScore());
+        riskClaim.setRiskLevel(dto.getRiskLevel());
+        riskClaim.setEvaluationNote(dto.getEvaluationNote());
+
+        riskClaim = riskClaimRepository.save(riskClaim);
+
+        return RiskClaimMapper.toDTO(riskClaim);
     }
 
     @Override
@@ -29,12 +55,17 @@ public class RiskClaimService implements IRiskClaimService {
     }
 
     @Override
-    public RiskClaim getRiskClaimById(Long id) {
-        return riskClaimRepository.findById(id).get();
+    public RiskClaimDTO getRiskClaimById(Long id) {
+        RiskClaim riskClaim = riskClaimRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Risk not found"));
+        return RiskClaimMapper.toDTO(riskClaim);
     }
 
     @Override
-    public List<RiskClaim> getAllRiskClaims() {
-        return riskClaimRepository.findAll();
+    public List<RiskClaimDTO> getAllRiskClaims() {
+        return riskClaimRepository.findAll()
+                .stream()
+                .map(RiskClaimMapper::toDTO)
+                .toList();
     }
 }

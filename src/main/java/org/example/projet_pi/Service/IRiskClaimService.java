@@ -1,18 +1,18 @@
 package org.example.projet_pi.Service;
 
-import org.example.projet_pi.entity.RiskClaim;
+import org.example.projet_pi.Dto.RiskClaimDTO;
 
 import java.util.List;
 
 public interface IRiskClaimService {
 
-    RiskClaim addRiskClaim(RiskClaim riskClaim);
+    RiskClaimDTO addRiskClaim(RiskClaimDTO dto);
 
-    RiskClaim updateRiskClaim(RiskClaim riskClaim);
+    RiskClaimDTO updateRiskClaim(RiskClaimDTO dto);
 
     void deleteRiskClaim(Long id);
 
-    RiskClaim getRiskClaimById(Long id);
+    RiskClaimDTO getRiskClaimById(Long id);
 
-    List<RiskClaim> getAllRiskClaims();
+    List<RiskClaimDTO> getAllRiskClaims();
 }
