@@ -1,6 +1,5 @@
 package org.example.projet_pi.Dto;
 
-
 import lombok.Getter;
 import lombok.Setter;
 
@@ -18,6 +17,8 @@ public class InsuranceContractDTO {
     private double deductible;
     private double coverageLimit;
     private String status;
+
+    private String paymentFrequency; // 🔹 ajouter pour le client
 
     private Long clientId;
     private Long productId;
