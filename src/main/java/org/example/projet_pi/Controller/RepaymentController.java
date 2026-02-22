@@ -4,6 +4,7 @@ import org.example.projet_pi.Service.IRepaymentService;
 import org.example.projet_pi.entity.Repayment;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @RestController
@@ -47,9 +48,12 @@ public class RepaymentController {
     @PostMapping("/pay-credit/{creditId}")
     public Repayment payCredit(
             @PathVariable Long creditId,
-            @RequestParam(name = "allowPartialIfOverpay", defaultValue = "true") boolean allowPartialIfOverpay,
             @RequestBody Repayment repayment
     ) {
-        return repaymentService.payCredit(creditId, repayment, allowPartialIfOverpay);
+        return repaymentService.payCredit(creditId, repayment);
+    }
+    @GetMapping("/remaining/{creditId}")
+    public BigDecimal getRemainingAmount(@PathVariable Long creditId) {
+        return repaymentService.getRemainingAmount(creditId);
     }
 }
