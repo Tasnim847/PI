@@ -28,7 +28,6 @@ public class RepaymentService implements IRepaymentService {
     }
 
     // ===== CRUD =====
-
     @Override
     public Repayment addRepayment(Repayment repayment) {
         return repaymentRepository.save(repayment);
@@ -55,12 +54,11 @@ public class RepaymentService implements IRepaymentService {
     }
 
     // ===== METIER : payer un crédit =====
-
     @Override
     @Transactional
-    public Repayment payCredit(Long creditId, Repayment repayment, boolean allowPartialIfOverpay) {
+    public Repayment payCredit(Long creditId, Repayment repayment) {
 
-        // 1) Validation
+        // 1) Validation basique
         if (repayment == null) {
             throw new IllegalArgumentException("Repayment est null");
         }
@@ -75,7 +73,6 @@ public class RepaymentService implements IRepaymentService {
         Credit credit = creditRepository.findById(creditId)
                 .orElseThrow(() -> new IllegalArgumentException("Credit introuvable"));
 
-        // ✅ Vérifications métier sur statut
         CreditStatus st = credit.getStatus();
 
         if (st == CreditStatus.CLOSED) {
@@ -98,57 +95,44 @@ public class RepaymentService implements IRepaymentService {
             repayment.setReference("PAY-" + creditId + "-" + UUID.randomUUID().toString().substring(0, 8));
         }
 
-        // 5) Total payé (PAID) - SAFE si null
+        // 5) Total payé (PAID)
         BigDecimal totalPaid = repaymentRepository.sumPaidSuccess(creditId);
         if (totalPaid == null) totalPaid = BigDecimal.ZERO;
         totalPaid = totalPaid.setScale(2, RoundingMode.HALF_UP);
 
-        // 6) Total payable = monthlyPayment * duration
+        // 6) Calcul du montant total à payer
         BigDecimal monthly = BigDecimal.valueOf(credit.getMonthlyPayment()).setScale(2, RoundingMode.HALF_UP);
-
-        BigDecimal totalPayable = monthly
-                .multiply(BigDecimal.valueOf(credit.getDurationInMonths()))
+        BigDecimal totalPayable = monthly.multiply(BigDecimal.valueOf(credit.getDurationInMonths()))
                 .setScale(2, RoundingMode.HALF_UP);
-
         BigDecimal remaining = totalPayable.subtract(totalPaid).setScale(2, RoundingMode.HALF_UP);
 
-        // Si déjà payé
         if (remaining.compareTo(BigDecimal.ZERO) <= 0) {
             credit.setStatus(CreditStatus.CLOSED);
             creditRepository.save(credit);
             throw new IllegalStateException("Credit déjà payé");
         }
 
-        // 7) Gestion surpaiement
-        BigDecimal acceptedAmount = repayment.getAmount().setScale(2, RoundingMode.HALF_UP);
+        // 7) Vérification stricte du paiement
+        BigDecimal amountToPay = repayment.getAmount().setScale(2, RoundingMode.HALF_UP);
 
-        if (acceptedAmount.compareTo(remaining) > 0) {
-
-            if (!allowPartialIfOverpay) {
-                // surpaiement refusé => FAILED enregistré
-                repayment.setStatus(RepaymentStatus.FAILED);
-                repayment.setCredit(credit);
-                return repaymentRepository.save(repayment);
-            }
-
-            // Accepter seulement le restant
-            acceptedAmount = remaining;
-            repayment.setAmount(acceptedAmount);
+        if (amountToPay.compareTo(monthly) < 0 || amountToPay.compareTo(remaining) > 0) {
+            // Paiement trop faible ou trop élevé → FAILED
+            repayment.setStatus(RepaymentStatus.FAILED);
+            repayment.setCredit(credit);
+            return repaymentRepository.save(repayment);
         }
 
-        // 8) Save PAID
+        // 8) Paiement valide → PAID
         repayment.setStatus(RepaymentStatus.PAID);
         repayment.setCredit(credit);
-
         Repayment saved = repaymentRepository.save(repayment);
 
-        // ✅ Dès le 1er paiement, passer le crédit en IN_REPAYMENT
+        // 9) Mise à jour du statut du crédit
         if (credit.getStatus() == CreditStatus.APPROVED) {
             credit.setStatus(CreditStatus.IN_REPAYMENT);
         }
 
-        // 9) Update credit status
-        BigDecimal newTotalPaid = totalPaid.add(acceptedAmount).setScale(2, RoundingMode.HALF_UP);
+        BigDecimal newTotalPaid = totalPaid.add(amountToPay).setScale(2, RoundingMode.HALF_UP);
         BigDecimal newRemaining = totalPayable.subtract(newTotalPaid).setScale(2, RoundingMode.HALF_UP);
 
         if (newRemaining.compareTo(BigDecimal.ZERO) <= 0) {
@@ -158,5 +142,21 @@ public class RepaymentService implements IRepaymentService {
         creditRepository.save(credit);
 
         return saved;
+    }
+    /**
+     * Retourne le montant restant à payer pour un crédit
+     */
+    public BigDecimal getRemainingAmount(Long creditId) {
+        Credit credit = creditRepository.findById(creditId)
+                .orElseThrow(() -> new IllegalArgumentException("Credit introuvable"));
+
+        BigDecimal monthly = BigDecimal.valueOf(credit.getMonthlyPayment()).setScale(2, RoundingMode.HALF_UP);
+        BigDecimal totalPayable = monthly.multiply(BigDecimal.valueOf(credit.getDurationInMonths())).setScale(2, RoundingMode.HALF_UP);
+
+        BigDecimal totalPaid = repaymentRepository.sumPaidSuccess(creditId);
+        if (totalPaid == null) totalPaid = BigDecimal.ZERO;
+        totalPaid = totalPaid.setScale(2, RoundingMode.HALF_UP);
+
+        return totalPayable.subtract(totalPaid).setScale(2, RoundingMode.HALF_UP);
     }
 }
