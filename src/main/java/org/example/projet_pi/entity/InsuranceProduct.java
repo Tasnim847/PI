@@ -1,10 +1,11 @@
 package org.example.projet_pi.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 
+@Getter
+@Setter
 @Entity
 public class InsuranceProduct {
 
@@ -16,35 +17,8 @@ public class InsuranceProduct {
     private String description;
     private double basePrice;
 
-    public Long getProductId() {
-        return productId;
-    }
+    private String productType;
 
-    public void setProductId(Long productId) {
-        this.productId = productId;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public double getBasePrice() {
-        return basePrice;
-    }
-
-    public void setBasePrice(double basePrice) {
-        this.basePrice = basePrice;
-    }
+    @Enumerated(EnumType.STRING)
+    private ProductStatus status;
 }

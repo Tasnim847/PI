@@ -1,21 +1,18 @@
 package org.example.projet_pi.Service;
 
-import org.example.projet_pi.entity.Payment;
+import org.example.projet_pi.Dto.PaymentDTO;
 
 import java.util.List;
 
 public interface IPaymentService {
 
-    //Iservice
+    PaymentDTO addPayment(PaymentDTO dto);
 
-    public Payment addPayment(Payment payment);
+    PaymentDTO updatePayment(PaymentDTO dto);
 
-    public Payment updatePayment(Payment payment);
+    void deletePayment(Long id);
 
-    public void deletePayment(Long id);
+    PaymentDTO getPaymentById(Long id);
 
-    public Payment getPaymentById(Long id);
-
-    public List<Payment> getAllPayments();
+    List<PaymentDTO> getAllPayments();
 }
-

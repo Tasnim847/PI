@@ -19,13 +19,15 @@ public class Payment {
 
     private Date paymentDate;
 
-    private String paymentMethod;
+    @Enumerated(EnumType.STRING)
+    private PaymentMethod paymentMethod;
 
     @Enumerated(EnumType.STRING)
     private PaymentStatus status;
 
     @ManyToOne
     private InsuranceContract contract;
+
 
 
 }
