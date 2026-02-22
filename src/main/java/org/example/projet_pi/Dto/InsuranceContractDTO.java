@@ -17,8 +17,7 @@ public class InsuranceContractDTO {
     private double deductible;
     private double coverageLimit;
     private String status;
-
-    private String paymentFrequency; // 🔹 ajouter pour le client
+    private String paymentFrequency;
 
     private Long clientId;
     private Long productId;
@@ -26,4 +25,8 @@ public class InsuranceContractDTO {
 
     private List<Long> claimIds;
     private List<Long> paymentIds;
+
+    // 🔥 NOUVEAUX CHAMPS
+    private double totalPaid;
+    private double remainingAmount;
 }

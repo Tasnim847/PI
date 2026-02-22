@@ -1,20 +1,18 @@
 package org.example.projet_pi.Service;
 
-import org.example.projet_pi.entity.InsuranceProduct;
+import org.example.projet_pi.Dto.InsuranceProductDTO;
 
 import java.util.List;
 
 public interface IInsuranceProductService {
 
-    //Iservice
+    InsuranceProductDTO addProduct(InsuranceProductDTO dto);
 
-    public InsuranceProduct addProduct(InsuranceProduct product);
+    InsuranceProductDTO updateProduct(InsuranceProductDTO dto);
 
-    public InsuranceProduct updateProduct(InsuranceProduct product);
+    void deleteProduct(Long id);
 
-    public void deleteProduct(Long id);
+    InsuranceProductDTO getProductById(Long id);
 
-    public InsuranceProduct getProductById(Long id);
-
-    public List<InsuranceProduct> getAllProducts();
+    List<InsuranceProductDTO> getAllProducts();
 }

@@ -19,9 +19,13 @@ public class InsuranceContract {
     private Date startDate;
     private Date endDate;
 
-    private double premium;          // prime totale du contrat
-    private double deductible;       // franchise
-    private double coverageLimit;    // plafond
+    private double premium;
+    private double deductible;
+    private double coverageLimit;
+
+    // 🔥 NOUVEAUX CHAMPS
+    private double totalPaid = 0;
+    private double remainingAmount;
 
     @Enumerated(EnumType.STRING)
     private ContractStatus status;
@@ -47,16 +51,14 @@ public class InsuranceContract {
     @OneToMany(mappedBy = "contract", cascade = CascadeType.ALL)
     private List<Payment> payments;
 
-    // Calculer le montant de compensation pour un claim
-    public double calculateCompensation(double claimedAmount) {
-        double amountAfterDeductible = claimedAmount - deductible;
-        if (amountAfterDeductible <= 0) return 0;
-        return Math.min(amountAfterDeductible, coverageLimit);
-    }
-
-    // ⚡ Logique métier avancée : calcul des échéances selon la fréquence de paiement
+    // ============================================================
+// 🔥 CALCUL DES ÉCHÉANCES SELON LA FRÉQUENCE
+// ============================================================
     public double calculateInstallmentAmount() {
-        if (paymentFrequency == null) return premium; // par défaut montant total
+
+        if (paymentFrequency == null)
+            return premium;
+
         switch (paymentFrequency) {
             case MONTHLY:
                 return premium / 12;
@@ -65,6 +67,29 @@ public class InsuranceContract {
             case ANNUAL:
             default:
                 return premium;
+        }
+    }
+
+    // 🔥 INITIALISATION
+    public void initializeAmounts() {
+        this.totalPaid = 0;
+        this.remainingAmount = this.premium;
+    }
+
+    // 🔥 LOGIQUE MÉTIER AVANCÉE
+    public void applyPayment(double amount) {
+
+        if (amount <= 0)
+            throw new RuntimeException("Montant invalide");
+
+        if (amount > remainingAmount)
+            throw new RuntimeException("Paiement dépasse le montant restant");
+
+        this.totalPaid += amount;
+        this.remainingAmount -= amount;
+
+        if (this.remainingAmount == 0) {
+            this.status = ContractStatus.COMPLETED;
         }
     }
 }
