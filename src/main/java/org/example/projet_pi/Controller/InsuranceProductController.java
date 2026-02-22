@@ -1,8 +1,8 @@
 package org.example.projet_pi.Controller;
 
 import lombok.AllArgsConstructor;
+import org.example.projet_pi.Dto.InsuranceProductDTO;
 import org.example.projet_pi.Service.IInsuranceProductService;
-import org.example.projet_pi.entity.InsuranceProduct;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -12,36 +12,30 @@ import java.util.List;
 @RequestMapping("/products")
 public class InsuranceProductController {
 
-     IInsuranceProductService insuranceProductService;
-
-    //crude
+    private final IInsuranceProductService insuranceProductService;
 
     @PostMapping("/addProduct")
-    public InsuranceProduct addProduct(@RequestBody InsuranceProduct product) {
-        InsuranceProduct product1 = insuranceProductService.addProduct(product);
-        return product1;
+    public InsuranceProductDTO addProduct(@RequestBody InsuranceProductDTO dto) {
+        return insuranceProductService.addProduct(dto);
     }
 
     @PutMapping("/updateProduct")
-    public InsuranceProduct updateProduct(@RequestBody InsuranceProduct product) {
-        InsuranceProduct product1 = insuranceProductService.updateProduct(product);
-        return product1;
+    public InsuranceProductDTO updateProduct(@RequestBody InsuranceProductDTO dto) {
+        return insuranceProductService.updateProduct(dto);
     }
 
     @DeleteMapping("/deleteProduct/{id}")
-    public void deleteProduct(@PathVariable("id") Long id) {
+    public void deleteProduct(@PathVariable Long id) {
         insuranceProductService.deleteProduct(id);
     }
 
     @GetMapping("/getProduct/{id}")
-    public InsuranceProduct getProductById(@PathVariable("id") Long id) {
-        InsuranceProduct product = insuranceProductService.getProductById(id);
-        return product;
+    public InsuranceProductDTO getProductById(@PathVariable Long id) {
+        return insuranceProductService.getProductById(id);
     }
 
     @GetMapping("/allProduct")
-    public List<InsuranceProduct> getAllProducts() {
-        List<InsuranceProduct> products = insuranceProductService.getAllProducts();
-        return products;
+    public List<InsuranceProductDTO> getAllProducts() {
+        return insuranceProductService.getAllProducts();
     }
 }
