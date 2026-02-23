@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Contrat d'Assurance</title>
+
+    <style>
+        body {
+            font-family: 'DejaVu Sans', Arial, sans-serif;
+            margin: 40px;
+            color: #1a1a1a;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        /* En-tête officiel avec logo */
+        .header {
+            border-bottom: 3px solid #1e3c72;
+            padding-bottom: 15px;
+            margin-bottom: 30px;
+        }
+
+        .header-table {
+            width: 100%;
+        }
+
+        .logo {
+            height: 80px;
+        }
+
+        .company-name {
+            font-size: 26px;
+            font-weight: bold;
+            color: #1e3c72;
+            text-align: right;
+        }
+
+        .contract-title {
+            font-size: 18px;
+            margin-top: 5px;
+            font-weight: 600;
+            text-align: right;
+        }
+
+        .contract-number {
+            font-size: 13px;
+            margin-top: 5px;
+            color: #555;
+            text-align: right;
+        }
+
+        /* Sections */
+        .section {
+            margin-bottom: 30px;
+        }
+
+        .section-title {
+            font-size: 16px;
+            font-weight: bold;
+            border-left: 4px solid #1e3c72;
+            padding-left: 10px;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+        }
+
+        /* Tableau professionnel */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        th {
+            background-color: #f2f4f8;
+            border: 1px solid #ccc;
+            padding: 10px;
+            font-weight: 600;
+            text-align: left;
+        }
+
+        td {
+            border: 1px solid #ccc;
+            padding: 8px;
+        }
+
+        /* Informations clés */
+        .info-block {
+            margin-bottom: 10px;
+        }
+
+        .label {
+            font-weight: bold;
+            width: 180px;
+            display: inline-block;
+        }
+
+        /* Montants */
+        .amount {
+            font-weight: bold;
+            color: #1e3c72;
+        }
+
+        /* Statut */
+        .status {
+            font-weight: bold;
+        }
+
+        /* Signature */
+        .signature-section {
+            margin-top: 60px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .signature-box {
+            width: 45%;
+            text-align: center;
+        }
+
+        .signature-line {
+            border-top: 1px solid black;
+            margin-top: 60px;
+            padding-top: 5px;
+        }
+
+        /* Footer */
+        .footer {
+            margin-top: 50px;
+            text-align: center;
+            font-size: 12px;
+            border-top: 1px solid #ccc;
+            padding-top: 10px;
+            color: #555;
+        }
+    </style>
+</head>
+
+<body>
+
+<!-- HEADER AVEC LOGO -->
+<!-- HEADER AVEC LOGO DEPUIS FICHIER -->
+<div class="header">
+    <table class="header-table">
+        <tr>
+            <td style="width: 30%;">
+                <!-- Logo depuis le système de fichiers -->
+                <img src="file:///C:/Users/ghodb/OneDrive/Bureau/PI/PI/src/main/resources/static/images/logo.png"
+                     alt="Logo Assurance"
+                     class="logo"/>
+            </td>
+            <td style="width: 70%;">
+                <div class="company-name">SurFinity</div>
+                <div class="contract-title">
+                    CONTRAT D’ASSURANCE N°
+                    <span th:text="${contract.contractId}"></span>
+                </div>
+                <div class="contract-number">
+                    Émis le
+                    <span th:text="${#dates.format(#dates.createNow(),'dd/MM/yyyy')}"></span>
+                </div>
+            </td>
+        </tr>
+    </table>
+</div>
+
+<!-- INFORMATIONS GÉNÉRALES -->
+<div class="section">
+    <div class="section-title">Informations Générales</div>
+
+    <div class="info-block">
+        <span class="label">Date de début :</span>
+        <span th:text="${#dates.format(contract.startDate,'dd/MM/yyyy')}"></span>
+    </div>
+
+    <div class="info-block">
+        <span class="label">Date de fin :</span>
+        <span th:text="${#dates.format(contract.endDate,'dd/MM/yyyy')}"></span>
+    </div>
+
+    <div class="info-block">
+        <span class="label">Statut du contrat :</span>
+        <span class="status" th:text="${contract.status}"></span>
+    </div>
+
+    <div class="info-block">
+        <span class="label">Fréquence de paiement :</span>
+        <span th:text="${contract.paymentFrequency}"></span>
+    </div>
+</div>
+
+<!-- PARTIES -->
+<div class="section">
+    <div class="section-title">Parties Contractantes</div>
+
+    <table>
+        <tr>
+            <th>Client</th>
+            <th>Agent d’Assurance</th>
+        </tr>
+        <tr>
+            <td>
+                <strong th:text="${client.firstName + ' ' + client.lastName}"></strong><br/>
+                Email : <span th:text="${client.email}"></span>
+            </td>
+            <td>
+                <strong th:text="${agent.firstName + ' ' + agent.lastName}"></strong><br/>
+                Email : <span th:text="${agent.email}"></span>
+            </td>
+        </tr>
+    </table>
+</div>
+
+<!-- DÉTAILS FINANCIERS -->
+<div class="section">
+    <div class="section-title">Détails Financiers</div>
+
+    <table>
+        <tr>
+            <th>Élément</th>
+            <th>Montant (DT)</th>
+        </tr>
+        <tr>
+            <td>Prime Totale</td>
+            <td class="amount" th:text="${#numbers.formatDecimal(contract.premium,1,2)}"></td>
+        </tr>
+        <tr>
+            <td>Franchise</td>
+            <td th:text="${#numbers.formatDecimal(contract.deductible,1,2)}"></td>
+        </tr>
+        <tr>
+            <td>Plafond de Garantie</td>
+            <td th:text="${#numbers.formatDecimal(contract.coverageLimit,1,2)}"></td>
+        </tr>
+        <tr>
+            <td>Montant Déjà Payé</td>
+            <td th:text="${#numbers.formatDecimal(contract.totalPaid,1,2)}"></td>
+        </tr>
+        <tr>
+            <td>Reste à Payer</td>
+            <td class="amount" th:text="${#numbers.formatDecimal(contract.remainingAmount,1,2)}"></td>
+        </tr>
+    </table>
+</div>
+
+<!-- ÉCHÉANCIER -->
+<div class="section" th:if="${payments != null}">
+    <div class="section-title">Échéancier des Paiements</div>
+
+    <table>
+        <tr>
+            <th>Date d’échéance</th>
+            <th>Montant</th>
+            <th>Statut</th>
+        </tr>
+
+        <tr th:each="payment : ${payments}">
+            <td th:text="${#dates.format(payment.paymentDate,'dd/MM/yyyy')}"></td>
+            <td th:text="${#numbers.formatDecimal(payment.amount,1,2)}"></td>
+            <td th:text="${payment.status}"></td>
+        </tr>
+    </table>
+</div>
+
+<!-- SIGNATURES -->
+<div class="signature-section">
+    <div class="signature-box">
+        <div class="signature-line">
+            Signature du Client
+            <span th:text="${client.firstName + ' ' + client.lastName}"></span>
+        </div>
+    </div>
+
+    <div class="signature-box">
+        <div class="signature-line">
+
+            Signature de l’Agent
+            <span th:text="${agent.firstName + ' ' + agent.lastName}"></span>
+        </div>
+    </div>
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+    ASSURANCE PRO + – Société agréée par l’autorité de régulation.<br/>
+    Document généré automatiquement le
+    <span th:text="${#dates.format(#dates.createNow(),'dd/MM/yyyy HH:mm')}"></span><br/>
+    Ce document a valeur contractuelle.
+</div>
+
+</body>
+</html>
