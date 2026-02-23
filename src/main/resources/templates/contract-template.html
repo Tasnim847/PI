@@ -262,29 +262,45 @@
 </div>
 
 <!-- SIGNATURES -->
-<div class="signature-section">
-    <div class="signature-box">
-        <div class="signature-line">
-            Signature du Client
-            <span th:text="${client.firstName + ' ' + client.lastName}"></span>
-        </div>
-    </div>
+<div style="margin-top: 70px; width: 100%;">
+    <table style="width:100%; text-align:center;">
+        <tr>
+            <td style="width:50%;">
+                <div style="margin-bottom:60px;"></div>
+                <div style="border-top:1px solid #000; width:80%; margin:0 auto; padding-top:8px;">
+                    Signature du Client<br/>
+                    <strong th:text="${client.firstName + ' ' + client.lastName}"></strong>
+                </div>
+            </td>
 
-    <div class="signature-box">
-        <div class="signature-line">
-
-            Signature de l’Agent
-            <span th:text="${agent.firstName + ' ' + agent.lastName}"></span>
-        </div>
-    </div>
+            <td style="width:50%;">
+                <div style="margin-bottom:60px;"></div>
+                <div style="border-top:1px solid #000; width:80%; margin:0 auto; padding-top:8px;">
+                    Signature de l’Agent<br/>
+                    <strong th:text="${agent.firstName + ' ' + agent.lastName}"></strong>
+                </div>
+            </td>
+        </tr>
+    </table>
 </div>
 
 <!-- FOOTER -->
-<div class="footer">
-    ASSURANCE PRO + – Société agréée par l’autorité de régulation.<br/>
+<div style="
+    margin-top:60px;
+    text-align:center;
+    font-size:12px;
+    border-top:2px solid #1e3c72;
+    padding-top:15px;
+    color:#555;
+">
+    <strong>SurFinity</strong> – Société agréée par l’autorité de régulation.<br/>
+    Siège social : Tunis, Tunisie<br/>
+    Email : SureFinity@esprit.tn | Téléphone : +216 54567890<br/><br/>
+
     Document généré automatiquement le
-    <span th:text="${#dates.format(#dates.createNow(),'dd/MM/yyyy HH:mm')}"></span><br/>
-    Ce document a valeur contractuelle.
+    <span th:text="${#dates.format(#dates.createNow(),'dd/MM/yyyy HH:mm')}"></span>.<br/>
+
+    Ce document a valeur contractuelle conformément aux conditions générales.
 </div>
 
 </body>
