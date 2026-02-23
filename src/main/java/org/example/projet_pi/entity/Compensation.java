@@ -18,6 +18,7 @@ public class Compensation {
 
     private double amount;
 
+    @Temporal(TemporalType.DATE)
     private Date paymentDate;
 
     @OneToOne
