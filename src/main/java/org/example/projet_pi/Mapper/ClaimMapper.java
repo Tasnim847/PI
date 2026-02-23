@@ -1,8 +1,11 @@
 package org.example.projet_pi.Mapper;
 
 import org.example.projet_pi.Dto.ClaimDTO;
+import org.example.projet_pi.Dto.DocumentDTO;
 import org.example.projet_pi.entity.*;
 
+import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -27,14 +30,27 @@ public class ClaimMapper {
             dto.setCompensationId(claim.getCompensation().getCompensationId());
         }
 
-
+        // Conversion: Garder LocalDateTime (pas de conversion vers Date)
         if (claim.getDocuments() != null) {
-            dto.setDocumentIds(
-                    claim.getDocuments()
-                            .stream()
-                            .map(Document::getDocumentId)
-                            .collect(Collectors.toList())
-            );
+            List<DocumentDTO> documentDTOs = new ArrayList<>();
+            for (Document doc : claim.getDocuments()) {
+                DocumentDTO docDTO = new DocumentDTO();
+                docDTO.setDocumentId(doc.getDocumentId());
+                docDTO.setName(doc.getName());
+                docDTO.setType(doc.getType());
+                docDTO.setFilePath(doc.getFilePath());
+
+                // 🔥 Garder LocalDateTime, pas de conversion
+                docDTO.setUploadDate(doc.getUploadDate());
+
+                docDTO.setStatus(doc.getStatus() != null ? doc.getStatus().name() : null);
+                documentDTOs.add(docDTO);
+            }
+            dto.setDocuments(documentDTOs);
+            dto.setDocumentIds(claim.getDocuments()
+                    .stream()
+                    .map(Document::getDocumentId)
+                    .collect(Collectors.toList()));
         }
 
         return dto;
@@ -44,7 +60,6 @@ public class ClaimMapper {
     public static Claim toEntity(ClaimDTO dto,
                                  InsuranceContract contract,
                                  Compensation compensation,
-                                 RiskClaim riskClaim,
                                  List<Document> documents) {
         if (dto == null) return null;
 
@@ -58,7 +73,10 @@ public class ClaimMapper {
         claim.setCompensation(compensation);
         claim.setDocuments(documents);
 
+        if (dto.getStatus() != null) {
+            claim.setStatus(ClaimStatus.valueOf(dto.getStatus()));
+        }
+
         return claim;
     }
-
 }

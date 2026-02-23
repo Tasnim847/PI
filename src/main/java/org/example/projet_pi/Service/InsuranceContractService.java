@@ -5,7 +5,9 @@ import org.example.projet_pi.Dto.InsuranceContractDTO;
 import org.example.projet_pi.Mapper.InsuranceContractMapper;
 import org.example.projet_pi.Repository.*;
 import org.example.projet_pi.entity.*;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -65,10 +67,11 @@ public class InsuranceContractService implements IInsuranceContractService {
         riskClaim.setContract(contract);
         contract.setRiskClaim(riskClaim);
 
+        // MODIFICATION 1: Le contrat est INACTIF par défaut, sauf si risque HIGH
         if ("HIGH".equals(riskClaim.getRiskLevel())) {
             contract.setStatus(ContractStatus.CANCELLED);
         } else {
-            contract.setStatus(ContractStatus.ACTIVE);
+            contract.setStatus(ContractStatus.INACTIVE);  // Changé de ACTIVE à INACTIVE
         }
 
         // 🔥 GÉNÉRATION DES PAIEMENTS PLANIFIÉS
@@ -278,4 +281,285 @@ public class InsuranceContractService implements IInsuranceContractService {
 
         return riskClaim;
     }
+
+
+
+// ============================================================
+// 🔥 VÉRIFICATION DES RETARDS DE PAIEMENT - VERSION OPTIMISÉE
+// ============================================================
+
+    /**
+     * Vérification quotidienne à minuit
+     */
+    @Scheduled(cron = "0 0 0 * * ?")
+    @Transactional
+    public void checkLatePayments() {
+        System.out.println("🔍 Vérification quotidienne des retards - " + new Date());
+
+        // Contrats ACTIFS
+        List<InsuranceContract> activeContracts = contractRepository.findByStatus(ContractStatus.ACTIVE);
+        System.out.println("📊 " + activeContracts.size() + " contrat(s) actif(s)");
+
+        for (InsuranceContract contract : activeContracts) {
+            checkAndMarkLatePaymentsByFrequency(contract);
+            checkAndCancelContractForLatePayments(contract);
+        }
+
+        // Contrats INACTIFS (mise à jour des statuts seulement)
+        List<InsuranceContract> inactiveContracts = contractRepository.findByStatus(ContractStatus.INACTIVE);
+        for (InsuranceContract contract : inactiveContracts) {
+            checkAndMarkLatePaymentsByFrequency(contract);
+        }
+    }
+
+    /**
+     * Vérification de fin de mois à 23:59
+     */
+    @Scheduled(cron = "0 59 23 L * ?")
+    @Transactional
+    public void checkEndOfMonthLatePayments() {
+        System.out.println("📅 Vérification de fin de mois - " + new Date());
+
+        List<InsuranceContract> activeContracts = contractRepository.findByStatus(ContractStatus.ACTIVE);
+        for (InsuranceContract contract : activeContracts) {
+            checkAndMarkMonthlyLatePayments(contract);
+            checkAndCancelContractForLatePayments(contract);
+        }
+
+        List<InsuranceContract> inactiveContracts = contractRepository.findByStatus(ContractStatus.INACTIVE);
+        for (InsuranceContract contract : inactiveContracts) {
+            checkAndMarkMonthlyLatePayments(contract);
+        }
+    }
+
+    /**
+     * Marque les paiements en retard selon la fréquence
+     */
+    private void checkAndMarkLatePaymentsByFrequency(InsuranceContract contract) {
+        if (contract.getPayments() == null || contract.getPayments().isEmpty()) return;
+
+        Date today = new Date();
+        Calendar cal = Calendar.getInstance();
+        boolean paymentsUpdated = false;
+
+        for (Payment payment : contract.getPayments()) {
+            if (payment.getStatus() != PaymentStatus.PENDING) continue;
+
+            Date paymentDate = payment.getPaymentDate();
+            cal.setTime(paymentDate);
+
+            String period = "";
+            switch (contract.getPaymentFrequency()) {
+                case MONTHLY:
+                    cal.add(Calendar.MONTH, 1);
+                    period = "mois";
+                    break;
+                case SEMI_ANNUAL:
+                    cal.add(Calendar.MONTH, 6);
+                    period = "semestre";
+                    break;
+                case ANNUAL:
+                    cal.add(Calendar.YEAR, 1);
+                    period = "an";
+                    break;
+            }
+
+            if (cal.getTime().before(today)) {
+                payment.setStatus(PaymentStatus.LATE);
+                paymentsUpdated = true;
+                System.out.println("⏰ Paiement " + payment.getPaymentId() +
+                        " (" + period + ") du " + paymentDate + " marqué LATE");
+            }
+        }
+
+        if (paymentsUpdated) contractRepository.save(contract);
+    }
+
+    /**
+     * Marque les paiements mensuels en retard (fin de mois)
+     */
+    private void checkAndMarkMonthlyLatePayments(InsuranceContract contract) {
+        if (contract.getPayments() == null || contract.getPayments().isEmpty()) return;
+
+        Date today = new Date();
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(today);
+        cal.set(Calendar.DAY_OF_MONTH, 1);
+        cal.set(Calendar.HOUR_OF_DAY, 0);
+        cal.set(Calendar.MINUTE, 0);
+        cal.set(Calendar.SECOND, 0);
+        cal.set(Calendar.MILLISECOND, 0);
+        Date firstDayOfMonth = cal.getTime();
+
+        boolean paymentsUpdated = false;
+
+        for (Payment payment : contract.getPayments()) {
+            if (payment.getStatus() == PaymentStatus.PENDING &&
+                    payment.getPaymentDate().before(firstDayOfMonth) &&
+                    contract.getPaymentFrequency() == PaymentFrequency.MONTHLY) {
+
+                payment.setStatus(PaymentStatus.LATE);
+                paymentsUpdated = true;
+                System.out.println("📆 Paiement mensuel " + payment.getPaymentId() +
+                        " du " + payment.getPaymentDate() + " marqué LATE");
+            }
+        }
+
+        if (paymentsUpdated) contractRepository.save(contract);
+    }
+
+    /**
+     * Vérifie et annule un contrat avec des retards
+     */
+    private void checkAndCancelContractForLatePayments(InsuranceContract contract) {
+        if (contract.getPayments() == null || contract.getPayments().isEmpty()) return;
+
+        int latePaymentCount = 0;
+        boolean paymentsUpdated = false;
+
+        for (Payment payment : contract.getPayments()) {
+            if (payment.getStatus() == PaymentStatus.LATE) {
+                latePaymentCount++;
+            }
+        }
+
+        if (latePaymentCount >= 1) {
+            System.out.println("🚨 CONTRAT " + contract.getContractId() +
+                    " ANNULÉ - " + latePaymentCount + " retard(s)");
+
+            contract.setStatus(ContractStatus.CANCELLED);
+
+            for (Payment payment : contract.getPayments()) {
+                if (payment.getStatus() == PaymentStatus.PENDING ||
+                        payment.getStatus() == PaymentStatus.LATE) {
+                    payment.setStatus(PaymentStatus.FAILED);
+                    paymentsUpdated = true;
+                }
+            }
+        }
+
+        if (paymentsUpdated || latePaymentCount >= 1) {
+            contractRepository.save(contract);
+        }
+    }
+
+    /**
+     * Vérification manuelle d'un contrat
+     */
+    public void checkContractLatePayments(Long contractId) {
+        InsuranceContract contract = contractRepository.findById(contractId)
+                .orElseThrow(() -> new RuntimeException("Contrat non trouvé"));
+
+        System.out.println("🔍 Vérification manuelle du contrat " + contractId);
+        checkAndMarkLatePaymentsByFrequency(contract);
+        checkAndCancelContractForLatePayments(contract);
+
+        InsuranceContract updated = contractRepository.findById(contractId).get();
+        System.out.println("✅ Nouveau statut: " + updated.getStatus());
+    }
+
+    /**
+     * Simulation de retards pour tests
+     */
+    public void simulateLatePayments(Long contractId, int monthsToAdd) {
+        InsuranceContract contract = contractRepository.findById(contractId)
+                .orElseThrow(() -> new RuntimeException("Contrat non trouvé"));
+
+        Calendar cal = Calendar.getInstance();
+        for (Payment payment : contract.getPayments()) {
+            if (payment.getStatus() == PaymentStatus.PENDING) {
+                cal.setTime(payment.getPaymentDate());
+                cal.add(Calendar.MONTH, -monthsToAdd);
+                payment.setPaymentDate(cal.getTime());
+            }
+        }
+
+        contractRepository.save(contract);
+        System.out.println("⏱️ Simulation: " + monthsToAdd + " mois de retard - contrat " + contractId);
+    }
+
+
+    // Dans InsuranceContractService.java - Ajoutez cette méthode
+
+    /**
+     * Vérifie les contrats qui devraient être marqués comme COMPLETED
+     * S'exécute quotidiennement à 00:30 (après la vérification des retards)
+     */
+    @Scheduled(cron = "0 30 0 * * ?") // 00:30 chaque jour
+    @Transactional
+    public void checkCompletedContracts() {
+        System.out.println("✅ Vérification des contrats à marquer COMPLETED - " + new Date());
+
+        // Vérifier les contrats ACTIFS
+        List<InsuranceContract> activeContracts = contractRepository.findByStatus(ContractStatus.ACTIVE);
+
+        for (InsuranceContract contract : activeContracts) {
+            checkAndMarkContractAsCompleted(contract);
+        }
+
+        // Vérifier aussi les contrats INACTIFS (au cas où)
+        List<InsuranceContract> inactiveContracts = contractRepository.findByStatus(ContractStatus.INACTIVE);
+        for (InsuranceContract contract : inactiveContracts) {
+            checkAndMarkContractAsCompleted(contract);
+        }
+    }
+
+    /**
+     * Vérifie et marque un contrat comme COMPLETED si toutes les conditions sont remplies
+     */
+    private void checkAndMarkContractAsCompleted(InsuranceContract contract) {
+        if (contract.getPayments() == null || contract.getPayments().isEmpty()) {
+            return;
+        }
+
+        Date today = new Date();
+        Date endDate = contract.getEndDate();
+
+        // Condition 1: La date de fin est dépassée
+        boolean isEndDatePassed = endDate != null && endDate.before(today);
+
+        if (!isEndDatePassed) {
+            return; // La date de fin n'est pas encore dépassée
+        }
+
+        // Condition 2: Vérifier que tous les paiements sont PAID
+        boolean allPaymentsPaid = true;
+        int totalPayments = 0;
+        int paidPayments = 0;
+
+        for (Payment payment : contract.getPayments()) {
+            totalPayments++;
+            if (payment.getStatus() == PaymentStatus.PAID) {
+                paidPayments++;
+            } else {
+                allPaymentsPaid = false;
+                System.out.println("⚠️ Contrat " + contract.getContractId() +
+                        " - Paiement non payé: " + payment.getPaymentId() +
+                        " (statut: " + payment.getStatus() + ")");
+            }
+        }
+
+        // Condition 3: Vérifier que le montant total payé correspond à la prime
+        boolean totalPaidMatches = Math.abs(contract.getTotalPaid() - contract.getPremium()) < 0.01;
+
+        System.out.println("📊 Contrat " + contract.getContractId() +
+                " - Paiements: " + paidPayments + "/" + totalPayments +
+                " | Total payé: " + contract.getTotalPaid() +
+                " | Prime: " + contract.getPremium());
+
+        // Si toutes les conditions sont remplies, marquer comme COMPLETED
+        if (allPaymentsPaid && totalPaidMatches) {
+            contract.setStatus(ContractStatus.COMPLETED);
+            contractRepository.save(contract);
+
+            System.out.println("🎉 CONTRAT " + contract.getContractId() +
+                    " MARQUÉ COMPLETED - Tous les paiements effectués");
+        } else if (isEndDatePassed && !allPaymentsPaid) {
+            // Optionnel: Si la date est dépassée mais pas tous les paiements
+            System.out.println("⚠️ Contrat " + contract.getContractId() +
+                    " - Date dépassée mais paiements incomplets (" +
+                    paidPayments + "/" + totalPayments + ")");
+        }
+    }
+
 }
