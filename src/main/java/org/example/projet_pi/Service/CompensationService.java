@@ -8,7 +8,9 @@ import org.example.projet_pi.entity.ClaimStatus;
 import org.example.projet_pi.entity.Compensation;
 import org.example.projet_pi.entity.Claim;
 import org.example.projet_pi.Mapper.CompensationMapper;
+import org.example.projet_pi.entity.InsuranceContract;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -20,9 +22,9 @@ public class CompensationService implements ICompensationService {
     private final CompensationRepository compensationRepository;
     private final ClaimRepository claimRepository;
 
+
     @Override
     public CompensationDTO addCompensation(CompensationDTO dto) {
-
         if (dto.getClaimId() == null) {
             throw new IllegalArgumentException("claimId ne peut pas être null !");
         }
@@ -40,10 +42,14 @@ public class CompensationService implements ICompensationService {
             throw new RuntimeException("Ce claim possède déjà une compensation !");
         }
 
+        // 🔥 Si le montant n'est pas fourni, utiliser le montant approuvé du claim
+        if (dto.getAmount() == 0 && claim.getApprovedAmount() > 0) {
+            dto.setAmount(claim.getApprovedAmount());
+        }
+
         Compensation compensation = CompensationMapper.toEntity(dto, claim);
         compensation = compensationRepository.save(compensation);
 
-        // ✅ Mettre automatiquement le status du claim à COMPENSATED
         claim.setStatus(ClaimStatus.COMPENSATED);
         claim.setCompensation(compensation);
         claimRepository.save(claim);

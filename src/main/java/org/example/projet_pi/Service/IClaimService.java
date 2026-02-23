@@ -1,9 +1,7 @@
 package org.example.projet_pi.Service;
 
 import org.example.projet_pi.Dto.ClaimDTO;
-
 import java.util.List;
-
 
 public interface IClaimService {
 
@@ -16,4 +14,7 @@ public interface IClaimService {
     ClaimDTO getClaimById(Long id);
 
     List<ClaimDTO> getAllClaims();
+
+    // 🔥 NOUVELLE MÉTHODE
+    ClaimService.CompensationDetails getCompensationDetails(Long claimId);
 }
