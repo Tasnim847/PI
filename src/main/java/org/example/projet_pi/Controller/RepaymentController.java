@@ -44,7 +44,7 @@ public class RepaymentController {
     }
 
     // ✅ METIER : payer un crédit
-    // Exemple: POST /Repayment/pay/5?allowPartialIfOverpay=true
+    // Exemple: POST /Repayment/pay/5
     @PostMapping("/pay-credit/{creditId}")
     public Repayment payCredit(
             @PathVariable Long creditId,
