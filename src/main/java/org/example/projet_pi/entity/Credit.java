@@ -2,6 +2,7 @@ package org.example.projet_pi.entity;
 
 import jakarta.persistence.*;
 
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.List; // ✅ AJOUT
 
@@ -29,6 +30,7 @@ public class Credit {
 
     @Enumerated(EnumType.STRING)
     private CreditStatus status;
+    private LocalDate dueDate;
 
     @JsonBackReference("client-credit")
     @ManyToOne
@@ -135,4 +137,11 @@ public class Credit {
         this.repayments = repayments;
     }
 
+    public LocalDate getDueDate() {
+        return dueDate;
+    }
+
+    public void setDueDate(LocalDate dueDate) {
+        this.dueDate = dueDate;
+    }
 }

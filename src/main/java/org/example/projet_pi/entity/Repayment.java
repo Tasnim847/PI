@@ -15,7 +15,7 @@ public class Repayment {
 
     private BigDecimal amount;
 
-    private LocalDate paymentDate;
+    private LocalDate paymentDate ;
 
     @Enumerated(EnumType.STRING)
     private PaymentMethod paymentMethod;

@@ -19,7 +19,7 @@ public class CreditService implements ICreditService {
     }
 
     // ===============================
-    // 1️⃣ CREATE CREDIT (Client)
+    // 1 CREATE CREDIT (Client)
     // ===============================
     @Override
     @Transactional
@@ -36,17 +36,15 @@ public class CreditService implements ICreditService {
         // 🔒 Toujours PENDING à la création
         credit.setStatus(CreditStatus.PENDING);
 
-        // ❌ Client ne peut pas définir ces champs
-        credit.setInterestRate(0);
-        credit.setMonthlyPayment(0);
-        credit.setStartDate(null);
-        credit.setEndDate(null);
+        // ❌ On ne touche pas aux champs calculés ici
+        // interestRate, monthlyPayment, startDate, endDate restent null/0
+        // dueDate peut être fourni par le client si nécessaire
 
         return creditRepository.save(credit);
     }
 
     // ===============================
-    // 2️⃣ APPROVE CREDIT (AgentFinance)
+    //  APPROVE CREDIT (AgentFinance)
     // ===============================
     @Transactional
     public Credit approveCredit(Long creditId, double interestRate) {
@@ -62,10 +60,10 @@ public class CreditService implements ICreditService {
             throw new IllegalArgumentException("Taux invalide");
         }
 
-        // ✅ 1️⃣ définir le taux
+        // ✅ Définir le taux
         credit.setInterestRate(interestRate);
 
-        // ✅ 2️⃣ calcul bancaire
+        // ✅ Calcul du paiement mensuel
         double amount = credit.getAmount();
         int duration = credit.getDurationInMonths();
 
@@ -74,7 +72,7 @@ public class CreditService implements ICreditService {
 
         credit.setMonthlyPayment(monthlyPayment);
 
-        // ✅ 3️⃣ dates
+        // ✅ Dates
         Date now = new Date();
         credit.setStartDate(now);
 
@@ -83,6 +81,7 @@ public class CreditService implements ICreditService {
         );
         credit.setEndDate(endDate);
 
+        // 🔒 Status
         credit.setStatus(CreditStatus.APPROVED);
 
         return creditRepository.save(credit);
@@ -109,7 +108,6 @@ public class CreditService implements ICreditService {
     // ===============================
     // CRUD
     // ===============================
-
     @Override
     public Credit updateCredit(Credit credit) {
         return creditRepository.save(credit);

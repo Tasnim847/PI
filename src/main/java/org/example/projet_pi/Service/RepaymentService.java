@@ -73,6 +73,7 @@ public class RepaymentService implements IRepaymentService {
         Credit credit = creditRepository.findById(creditId)
                 .orElseThrow(() -> new IllegalArgumentException("Credit introuvable"));
 
+        repayment.setCredit(credit);
         CreditStatus st = credit.getStatus();
 
         if (st == CreditStatus.CLOSED) {
@@ -88,6 +89,30 @@ public class RepaymentService implements IRepaymentService {
         // 3) Date auto
         if (repayment.getPaymentDate() == null) {
             repayment.setPaymentDate(LocalDate.now());
+        }
+       /* if (repayment.getCredit() != null
+                && repayment.getPaymentDate() != null
+                && repayment.getCredit().getDueDate() != null
+                && repayment.getPaymentDate().isAfter(repayment.getCredit().getDueDate())) {
+
+            repayment.setStatus(RepaymentStatus.LATE);
+
+        } else {
+            repayment.setStatus(RepaymentStatus.PAID);
+        }*/
+if(repayment.getCredit() == null)
+{
+    System.out.println("nnnnnnnnnnuuuuuuuuuullllllll getCredit !!!!!!!!");
+}
+if (repayment.getPaymentDate() == null) {
+    System.out.println("nnnnnnnnnnuuuuuuuuuullllllll getPaymentDate !!!!!!!!");
+}
+        if(repayment.getPaymentDate().isAfter(repayment.getCredit().getDueDate()) )
+        {
+            repayment.setStatus(RepaymentStatus.LATE);
+        }
+        else {
+            repayment.setStatus(RepaymentStatus.PAID);
         }
 
         // 4) Référence auto
@@ -123,7 +148,7 @@ public class RepaymentService implements IRepaymentService {
         }
 
         // 8) Paiement valide → PAID
-        repayment.setStatus(RepaymentStatus.PAID);
+        //repayment.setStatus(RepaymentStatus.PAID);
         repayment.setCredit(credit);
         Repayment saved = repaymentRepository.save(repayment);
 
@@ -137,6 +162,13 @@ public class RepaymentService implements IRepaymentService {
 
         if (newRemaining.compareTo(BigDecimal.ZERO) <= 0) {
             credit.setStatus(CreditStatus.CLOSED);
+        }
+        else {
+            if(((repayment.getStatus()==RepaymentStatus.PAID))||(repayment.getStatus()==RepaymentStatus.LATE))
+            {
+                credit.setDueDate(credit.getDueDate().plusMonths(1));
+
+            }
         }
 
         creditRepository.save(credit);
