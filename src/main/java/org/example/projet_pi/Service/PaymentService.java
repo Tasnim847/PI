@@ -40,6 +40,8 @@ public class PaymentService implements IPaymentService {
         payment = paymentRepository.save(payment);
         contractRepository.save(contract);
 
+        checkAndMarkContractAsCompletedAfterPayment(contract);
+
         return PaymentMapper.toDTO(payment);
     }
 
@@ -67,5 +69,23 @@ public class PaymentService implements IPaymentService {
                 .stream()
                 .map(PaymentMapper::toDTO)
                 .collect(Collectors.toList());
+    }
+
+    // Dans PaymentService.java - Ajoutez cette méthode
+    private void checkAndMarkContractAsCompletedAfterPayment(InsuranceContract contract) {
+        Date today = new Date();
+        Date endDate = contract.getEndDate();
+
+        if (endDate != null && endDate.before(today)) {
+            boolean allPaymentsPaid = contract.getPayments().stream()
+                    .allMatch(p -> p.getStatus() == PaymentStatus.PAID);
+
+            if (allPaymentsPaid && Math.abs(contract.getTotalPaid() - contract.getPremium()) < 0.01) {
+                contract.setStatus(ContractStatus.COMPLETED);
+                contractRepository.save(contract);
+                System.out.println("🎉 Contrat " + contract.getContractId() +
+                        " marqué COMPLETED après paiement");
+            }
+        }
     }
 }
