@@ -1,8 +1,13 @@
 package org.example.projet_pi.Controller;
 
+import org.example.projet_pi.Dto.CreditHistoryDTO;
 import org.example.projet_pi.Service.CreditService;
+import org.example.projet_pi.Service.IClientService;
+import org.example.projet_pi.entity.Client;
 import org.example.projet_pi.entity.Credit;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import org.example.projet_pi.dto.CreditHistoryWithAverageDTO;
 
 import java.util.List;
 
@@ -11,6 +16,9 @@ import java.util.List;
 public class CreditController {
 
     private final CreditService creditService;
+    @Autowired
+    private IClientService clientService;
+
 
     public CreditController(CreditService creditService) {
         this.creditService = creditService;
@@ -57,5 +65,22 @@ public class CreditController {
     @GetMapping("/allCredit")
     public List<Credit> getAllCredits() {
         return creditService.getAllCredits();
+    }
+
+//    @GetMapping("/closedCredits/{clientId}")
+//    public List<CreditHistoryDTO> getClosedCreditsByClient(@PathVariable Long clientId) {
+//        Client client = clientService.getClientById(clientId); // Assure-toi d'avoir un ClientService
+//        return creditService.getClosedCreditsWithLateRepaymentPercentage(client);
+//    }
+    @GetMapping("/closedCreditsWithAverage/{clientId}")
+    public CreditHistoryWithAverageDTO getClosedCreditsWithAverage(@PathVariable Long clientId) {
+
+        Client client = clientService.getClientById(clientId);
+
+        if (client == null) {
+            throw new RuntimeException("Client not found with id " + clientId);
+        }
+
+        return creditService.getClosedCreditsWithAverage(client);
     }
 }

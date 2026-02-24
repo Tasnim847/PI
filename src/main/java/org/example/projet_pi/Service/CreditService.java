@@ -1,13 +1,18 @@
 package org.example.projet_pi.Service;
 
 import jakarta.transaction.Transactional;
+import org.example.projet_pi.Dto.CreditHistoryDTO;
 import org.example.projet_pi.Repository.CreditRepository;
+import org.example.projet_pi.entity.Client;
 import org.example.projet_pi.entity.Credit;
 import org.example.projet_pi.entity.CreditStatus;
+import org.example.projet_pi.entity.RepaymentStatus;
 import org.springframework.stereotype.Service;
+import org.example.projet_pi.dto.CreditHistoryWithAverageDTO ;
 
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class CreditService implements ICreditService {
@@ -17,7 +22,34 @@ public class CreditService implements ICreditService {
     public CreditService(CreditRepository creditRepository) {
         this.creditRepository = creditRepository;
     }
+    public List<CreditHistoryDTO> getClosedCreditsWithLateRepaymentPercentage(Client client) {
+        List<Credit> closedCredits = creditRepository.findByClientAndStatus(client, CreditStatus.CLOSED);
 
+        return closedCredits.stream().map(credit -> {
+            long totalRepayments = credit.getRepayments().size();
+            long lateRepayments = credit.getRepayments().stream()
+                    .filter(r -> r.getStatus() == RepaymentStatus.LATE)
+                    .count();
+
+            double latePercentage = totalRepayments > 0 ?
+                    ((double) lateRepayments / totalRepayments) * 100 : 0;
+
+            return new CreditHistoryDTO(credit, latePercentage);
+        }).collect(Collectors.toList());
+    }
+    public CreditHistoryWithAverageDTO getClosedCreditsWithAverage(Client client) {
+        List<CreditHistoryDTO> closedCredits = getClosedCreditsWithLateRepaymentPercentage(client);
+
+        double average = 0;
+        if (!closedCredits.isEmpty()) {
+            average = closedCredits.stream()
+                    .mapToDouble(CreditHistoryDTO::getLateRepaymentPercentage)
+                    .average()
+                    .orElse(0);
+        }
+
+        return new CreditHistoryWithAverageDTO(closedCredits, average);
+    }
     // ===============================
     // 1 CREATE CREDIT (Client)
     // ===============================
