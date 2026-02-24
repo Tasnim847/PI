@@ -7,7 +7,7 @@ import org.example.projet_pi.entity.Client;
 import org.example.projet_pi.entity.Credit;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import org.example.projet_pi.dto.CreditHistoryWithAverageDTO;
+import org.example.projet_pi.Dto.CreditHistoryWithAverageDTO;
 
 import java.util.List;
 

@@ -8,7 +8,7 @@ import org.example.projet_pi.entity.Credit;
 import org.example.projet_pi.entity.CreditStatus;
 import org.example.projet_pi.entity.RepaymentStatus;
 import org.springframework.stereotype.Service;
-import org.example.projet_pi.dto.CreditHistoryWithAverageDTO ;
+import org.example.projet_pi.Dto.CreditHistoryWithAverageDTO ;
 
 import java.util.Date;
 import java.util.List;
