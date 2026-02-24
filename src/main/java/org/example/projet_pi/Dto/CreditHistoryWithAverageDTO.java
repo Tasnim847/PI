@@ -1,4 +1,4 @@
-package org.example.projet_pi.dto;
+package org.example.projet_pi.Dto;
 
 import org.example.projet_pi.Dto.CreditHistoryDTO;
 
