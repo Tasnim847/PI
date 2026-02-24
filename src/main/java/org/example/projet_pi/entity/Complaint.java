@@ -2,18 +2,17 @@ package org.example.projet_pi.entity;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.*;
-import jakarta.persistence.Id;
-
 import java.util.Date;
 
 @Entity
 public class Complaint {
 
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long complaintId;
 
-
-    private Date date;
+    private Date date;             // date de création
+    private Date responseDate;     // date de traitement ou réponse
 
     private String message;
     private String response;
@@ -25,12 +24,33 @@ public class Complaint {
     @ManyToOne
     private AgentAssurance agentAssurance;
 
+    @ManyToOne
+    private AgentFinance agentFinance;
+
+    // ---------------- Getters et Setters ----------------
+
     public Long getComplaintId() {
         return complaintId;
     }
 
+    public void setComplaintId(Long complaintId) {
+        this.complaintId = complaintId;
+    }
+
     public Date getDate() {
         return date;
+    }
+
+    public void setDate(Date date) {
+        this.date = date;
+    }
+
+    public Date getResponseDate() {
+        return responseDate;
+    }
+
+    public void setResponseDate(Date responseDate) {
+        this.responseDate = responseDate;
     }
 
     public String getMessage() {
@@ -41,8 +61,20 @@ public class Complaint {
         this.message = message;
     }
 
-    public void setDate(Date date) {
-        this.date = date;
+    public String getResponse() {
+        return response;
+    }
+
+    public void setResponse(String response) {
+        this.response = response;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 
     public Client getClient() {
@@ -68,28 +100,4 @@ public class Complaint {
     public void setAgentFinance(AgentFinance agentFinance) {
         this.agentFinance = agentFinance;
     }
-
-    public String getStatus() {
-        return status;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
-    }
-
-    public String getResponse() {
-        return response;
-    }
-
-    public void setResponse(String response) {
-        this.response = response;
-    }
-
-    public void setComplaintId(Long complaintId) {
-        this.complaintId = complaintId;
-    }
-
-    @ManyToOne
-    private AgentFinance agentFinance;
 }
-
