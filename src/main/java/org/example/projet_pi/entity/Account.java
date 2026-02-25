@@ -69,7 +69,30 @@ public class Account {
         this.transactions = transactions;
     }
 
+    // 🔹 Limite quotidienne de retrait
+    private double dailyLimit;
+
+    // 🔹 Limite mensuelle de retrait
+    private double monthlyLimit;
+
+    // ✅ Getters & Setters pour dailyLimit
+    public double getDailyLimit() {
+        return dailyLimit;
+    }
+
+    public void setDailyLimit(double dailyLimit) {
+        this.dailyLimit = dailyLimit;
+    }
+
+    // ✅ Getters & Setters pour monthlyLimit
+    public double getMonthlyLimit() {
+        return monthlyLimit;
+    }
+
+    public void setMonthlyLimit(double monthlyLimit) {
+        this.monthlyLimit = monthlyLimit;
+    }
+
     @OneToMany(mappedBy = "account")
     private List<Transaction> transactions;
 }
-

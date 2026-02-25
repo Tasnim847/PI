@@ -58,4 +58,19 @@ public class AccountController {
         accountRepository.delete(account);
         return "Account deleted successfully!";
     }
+
+    // ✅ NOUVEAU : Définir les limites d'un compte
+    @PutMapping("/{id}/limits")
+    public Account setLimits(@PathVariable Long id,
+                             @RequestParam double dailyLimit,
+                             @RequestParam double monthlyLimit) {
+
+        Account account = accountRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Account not found with id " + id));
+
+        account.setDailyLimit(dailyLimit);
+        account.setMonthlyLimit(monthlyLimit);
+
+        return accountRepository.save(account);
+    }
 }

@@ -1,4 +1,6 @@
 package org.example.projet_pi.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 
 import org.example.projet_pi.Repository.AccountRepository;
 import org.example.projet_pi.Repository.TransactionRepository;
@@ -41,6 +43,8 @@ public class TransactionService implements ITransactionService {
             if (account.getBalance() < transaction.getAmount()) {
                 throw new RuntimeException("Insufficient balance for withdrawal");
             }
+            // ✅ NOUVEAU : Vérifier les limites avant retrait
+            checkWithdrawLimits(account, transaction.getAmount());
             account.setBalance(account.getBalance() - transaction.getAmount());
         } else {
             throw new RuntimeException("Invalid transaction type");
@@ -76,5 +80,107 @@ public class TransactionService implements ITransactionService {
     @Override
     public List<Transaction> getTransactionsByAccountId(Long accountId) {
         return transactionRepository.findByAccountAccountId(accountId);
+    }
+    // 🔹 Advanced: Transfer between accounts
+    @Transactional
+    public String transferBetweenAccounts(Long fromAccountId, Long toAccountId, double amount) {
+
+        if (fromAccountId.equals(toAccountId)) {
+            throw new RuntimeException("Cannot transfer to the same account");
+        }
+
+        if (amount <= 0) {
+            throw new RuntimeException("Amount must be positive");
+        }
+
+        Account fromAccount = accountRepository.findById(fromAccountId)
+                .orElseThrow(() -> new RuntimeException("Source account not found"));
+
+        Account toAccount = accountRepository.findById(toAccountId)
+                .orElseThrow(() -> new RuntimeException("Destination account not found"));
+
+        if (fromAccount.getBalance() < amount) {
+            throw new RuntimeException("Insufficient balance");
+        }
+
+        // 🔻 Debit source account
+        fromAccount.setBalance(fromAccount.getBalance() - amount);
+        accountRepository.save(fromAccount);
+
+        // 🔺 Credit destination account
+        toAccount.setBalance(toAccount.getBalance() + amount);
+        accountRepository.save(toAccount);
+
+        // 🧾 Create debit transaction
+        Transaction debit = new Transaction();
+        debit.setAccount(fromAccount);
+        debit.setAmount(amount);
+        debit.setType(TransactionType.WITHDRAW.name());
+        debit.setDate(LocalDate.now());
+        transactionRepository.save(debit);
+
+        // 🧾 Create credit transaction
+        Transaction credit = new Transaction();
+        credit.setAccount(toAccount);
+        credit.setAmount(amount);
+        credit.setType(TransactionType.DEPOSIT.name());
+        credit.setDate(LocalDate.now());
+        transactionRepository.save(credit);
+
+        return "Transfer successful";
+    }
+    // 🔹 MÉTIER AVANCÉ : Calculer total retraits du jour
+    private double getDailyWithdrawTotal(Long accountId) {
+        LocalDate today = LocalDate.now();
+        List<Transaction> transactions = transactionRepository
+                .findByAccountAccountIdAndDateBetween(accountId, today, today);
+
+        return transactions.stream()
+                .filter(t -> t.getType().equalsIgnoreCase("WITHDRAW"))
+                .mapToDouble(Transaction::getAmount)
+                .sum();
+    }
+
+    // 🔹 MÉTIER AVANCÉ : Calculer total retraits du mois
+    private double getMonthlyWithdrawTotal(Long accountId) {
+        LocalDate startOfMonth = LocalDate.now().withDayOfMonth(1);
+        LocalDate today = LocalDate.now();
+        List<Transaction> transactions = transactionRepository
+                .findByAccountAccountIdAndDateBetween(accountId, startOfMonth, today);
+
+        return transactions.stream()
+                .filter(t -> t.getType().equalsIgnoreCase("WITHDRAW"))
+                .mapToDouble(Transaction::getAmount)
+                .sum();
+    }
+
+    // 🔹 MÉTIER AVANCÉ : Vérifier les limites avant retrait
+    public void checkWithdrawLimits(Account account, double amount) {
+
+        // Vérifier limite quotidienne
+        if (account.getDailyLimit() > 0) {
+            double dailyTotal = getDailyWithdrawTotal(account.getAccountId());
+            if (dailyTotal + amount > account.getDailyLimit()) {
+                throw new RuntimeException(
+                        "Daily withdrawal limit exceeded. " +
+                                "Daily limit: " + account.getDailyLimit() +
+                                ", Already withdrawn today: " + dailyTotal +
+                                ", Requested: " + amount
+                );
+            }
+        }
+
+        // Vérifier limite mensuelle
+        if (account.getMonthlyLimit() > 0) {
+            double monthlyTotal = getMonthlyWithdrawTotal(account.getAccountId());
+            if (monthlyTotal + amount > account.getMonthlyLimit()) {
+                throw new RuntimeException(
+                        "Monthly withdrawal limit exceeded. " +
+                                "Monthly limit: " + account.getMonthlyLimit() +
+                                ", Already withdrawn this month: " + monthlyTotal +
+                                ", Requested: " + amount
+                );
+            }
+        }
     }
 }
