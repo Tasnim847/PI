@@ -2,6 +2,7 @@ package org.example.projet_pi.Controller;
 
 import org.example.projet_pi.Repository.AccountRepository;
 import org.example.projet_pi.Repository.TransactionRepository;
+import org.example.projet_pi.Service.TransactionService;
 import org.example.projet_pi.entity.Account;
 import org.example.projet_pi.entity.Transaction;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -114,5 +115,14 @@ public class TransactionController {
         transactionRepository.delete(transaction);
 
         return "Transaction deleted successfully!";
+    }
+    @Autowired
+    private TransactionService transactionService;
+
+    @PostMapping("/transfer")
+    public String transfer(@RequestParam Long fromAccountId,
+                           @RequestParam Long toAccountId,
+                           @RequestParam double amount) {
+        return transactionService.transferBetweenAccounts(fromAccountId, toAccountId, amount);
     }
 }
