@@ -11,6 +11,7 @@ import java.util.Date;
 @Entity
 public class Payment {
 
+    //entite
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long paymentId;
