@@ -81,6 +81,12 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/otp/**").permitAll()
 
+                        .requestMatchers(
+                                "/v3/api-docs/**",
+                                "/swagger-ui/**",
+                                "/swagger-ui.html"
+                        ).permitAll()
+
                         .requestMatchers("/products/addProduct").hasRole("ADMIN")
                         .requestMatchers("/admins/**").hasRole("ADMIN")
 
