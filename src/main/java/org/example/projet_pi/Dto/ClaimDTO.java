@@ -20,6 +20,7 @@ public class ClaimDTO {
     private Double approvedAmount;
     private String description;
     private String status;
+    private String message;
 
     private Long clientId;
     private Long contractId;

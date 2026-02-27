@@ -99,28 +99,31 @@ public class PaymentService implements IPaymentService {
 
     @Override
     public List<PaymentDTO> getAllPayments(String userEmail) {
+
         User user = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
 
         if (user instanceof Client) {
-            // Client: paiements de ses contrats
-            return paymentRepository.findAll().stream()
-                    .filter(p -> p.getContract().getClient().getId().equals(user.getId()))
+            return paymentRepository
+                    .findByContract_ClientId(user.getId())
+                    .stream()
                     .map(PaymentMapper::toDTO)
-                    .collect(Collectors.toList());
-        } else if (user instanceof AgentAssurance) {
-            // Agent: paiements des contrats de ses clients
-            AgentAssurance agent = (AgentAssurance) user;
-            return paymentRepository.findAll().stream()
-                    .filter(p -> p.getContract().getClient().getAgentAssurance() != null
-                            && p.getContract().getClient().getAgentAssurance().getId().equals(agent.getId()))
-                    .map(PaymentMapper::toDTO)
-                    .collect(Collectors.toList());
+                    .toList();
         }
-        // Admin: tous les paiements
-        return paymentRepository.findAll().stream()
+
+        if (user instanceof AgentAssurance agent) {
+            return paymentRepository
+                    .findByContract_AgentAssuranceId(agent.getId())
+                    .stream()
+                    .map(PaymentMapper::toDTO)
+                    .toList();
+        }
+
+        // ADMIN
+        return paymentRepository.findAll()
+                .stream()
                 .map(PaymentMapper::toDTO)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     @Override

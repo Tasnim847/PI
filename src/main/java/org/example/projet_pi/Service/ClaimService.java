@@ -31,60 +31,54 @@ public class ClaimService implements IClaimService {
     @Override
     @Transactional
     public ClaimDTO addClaim(ClaimDTO claimDTO, String userEmail) {
-        // Récupérer l'utilisateur connecté
+
         User user = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
 
-        // Vérifier que c'est un client
         if (!(user instanceof Client)) {
             throw new AccessDeniedException("Seuls les clients peuvent créer des claims");
         }
 
         Client client = (Client) user;
 
-        // Vérifier que le clientId correspond à l'utilisateur connecté
-        if (claimDTO.getClientId() != null && !claimDTO.getClientId().equals(client.getId())) {
-            throw new AccessDeniedException("Vous ne pouvez créer un claim que pour vous-même");
-        }
-
-        // Vérification des IDs essentiels
         if (claimDTO.getContractId() == null) {
-            throw new IllegalArgumentException("Le contractId ne peut pas être null !");
+            throw new IllegalArgumentException("Le contractId est obligatoire");
         }
 
-        // Récupérer le contrat
         InsuranceContract contract = contractRepository.findById(claimDTO.getContractId())
                 .orElseThrow(() -> new RuntimeException(
-                        "Le contrat avec l'id " + claimDTO.getContractId() + " n'existe pas !"));
+                        "Le contrat avec l'id " + claimDTO.getContractId() + " n'existe pas"));
 
-        // Vérifier que le contrat appartient bien au client
         if (!contract.getClient().getId().equals(client.getId())) {
             throw new AccessDeniedException("Ce contrat ne vous appartient pas");
         }
 
-        // Vérifier que le contrat est ACTIF
         if (contract.getStatus() != ContractStatus.ACTIVE) {
             throw new RuntimeException("Vous ne pouvez créer un claim que sur un contrat actif");
         }
 
-        // Validation métier : montant ne doit pas dépasser le plafond
-        if (claimDTO.getClaimedAmount() > contract.getCoverageLimit()) {
-            throw new RuntimeException("Le montant réclamé dépasse le plafond du contrat !");
+        if (claimDTO.getClaimedAmount() == null || claimDTO.getClaimedAmount() <= 0) {
+            throw new IllegalArgumentException("Le montant réclamé doit être supérieur à 0");
         }
 
-        // Validation métier : pas plus d’un claim actif
-        boolean hasActiveClaim = claimRepository.findAll()
-                .stream()
-                .filter(c -> c.getContract() != null && c.getClient() != null)
-                .anyMatch(c -> c.getContract().getContractId().equals(contract.getContractId())
-                        && c.getClient().getId().equals(client.getId())
-                        && (c.getStatus() == ClaimStatus.IN_REVIEW || c.getStatus() == ClaimStatus.APPROVED));
+        boolean hasActiveClaim =
+                claimRepository.existsByContract_ContractIdAndClient_IdAndStatusIn(
+                        contract.getContractId(),
+                        client.getId(),
+                        List.of(ClaimStatus.IN_REVIEW, ClaimStatus.APPROVED)
+                );
 
         if (hasActiveClaim) {
-            throw new RuntimeException("Vous avez déjà un claim actif pour ce contrat !");
+            throw new RuntimeException("Vous avez déjà un claim actif pour ce contrat");
         }
 
-        // Création du Claim
+        if (claimDTO.getDocuments() == null || claimDTO.getDocuments().isEmpty()) {
+            throw new RuntimeException("Au moins un document est obligatoire");
+        }
+
+        // ✅ Message informatif si dépassement
+        boolean exceedsLimit = claimDTO.getClaimedAmount() > contract.getCoverageLimit();
+
         Claim claim = new Claim();
         claim.setClaimDate(new Date());
         claim.setClaimedAmount(claimDTO.getClaimedAmount());
@@ -94,36 +88,39 @@ public class ClaimService implements IClaimService {
         claim.setClient(client);
         claim.setStatus(ClaimStatus.IN_REVIEW);
 
-        // Création des documents
         List<Document> documents = new ArrayList<>();
-        if (claimDTO.getDocuments() != null && !claimDTO.getDocuments().isEmpty()) {
-            for (DocumentDTO docDTO : claimDTO.getDocuments()) {
-                Document doc = new Document();
-                doc.setName(docDTO.getName());
-                doc.setType(docDTO.getType());
-                doc.setFilePath(docDTO.getFilePath());
 
-                if (docDTO.getUploadDate() != null) {
-                    doc.setUploadDate(docDTO.getUploadDate());
-                } else {
-                    doc.setUploadDate(LocalDateTime.now());
-                }
+        for (DocumentDTO docDTO : claimDTO.getDocuments()) {
 
-                doc.setClaim(claim);
-                doc.setClient(client);
-                doc.setStatus(DocumentStatus.UPLOADED);
-                documents.add(doc);
-            }
-        }
+            Document doc = new Document();
+            doc.setName(docDTO.getName());
+            doc.setType(docDTO.getType());
+            doc.setFilePath(docDTO.getFilePath());
+            doc.setUploadDate(
+                    docDTO.getUploadDate() != null ?
+                            docDTO.getUploadDate() :
+                            LocalDateTime.now()
+            );
 
-        if (documents.isEmpty()) {
-            throw new RuntimeException("Au moins un document doit être fourni pour la déclaration !");
+            doc.setStatus(DocumentStatus.UPLOADED);
+            doc.setClaim(claim);
+            doc.setClient(client);
+
+            documents.add(doc);
         }
 
         claim.setDocuments(documents);
+
         Claim savedClaim = claimRepository.save(claim);
 
-        return ClaimMapper.toDTO(savedClaim);
+        ClaimDTO response = ClaimMapper.toDTO(savedClaim);
+
+        // 🔥 Ajouter message informatif
+        if (exceedsLimit) {
+            response.setMessage("Attention : le montant dépasse le plafond du contrat.");
+        }
+
+        return response;
     }
 
     @Override
