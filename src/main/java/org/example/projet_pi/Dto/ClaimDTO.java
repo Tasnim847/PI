@@ -1,6 +1,8 @@
 package org.example.projet_pi.Dto;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.util.Date;
@@ -8,12 +10,14 @@ import java.util.List;
 
 @Getter
 @Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class ClaimDTO {
 
     private Long claimId;
     private Date claimDate;
-    private double claimedAmount;
-    private double approvedAmount;
+    private Double claimedAmount;
+    private Double approvedAmount;
     private String description;
     private String status;
 

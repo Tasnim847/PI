@@ -15,7 +15,7 @@ public class InsuranceProduct {
 
     private String name;
     private String description;
-    private double basePrice;
+    private Double basePrice;
 
     private String productType;
 

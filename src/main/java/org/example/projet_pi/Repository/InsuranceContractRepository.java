@@ -1,5 +1,6 @@
 package org.example.projet_pi.Repository;
 
+import org.example.projet_pi.entity.Client;
 import org.example.projet_pi.entity.ContractStatus;
 import org.example.projet_pi.entity.InsuranceContract;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -9,5 +10,8 @@ import java.util.List;
 
 @Repository
 public interface InsuranceContractRepository extends JpaRepository<InsuranceContract,Long> {
+    List<InsuranceContract> findByClientId(Long clientId);
+    List<InsuranceContract> findByAgentAssuranceId(Long agentId);
     List<InsuranceContract> findByStatus(ContractStatus status);
+    List<InsuranceContract> findByClient(Client client);
 }

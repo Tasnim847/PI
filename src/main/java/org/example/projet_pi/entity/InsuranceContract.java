@@ -19,18 +19,18 @@ public class InsuranceContract {
     private Date startDate;
     private Date endDate;
 
-    private double premium;
-    private double deductible;
-    private double coverageLimit;
+    private Double premium;
+    private Double deductible;
+    private Double coverageLimit;
 
     // 🔥 NOUVEAUX CHAMPS
-    private double totalPaid = 0;
-    private double remainingAmount;
+    private Double totalPaid = 0.0;
+    private Double remainingAmount;
 
     @Enumerated(EnumType.STRING)
     private ContractStatus status;
 
-    @OneToOne(mappedBy = "contract", cascade = CascadeType.ALL)
+    @OneToOne(mappedBy = "contract",  cascade = CascadeType.ALL, orphanRemoval = true)
     private RiskClaim riskClaim;
 
     @Enumerated(EnumType.STRING)
@@ -72,7 +72,7 @@ public class InsuranceContract {
 
     // 🔥 INITIALISATION
     public void initializeAmounts() {
-        this.totalPaid = 0;
+        this.totalPaid = 0.0;
         this.remainingAmount = this.premium;
     }
 

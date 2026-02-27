@@ -21,8 +21,8 @@ public class Claim {
     @Temporal(TemporalType.DATE)
     private Date claimDate;
 
-    private double claimedAmount;
-    private double approvedAmount;
+    private Double claimedAmount;
+    private Double approvedAmount;
 
     private String description;
 

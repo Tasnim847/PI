@@ -16,7 +16,7 @@ public class Payment {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long paymentId;
 
-    private double amount;
+    private Double amount;
 
     private Date paymentDate;
 

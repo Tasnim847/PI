@@ -53,14 +53,28 @@ public class InsuranceContractMapper {
         contract.setPremium(dto.getPremium());
         contract.setDeductible(dto.getDeductible());
         contract.setCoverageLimit(dto.getCoverageLimit());
-        contract.setTotalPaid(dto.getTotalPaid());
-        contract.setRemainingAmount(dto.getRemainingAmount());
+
+        // ✅ PROTECTION CONTRE NULL
+        contract.setTotalPaid(
+                dto.getTotalPaid() != null ? dto.getTotalPaid() : 0.0
+        );
+
+        contract.setRemainingAmount(
+                dto.getRemainingAmount() != null
+                        ? dto.getRemainingAmount()
+                        : dto.getPremium()
+        );
 
         if (dto.getStatus() != null) {
-            contract.setStatus(Enum.valueOf(org.example.projet_pi.entity.ContractStatus.class, dto.getStatus()));
+            contract.setStatus(
+                    org.example.projet_pi.entity.ContractStatus.valueOf(dto.getStatus())
+            );
         }
+
         if (dto.getPaymentFrequency() != null) {
-            contract.setPaymentFrequency(Enum.valueOf(org.example.projet_pi.entity.PaymentFrequency.class, dto.getPaymentFrequency()));
+            contract.setPaymentFrequency(
+                    org.example.projet_pi.entity.PaymentFrequency.valueOf(dto.getPaymentFrequency())
+            );
         }
 
         return contract;

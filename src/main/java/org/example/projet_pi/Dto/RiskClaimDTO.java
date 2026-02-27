@@ -1,15 +1,19 @@
 package org.example.projet_pi.Dto;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Getter
 @Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class RiskClaimDTO {
 
     private Long riskId;
 
-    private double riskScore;
+    private Double riskScore;
     private String riskLevel;
     private String evaluationNote;
 
