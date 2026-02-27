@@ -1,18 +1,17 @@
 package org.example.projet_pi.Service;
 
 import lombok.AllArgsConstructor;
-import org.example.projet_pi.Dto.CompensationDTO;
-import org.example.projet_pi.Dto.DocumentDTO;
-import org.example.projet_pi.Repository.*;
 import org.example.projet_pi.Dto.ClaimDTO;
-import org.example.projet_pi.entity.*;
+import org.example.projet_pi.Dto.CompensationDetailsDTO;
+import org.example.projet_pi.Dto.DocumentDTO;
 import org.example.projet_pi.Mapper.ClaimMapper;
-import org.example.projet_pi.Mapper.CompensationMapper;
+import org.example.projet_pi.Repository.*;
+import org.example.projet_pi.entity.*;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -27,27 +26,46 @@ public class ClaimService implements IClaimService {
     private final DocumentRepository documentRepository;
     private final ClientRepository clientRepository;
     private final CompensationRepository compensationRepository;
+    private final UserRepository userRepository;  // Ajout du repository User
 
-
-
+    @Override
     @Transactional
-    public ClaimDTO addClaim(ClaimDTO claimDTO) {
+    public ClaimDTO addClaim(ClaimDTO claimDTO, String userEmail) {
+        // Récupérer l'utilisateur connecté
+        User user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
+
+        // Vérifier que c'est un client
+        if (!(user instanceof Client)) {
+            throw new AccessDeniedException("Seuls les clients peuvent créer des claims");
+        }
+
+        Client client = (Client) user;
+
+        // Vérifier que le clientId correspond à l'utilisateur connecté
+        if (claimDTO.getClientId() != null && !claimDTO.getClientId().equals(client.getId())) {
+            throw new AccessDeniedException("Vous ne pouvez créer un claim que pour vous-même");
+        }
+
         // Vérification des IDs essentiels
         if (claimDTO.getContractId() == null) {
             throw new IllegalArgumentException("Le contractId ne peut pas être null !");
         }
-        if (claimDTO.getClientId() == null) {
-            throw new IllegalArgumentException("Le clientId ne peut pas être null !");
-        }
 
-        // Récupérer le contrat et le client
+        // Récupérer le contrat
         InsuranceContract contract = contractRepository.findById(claimDTO.getContractId())
                 .orElseThrow(() -> new RuntimeException(
                         "Le contrat avec l'id " + claimDTO.getContractId() + " n'existe pas !"));
 
-        Client client = clientRepository.findById(claimDTO.getClientId())
-                .orElseThrow(() -> new RuntimeException(
-                        "Le client avec l'id " + claimDTO.getClientId() + " n'existe pas !"));
+        // Vérifier que le contrat appartient bien au client
+        if (!contract.getClient().getId().equals(client.getId())) {
+            throw new AccessDeniedException("Ce contrat ne vous appartient pas");
+        }
+
+        // Vérifier que le contrat est ACTIF
+        if (contract.getStatus() != ContractStatus.ACTIVE) {
+            throw new RuntimeException("Vous ne pouvez créer un claim que sur un contrat actif");
+        }
 
         // Validation métier : montant ne doit pas dépasser le plafond
         if (claimDTO.getClaimedAmount() > contract.getCoverageLimit()) {
@@ -63,13 +81,12 @@ public class ClaimService implements IClaimService {
                         && (c.getStatus() == ClaimStatus.IN_REVIEW || c.getStatus() == ClaimStatus.APPROVED));
 
         if (hasActiveClaim) {
-            throw new RuntimeException("Ce client a déjà un claim actif pour ce contrat !");
+            throw new RuntimeException("Vous avez déjà un claim actif pour ce contrat !");
         }
 
         // Création du Claim
         Claim claim = new Claim();
-        // 🔥 MODIFICATION: Toujours utiliser la date du jour
-        claim.setClaimDate(new Date());  // Date du jour, peu importe ce qui est envoyé
+        claim.setClaimDate(new Date());
         claim.setClaimedAmount(claimDTO.getClaimedAmount());
         claim.setApprovedAmount(0.0);
         claim.setDescription(claimDTO.getDescription());
@@ -86,7 +103,6 @@ public class ClaimService implements IClaimService {
                 doc.setType(docDTO.getType());
                 doc.setFilePath(docDTO.getFilePath());
 
-                // Pour les documents, on garde la date fournie ou la date du jour
                 if (docDTO.getUploadDate() != null) {
                     doc.setUploadDate(docDTO.getUploadDate());
                 } else {
@@ -112,13 +128,27 @@ public class ClaimService implements IClaimService {
 
     @Override
     @Transactional
-    public ClaimDTO updateClaim(ClaimDTO claimDTO) {
+    public ClaimDTO updateClaim(ClaimDTO claimDTO, String userEmail) {
         if (claimDTO.getClaimId() == null) {
             throw new IllegalArgumentException("claimId ne peut pas être null !");
         }
 
         Claim claim = claimRepository.findById(claimDTO.getClaimId())
                 .orElseThrow(() -> new RuntimeException("Claim introuvable !"));
+
+        User user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
+
+        // Vérification des droits
+        if (user instanceof Client) {
+            // Un client ne peut modifier que ses propres claims et seulement s'ils sont IN_REVIEW
+            if (!claim.getClient().getId().equals(user.getId())) {
+                throw new AccessDeniedException("Vous ne pouvez modifier que vos propres claims");
+            }
+            if (claim.getStatus() != ClaimStatus.IN_REVIEW) {
+                throw new RuntimeException("Vous ne pouvez modifier qu'un claim en cours de révision");
+            }
+        }
 
         ClaimStatus oldStatus = claim.getStatus();
         ClaimStatus newStatus = claimDTO.getStatus() != null ?
@@ -171,6 +201,147 @@ public class ClaimService implements IClaimService {
         return ClaimMapper.toDTO(updatedClaim);
     }
 
+    @Override
+    @Transactional
+    public void deleteClaim(Long id, String userEmail) {
+        Claim claim = claimRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Claim non trouvé avec l'id: " + id));
+
+        User user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
+
+        // Vérification des droits
+        if (user instanceof Client) {
+            if (!claim.getClient().getId().equals(user.getId())) {
+                throw new AccessDeniedException("Vous ne pouvez supprimer que vos propres claims");
+            }
+            if (claim.getStatus() != ClaimStatus.IN_REVIEW) {
+                throw new RuntimeException("Vous ne pouvez supprimer qu'un claim en cours de révision");
+            }
+        }
+
+        claimRepository.deleteById(id);
+    }
+
+    @Override
+    public ClaimDTO getClaimById(Long id, String userEmail) {
+        Claim claim = claimRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Claim non trouvé avec l'id: " + id));
+
+        User user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
+
+        // Vérification des droits
+        if (user instanceof Client) {
+            if (!claim.getClient().getId().equals(user.getId())) {
+                throw new AccessDeniedException("Vous ne pouvez consulter que vos propres claims");
+            }
+        } else if (user instanceof AgentAssurance) {
+            AgentAssurance agent = (AgentAssurance) user;
+            if (!claim.getClient().getAgentAssurance().getId().equals(agent.getId())) {
+                throw new AccessDeniedException("Ce claim n'appartient pas à un de vos clients");
+            }
+        }
+        // Admin peut tout voir
+
+        return ClaimMapper.toDTO(claim);
+    }
+
+    @Override
+    public List<ClaimDTO> getAllClaims(String userEmail) {
+        User user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
+
+        if (user instanceof Client) {
+            // Client: ses propres claims
+            return claimRepository.findByClientId(user.getId())
+                    .stream()
+                    .map(ClaimMapper::toDTO)
+                    .collect(Collectors.toList());
+        } else if (user instanceof AgentAssurance) {
+            // Agent: claims de ses clients
+            AgentAssurance agent = (AgentAssurance) user;
+            return claimRepository.findByContract_AgentAssuranceId(agent.getId())
+                    .stream()
+                    .map(ClaimMapper::toDTO)
+                    .collect(Collectors.toList());
+        }
+        // Admin: tous les claims
+        return claimRepository.findAll()
+                .stream()
+                .map(ClaimMapper::toDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional
+    public ClaimDTO approveClaim(Long claimId, Double approvedAmount, String userEmail) {
+        Claim claim = claimRepository.findById(claimId)
+                .orElseThrow(() -> new RuntimeException("Claim non trouvé avec l'id: " + claimId));
+
+        User user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
+
+        // Vérifier que c'est un agent d'assurance
+        if (!(user instanceof AgentAssurance)) {
+            throw new AccessDeniedException("Seuls les agents d'assurance peuvent approuver des claims");
+        }
+
+        AgentAssurance agent = (AgentAssurance) user;
+
+        // Vérifier que le claim appartient à un client de cet agent
+        if (!claim.getClient().getAgentAssurance().getId().equals(agent.getId())) {
+            throw new AccessDeniedException("Ce claim n'appartient pas à un de vos clients");
+        }
+
+        if (claim.getStatus() != ClaimStatus.IN_REVIEW) {
+            throw new RuntimeException("Seuls les claims en révision (IN_REVIEW) peuvent être approuvés !");
+        }
+
+        // Mettre à jour le montant approuvé si fourni
+        if (approvedAmount != null && approvedAmount > 0) {
+            claim.setApprovedAmount(approvedAmount);
+        }
+
+        claim.setStatus(ClaimStatus.APPROVED);
+        Claim updatedClaim = claimRepository.save(claim);
+
+        // Créer automatiquement la compensation
+        createCompensationForApprovedClaim(updatedClaim);
+
+        return ClaimMapper.toDTO(updatedClaim);
+    }
+
+    @Override
+    @Transactional
+    public ClaimDTO rejectClaim(Long claimId, String reason, String userEmail) {
+        Claim claim = claimRepository.findById(claimId)
+                .orElseThrow(() -> new RuntimeException("Claim non trouvé avec l'id: " + claimId));
+
+        User user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
+
+        // Vérifier que c'est un agent d'assurance
+        if (!(user instanceof AgentAssurance)) {
+            throw new AccessDeniedException("Seuls les agents d'assurance peuvent rejeter des claims");
+        }
+
+        AgentAssurance agent = (AgentAssurance) user;
+
+        // Vérifier que le claim appartient à un client de cet agent
+        if (!claim.getClient().getAgentAssurance().getId().equals(agent.getId())) {
+            throw new AccessDeniedException("Ce claim n'appartient pas à un de vos clients");
+        }
+
+        claim.setStatus(ClaimStatus.REJECTED);
+        claim.setDescription(claim.getDescription() + " [REJETÉ: " + reason + "]");
+
+        Claim updatedClaim = claimRepository.save(claim);
+        return ClaimMapper.toDTO(updatedClaim);
+    }
+
+
+
     /**
      * Crée automatiquement une compensation pour un claim approuvé
      */
@@ -218,6 +389,7 @@ public class ClaimService implements IClaimService {
 
         // Lier la compensation au claim
         claim.setCompensation(compensation);
+        claim.setStatus(ClaimStatus.COMPENSATED);
         claimRepository.save(claim);
 
         // Affichage des détails
@@ -228,51 +400,8 @@ public class ClaimService implements IClaimService {
         System.out.println("   - Montant assurance: " + insurancePayment + " DT");
     }
 
-    /**
-     * Méthode pour approuver un claim manuellement
-     */
-    @Transactional
-    public ClaimDTO approveClaim(Long claimId, Double approvedAmount) {
-        Claim claim = claimRepository.findById(claimId)
-                .orElseThrow(() -> new RuntimeException("Claim non trouvé avec l'id: " + claimId));
-
-        if (claim.getStatus() != ClaimStatus.IN_REVIEW) {
-            throw new RuntimeException("Seuls les claims en révision (IN_REVIEW) peuvent être approuvés !");
-        }
-
-        // Mettre à jour le montant approuvé si fourni
-        if (approvedAmount != null && approvedAmount > 0) {
-            claim.setApprovedAmount(approvedAmount);
-        }
-
-        claim.setStatus(ClaimStatus.APPROVED);
-        Claim updatedClaim = claimRepository.save(claim);
-
-        // Créer automatiquement la compensation
-        createCompensationForApprovedClaim(updatedClaim);
-
-        return ClaimMapper.toDTO(updatedClaim);
-    }
-
-    /**
-     * Méthode pour rejeter un claim
-     */
-    @Transactional
-    public ClaimDTO rejectClaim(Long claimId, String reason) {
-        Claim claim = claimRepository.findById(claimId)
-                .orElseThrow(() -> new RuntimeException("Claim non trouvé avec l'id: " + claimId));
-
-        claim.setStatus(ClaimStatus.REJECTED);
-        claim.setDescription(claim.getDescription() + " [REJETÉ: " + reason + "]");
-
-        Claim updatedClaim = claimRepository.save(claim);
-        return ClaimMapper.toDTO(updatedClaim);
-    }
-
-    /**
-     * Méthode utilitaire pour obtenir les détails de compensation
-     */
-    public CompensationDetails getCompensationDetails(Long claimId) {
+    @Override
+    public CompensationDetailsDTO getCompensationDetails(Long claimId) {
         Claim claim = claimRepository.findById(claimId)
                 .orElseThrow(() -> new RuntimeException("Claim non trouvé avec l'id: " + claimId));
 
@@ -286,7 +415,7 @@ public class ClaimService implements IClaimService {
         double franchise = contract.getDeductible();
         double insurancePayment = Math.max(0, approvedAmount - franchise);
 
-        return new CompensationDetails(
+        return new CompensationDetailsDTO(
                 claimId,
                 claim.getClaimedAmount(),
                 approvedAmount,
@@ -294,69 +423,5 @@ public class ClaimService implements IClaimService {
                 insurancePayment,
                 claim.getStatus()
         );
-    }
-
-    @Override
-    public void deleteClaim(Long id) {
-        if (!claimRepository.existsById(id)) {
-            throw new RuntimeException("Claim non trouvé avec l'id: " + id);
-        }
-        claimRepository.deleteById(id);
-    }
-
-    @Override
-    public ClaimDTO getClaimById(Long id) {
-        Claim claim = claimRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Claim non trouvé avec l'id: " + id));
-        return ClaimMapper.toDTO(claim);
-    }
-
-    @Override
-    public List<ClaimDTO> getAllClaims() {
-        return claimRepository.findAll()
-                .stream()
-                .map(ClaimMapper::toDTO)
-                .collect(Collectors.toList());
-    }
-
-    // ========== CLASSE INTERNE POUR LES DÉTAILS ==========
-    public static class CompensationDetails {
-        private final Long claimId;
-        private final double claimedAmount;
-        private final double approvedAmount;
-        private final double franchise;
-        private final double insurancePayment;
-        private final ClaimStatus status;
-
-        public CompensationDetails(Long claimId, double claimedAmount,
-                                   double approvedAmount, double franchise,
-                                   double insurancePayment, ClaimStatus status) {
-            this.claimId = claimId;
-            this.claimedAmount = claimedAmount;
-            this.approvedAmount = approvedAmount;
-            this.franchise = franchise;
-            this.insurancePayment = insurancePayment;
-            this.status = status;
-        }
-
-        // Getters
-        public Long getClaimId() { return claimId; }
-        public double getClaimedAmount() { return claimedAmount; }
-        public double getApprovedAmount() { return approvedAmount; }
-        public double getFranchise() { return franchise; }
-        public double getInsurancePayment() { return insurancePayment; }
-        public ClaimStatus getStatus() { return status; }
-
-        @Override
-        public String toString() {
-            return String.format(
-                    "Claim %d: %s\n" +
-                            "   Montant réclamé: %.2f DT\n" +
-                            "   Montant approuvé: %.2f DT\n" +
-                            "   Franchise client: %.2f DT\n" +
-                            "   Montant assurance: %.2f DT",
-                    claimId, status, claimedAmount, approvedAmount, franchise, insurancePayment
-            );
-        }
     }
 }

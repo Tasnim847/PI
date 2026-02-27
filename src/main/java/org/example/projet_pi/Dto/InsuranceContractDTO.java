@@ -1,6 +1,8 @@
 package org.example.projet_pi.Dto;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.util.Date;
@@ -8,14 +10,16 @@ import java.util.List;
 
 @Getter
 @Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class InsuranceContractDTO {
 
     private Long contractId;
     private Date startDate;
     private Date endDate;
-    private double premium;
-    private double deductible;
-    private double coverageLimit;
+    private Double premium;
+    private Double deductible;
+    private Double coverageLimit;
     private String status;
     private String paymentFrequency;
 
@@ -27,6 +31,6 @@ public class InsuranceContractDTO {
     private List<Long> paymentIds;
 
     // 🔥 NOUVEAUX CHAMPS
-    private double totalPaid;
-    private double remainingAmount;
+    private Double totalPaid;
+    private Double remainingAmount;
 }

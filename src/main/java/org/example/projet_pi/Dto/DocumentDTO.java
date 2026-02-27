@@ -1,11 +1,15 @@
 package org.example.projet_pi.Dto;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import java.time.LocalDateTime;
 
 @Getter
 @Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class DocumentDTO {
 
     private Long documentId;       // ID du document (optionnel à la création)

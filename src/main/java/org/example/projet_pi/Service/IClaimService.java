@@ -1,20 +1,24 @@
 package org.example.projet_pi.Service;
 
 import org.example.projet_pi.Dto.ClaimDTO;
+import org.example.projet_pi.Dto.CompensationDetailsDTO;
 import java.util.List;
 
 public interface IClaimService {
 
-    ClaimDTO addClaim(ClaimDTO claimDTO);
+    ClaimDTO addClaim(ClaimDTO claimDTO, String userEmail);
 
-    ClaimDTO updateClaim(ClaimDTO claimDTO);
+    ClaimDTO updateClaim(ClaimDTO claimDTO, String userEmail);
 
-    void deleteClaim(Long id);
+    void deleteClaim(Long id, String userEmail);
 
-    ClaimDTO getClaimById(Long id);
+    ClaimDTO getClaimById(Long id, String userEmail);
 
-    List<ClaimDTO> getAllClaims();
+    List<ClaimDTO> getAllClaims(String userEmail);
 
-    // 🔥 NOUVELLE MÉTHODE
-    ClaimService.CompensationDetails getCompensationDetails(Long claimId);
+    ClaimDTO approveClaim(Long claimId, Double approvedAmount, String userEmail);
+
+    ClaimDTO rejectClaim(Long claimId, String reason, String userEmail);
+
+    CompensationDetailsDTO getCompensationDetails(Long claimId);
 }

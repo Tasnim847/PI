@@ -1,23 +1,25 @@
 package org.example.projet_pi.Service;
 
-
 import org.example.projet_pi.Dto.InsuranceContractDTO;
-import org.example.projet_pi.entity.InsuranceContract;
-
 import java.util.List;
 
 public interface IInsuranceContractService {
 
-    InsuranceContractDTO addContract(InsuranceContractDTO dto);
+    // Méthodes avec userEmail pour la sécurité
+    InsuranceContractDTO addContract(InsuranceContractDTO dto, String userEmail);
 
-    InsuranceContractDTO updateContract(InsuranceContractDTO dto);
+    InsuranceContractDTO updateContract(InsuranceContractDTO dto, String userEmail);
 
-    void deleteContract(Long id);
+    void deleteContract(Long id, String userEmail);
 
-    InsuranceContractDTO getContractById(Long id);
+    InsuranceContractDTO getContractById(Long id, String userEmail);
 
-    List<InsuranceContractDTO> getAllContracts();
+    List<InsuranceContractDTO> getAllContracts(String userEmail);
 
+    // Méthodes d'activation
+    InsuranceContractDTO activateContract(Long contractId, String agentEmail);
+
+    // Méthodes de vérification (sans userEmail car ce sont des tâches système)
     void checkLatePayments();
 
     void checkContractLatePayments(Long contractId);
@@ -27,4 +29,6 @@ public interface IInsuranceContractService {
     void checkEndOfMonthLatePayments();
 
     void checkCompletedContracts();
+
+    List<InsuranceContractDTO> getContractsByClientEmail(String email);
 }

@@ -16,7 +16,7 @@ public class Compensation {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long compensationId;
 
-    private double amount;
+    private Double amount;
 
     @Temporal(TemporalType.DATE)
     private Date paymentDate;

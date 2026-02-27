@@ -81,7 +81,7 @@ public class AuthController {
     }
 
 
-
+/*
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody User userRequest) {
         try {
@@ -130,5 +130,45 @@ public class AuthController {
                     .body("Invalid credentials");
         }
     }
+*/
 
+    @PostMapping("/login")
+    public ResponseEntity<?> login(@RequestBody User userRequest) {
+
+        try {
+
+            // 1️⃣ Authentification
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            userRequest.getEmail(),
+                            userRequest.getPassword()
+                    )
+            );
+
+            // 2️⃣ Récupérer user complet
+            User user = userRepository.findByEmail(userRequest.getEmail())
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+
+            // 3️⃣ Générer token avec role
+            String token = jwtUtils.generateToken(
+                    user.getEmail(),
+                    user.getRole().name()
+            );
+
+            // 4️⃣ Construire réponse propre
+            Map<String, Object> response = new HashMap<>();
+            response.put("token", token);
+            response.put("role", user.getRole().name());
+            response.put("id", user.getId());
+            response.put("firstName", user.getFirstName());
+            response.put("lastName", user.getLastName());
+            response.put("email", user.getEmail());
+
+            return ResponseEntity.ok(response);
+
+        } catch (AuthenticationException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body("Invalid credentials");
+        }
+    }
 }

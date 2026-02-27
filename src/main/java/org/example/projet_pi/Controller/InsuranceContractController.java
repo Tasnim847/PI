@@ -3,21 +3,28 @@ package org.example.projet_pi.Controller;
 import lombok.AllArgsConstructor;
 import org.example.projet_pi.Service.IInsuranceContractService;
 import org.example.projet_pi.Dto.InsuranceContractDTO;
-import org.example.projet_pi.Mapper.InsuranceContractMapper;
+import org.example.projet_pi.Dto.RiskClaimDTO;
+import org.example.projet_pi.Mapper.RiskClaimMapper;
 import org.example.projet_pi.Repository.InsuranceContractRepository;
 import org.example.projet_pi.Service.PdfGenerationService;
 import org.example.projet_pi.entity.*;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 import java.io.ByteArrayInputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @AllArgsConstructor
@@ -25,65 +32,63 @@ import java.util.List;
 public class InsuranceContractController {
 
     private final IInsuranceContractService contractService;
-    private final InsuranceContractRepository contractRepository; // Ajouté
+    private final InsuranceContractRepository contractRepository;
     private final PdfGenerationService pdfGenerationService;
 
     @PostMapping("/addCont")
-    public InsuranceContractDTO addContract(@RequestBody InsuranceContractDTO dto) {
-        return contractService.addContract(dto);
+    public InsuranceContractDTO addContract(
+            @RequestBody InsuranceContractDTO dto,
+            @AuthenticationPrincipal UserDetails currentUser) {
+        return contractService.addContract(dto, currentUser.getUsername());
     }
 
     @PutMapping("/updateCont")
-    public InsuranceContractDTO updateContract(@RequestBody InsuranceContractDTO dto) {
-        return contractService.updateContract(dto);
+    public InsuranceContractDTO updateContract(
+            @RequestBody InsuranceContractDTO dto,
+            @AuthenticationPrincipal UserDetails currentUser) {
+        return contractService.updateContract(dto, currentUser.getUsername());
     }
 
     @DeleteMapping("/deleteCont/{id}")
-    public void deleteContract(@PathVariable Long id) {
-        contractService.deleteContract(id);
+    public ResponseEntity<?> deleteContract(
+            @PathVariable Long id,
+            @AuthenticationPrincipal UserDetails currentUser) {
+        contractService.deleteContract(id, currentUser.getUsername());
+        return ResponseEntity.ok("Contrat supprimé avec succès");
     }
 
     @GetMapping("/getCont/{id}")
-    public InsuranceContractDTO getContractById(@PathVariable Long id) {
-        return contractService.getContractById(id);
+    public InsuranceContractDTO getContractById(
+            @PathVariable Long id,
+            @AuthenticationPrincipal UserDetails currentUser) {
+        return contractService.getContractById(id, currentUser.getUsername());
     }
 
     @GetMapping("/allCont")
-    public List<InsuranceContractDTO> getAllContracts() {
-        return contractService.getAllContracts();
+    public List<InsuranceContractDTO> getAllContracts(
+            @AuthenticationPrincipal UserDetails currentUser) {
+        return contractService.getAllContracts(currentUser.getUsername());
     }
 
-    // 🔥 NOUVEAU: Activer un contrat
     @PutMapping("/activate/{id}")
-    public InsuranceContractDTO activateContract(@PathVariable Long id) {
-        InsuranceContract contract = contractRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Contrat non trouvé"));
-
-        if (contract.getStatus() == ContractStatus.INACTIVE) {
-            contract.setStatus(ContractStatus.ACTIVE);
-            contract = contractRepository.save(contract);
-        } else {
-            throw new RuntimeException("Seuls les contrats INACTIVE peuvent être activés");
-        }
-
-        return InsuranceContractMapper.toDTO(contract);
+    public InsuranceContractDTO activateContract(
+            @PathVariable Long id,
+            @AuthenticationPrincipal UserDetails currentUser) {
+        return contractService.activateContract(id, currentUser.getUsername());
     }
 
-    // 🔥 NOUVEAU: Vérifier tous les contrats
     @PostMapping("/check-late-payments")
     public String checkAllLatePayments() {
         contractService.checkLatePayments();
-        return "Vérification des retards effectuée pour tous les contrats";
+        return "Vérification des retards effectuée";
     }
 
-    // 🔥 NOUVEAU: Vérifier un contrat spécifique
     @PostMapping("/check-late-payments/{id}")
     public String checkContractLatePayments(@PathVariable Long id) {
         contractService.checkContractLatePayments(id);
         return "Vérification du contrat " + id + " effectuée";
     }
 
-    // 🔥 NOUVEAU: Simuler des retards (pour tests)
     @PostMapping("/simulate-late-payments/{id}/{months}")
     public String simulateLatePayments(@PathVariable Long id, @PathVariable int months) {
         contractService.simulateLatePayments(id, months);
@@ -96,26 +101,29 @@ public class InsuranceContractController {
         return "Vérification des contrats COMPLETED effectuée";
     }
 
-    // 🔥 NOUVEAU: Vérifier la fin de mois manuellement
     @PostMapping("/check-end-of-month")
     public String checkEndOfMonth() {
         contractService.checkEndOfMonthLatePayments();
         return "Vérification de fin de mois effectuée";
     }
 
-
     /**
      * Télécharger le contrat au format PDF complet
      * URL: GET /contrats/{id}/download/pdf
      */
     @GetMapping("/{id}/download/pdf")
-    public ResponseEntity<InputStreamResource> downloadContractPdf(@PathVariable Long id) {
+    public ResponseEntity<InputStreamResource> downloadContractPdf(
+            @PathVariable Long id,
+            @AuthenticationPrincipal UserDetails currentUser) {
         try {
-            // 1. Récupérer le contrat avec toutes ses relations
+            // 1. Vérifier les droits d'accès via le service
+            InsuranceContractDTO contractDTO = contractService.getContractById(id, currentUser.getUsername());
+
+            // 2. Récupérer le contrat complet
             InsuranceContract contract = contractRepository.findById(id)
                     .orElseThrow(() -> new RuntimeException("Contrat non trouvé avec l'id: " + id));
 
-            // 2. Récupérer les entités associées
+            // 3. Récupérer les entités associées
             Client client = contract.getClient();
             AgentAssurance agent = contract.getAgentAssurance();
             List<Payment> payments = contract.getPayments();
@@ -124,18 +132,18 @@ public class InsuranceContractController {
                 throw new RuntimeException("Le contrat n'est pas associé à un client");
             }
 
-            // 3. Générer le PDF
+            // 4. Générer le PDF
             byte[] pdfContent = pdfGenerationService.generateContractPdf(
                     contract, client, agent, payments
             );
 
-            // 4. Préparer le nom du fichier
+            // 5. Préparer le nom du fichier
             String filename = String.format("contrat_%d_%s.pdf",
                     id,
                     new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date())
             );
 
-            // 5. Retourner le PDF en pièce jointe
+            // 6. Retourner le PDF en pièce jointe
             return ResponseEntity.ok()
                     .header(HttpHeaders.CONTENT_DISPOSITION,
                             "attachment; filename=\"" + filename + "\"")
@@ -149,4 +157,110 @@ public class InsuranceContractController {
         }
     }
 
+
+    /**
+     * Récupérer l'évaluation du risque d'un contrat
+     * URL: GET /contrats/{id}/risk
+     */
+    @GetMapping("/{id}/risk")
+    public ResponseEntity<?> getContractRisk(
+            @PathVariable Long id,
+            @AuthenticationPrincipal UserDetails currentUser) {
+        try {
+            // 1. Vérifier les droits d'accès via le service
+            InsuranceContractDTO contractDTO = contractService.getContractById(id, currentUser.getUsername());
+
+            // 2. Récupérer le contrat complet
+            InsuranceContract contract = contractRepository.findById(id)
+                    .orElseThrow(() -> new RuntimeException("Contrat non trouvé avec l'id: " + id));
+
+            // 3. Récupérer le RiskClaim
+            RiskClaim riskClaim = contract.getRiskClaim();
+            if (riskClaim == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(Map.of(
+                                "error", "Aucune évaluation de risque trouvée",
+                                "contractId", id
+                        ));
+            }
+
+            // 4. Convertir en DTO
+            RiskClaimDTO riskDTO = RiskClaimMapper.toDTO(riskClaim);
+
+            // 5. Préparer la réponse avec des informations enrichies
+            Map<String, Object> response = new HashMap<>();
+            response.put("riskEvaluation", riskDTO);
+            response.put("contractStatus", contract.getStatus());
+            response.put("contractId", contract.getContractId());
+            response.put("contractReference", "CTR-" + contract.getContractId());
+
+            // Ajouter des recommandations basées sur le niveau de risque
+            String recommendation;
+            boolean canBeActivated;
+
+            switch (riskClaim.getRiskLevel()) {
+                case "HIGH":
+                    recommendation = "Ce contrat présente un risque trop élevé. " +
+                            "Il ne peut pas être activé et reste bloqué. " +
+                            "Veuillez contacter votre agent d'assurance.";
+                    canBeActivated = false;
+                    break;
+                case "MEDIUM":
+                    recommendation = "Ce contrat présente un risque modéré. " +
+                            "Il peut être activé après vérification par un agent. " +
+                            "L'agent d'assurance examinera votre contrat.";
+                    canBeActivated = true;
+                    break;
+                case "LOW":
+                    recommendation = "Ce contrat présente un risque faible. " +
+                            "Il peut être activé normalement par votre agent d'assurance.";
+                    canBeActivated = true;
+                    break;
+                default:
+                    recommendation = "Niveau de risque non déterminé.";
+                    canBeActivated = false;
+            }
+
+            response.put("recommendation", recommendation);
+            response.put("canBeActivated", canBeActivated);
+
+            // Ajouter un résumé des facteurs de risque
+            long durationInDays = 0;
+            if (contract.getEndDate() != null && contract.getStartDate() != null) {
+                durationInDays = (contract.getEndDate().getTime() - contract.getStartDate().getTime()) / (1000 * 60 * 60 * 24);
+            }
+
+            response.put("riskFactors", Map.of(
+                    "premium", contract.getPremium(),
+                    "deductible", contract.getDeductible(),
+                    "coverageLimit", contract.getCoverageLimit(),
+                    "duration", durationInDays + " jours"
+            ));
+
+            return ResponseEntity.ok(response);
+
+        } catch (AccessDeniedException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Map.of(
+                            "error", "Accès non autorisé",
+                            "message", e.getMessage()
+                    ));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of(
+                            "error", "Erreur interne",
+                            "message", e.getMessage()
+                    ));
+        }
+    }
+
+
+    @GetMapping("/myContracts")
+    public List<InsuranceContractDTO> getMyContracts(Authentication authentication) {
+
+        String email = authentication.getName(); // email du client connecté
+
+        return contractService.getContractsByClientEmail(email);
+    }
 }
