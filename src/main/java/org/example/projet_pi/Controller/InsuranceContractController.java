@@ -1,6 +1,8 @@
 package org.example.projet_pi.Controller;
 
 import lombok.AllArgsConstructor;
+import org.example.projet_pi.Mapper.InsuranceContractMapper;
+import org.example.projet_pi.Repository.UserRepository;
 import org.example.projet_pi.Service.IInsuranceContractService;
 import org.example.projet_pi.Dto.InsuranceContractDTO;
 import org.example.projet_pi.Dto.RiskClaimDTO;
@@ -25,6 +27,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
 @AllArgsConstructor
@@ -34,6 +37,7 @@ public class InsuranceContractController {
     private final IInsuranceContractService contractService;
     private final InsuranceContractRepository contractRepository;
     private final PdfGenerationService pdfGenerationService;
+    private final UserRepository userRepository;
 
     @PostMapping("/addCont")
     public InsuranceContractDTO addContract(
@@ -262,5 +266,122 @@ public class InsuranceContractController {
         String email = authentication.getName(); // email du client connecté
 
         return contractService.getContractsByClientEmail(email);
+    }
+
+
+
+    /**
+     * Rejeter un contrat (CANCELLED)
+     */
+    @PutMapping("/reject/{id}")
+    public ResponseEntity<?> rejectContract(
+            @PathVariable Long id,
+            @RequestBody(required = false) Map<String, String> rejectionData,
+            @AuthenticationPrincipal UserDetails currentUser) {
+
+        try {
+            String reason = rejectionData != null ?
+                    rejectionData.getOrDefault("reason", "Non spécifiée") :
+                    "Non spécifiée";
+
+            InsuranceContractDTO rejectedContract = contractService.rejectContract(id, currentUser.getUsername(), reason);
+
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "message", "Contrat rejeté avec succès",
+                    "contractId", id,
+                    "status", "CANCELLED",
+                    "reason", reason
+            ));
+
+        } catch (AccessDeniedException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Map.of("error", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    /**
+     * Récupérer tous les contrats en attente pour l'agent connecté
+     */
+    @GetMapping("/pending")
+    public ResponseEntity<?> getPendingContracts(
+            @AuthenticationPrincipal UserDetails currentUser) {
+
+        try {
+            User user = userRepository.findByEmail(currentUser.getUsername())
+                    .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
+
+            if (!(user instanceof AgentAssurance agent)) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body(Map.of("error", "Seuls les agents peuvent voir les contrats en attente"));
+            }
+
+            List<InsuranceContractDTO> pendingContracts = contractRepository.findByAgentAssuranceId(agent.getId())
+                    .stream()
+                    .filter(c -> c.getStatus() == ContractStatus.INACTIVE)
+                    .map(InsuranceContractMapper::toDTO)
+                    .collect(Collectors.toList());
+
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "agentId", agent.getId(),
+                    "agentName", agent.getFirstName() + " " + agent.getLastName(),
+                    "pendingCount", pendingContracts.size(),
+                    "contracts", pendingContracts
+            ));
+
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    /**
+     * Voir les contrats rejetés (CANCELLED)
+     */
+    @GetMapping("/rejected")
+    public ResponseEntity<?> getRejectedContracts(
+            @AuthenticationPrincipal UserDetails currentUser) {
+
+        try {
+            User user = userRepository.findByEmail(currentUser.getUsername())
+                    .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
+
+            List<InsuranceContract> rejectedContracts;
+
+            if (user instanceof AgentAssurance agent) {
+                // L'agent voit les rejets de ses clients
+                rejectedContracts = contractRepository.findByAgentAssuranceId(agent.getId())
+                        .stream()
+                        .filter(c -> c.getStatus() == ContractStatus.CANCELLED)
+                        .collect(Collectors.toList());
+            } else if (user instanceof Client client) {
+                // Le client voit ses propres contrats rejetés
+                rejectedContracts = contractRepository.findByClient(client)
+                        .stream()
+                        .filter(c -> c.getStatus() == ContractStatus.CANCELLED)
+                        .collect(Collectors.toList());
+            } else {
+                // Admin voit tout
+                rejectedContracts = contractRepository.findByStatus(ContractStatus.CANCELLED);
+            }
+
+            List<InsuranceContractDTO> dtos = rejectedContracts.stream()
+                    .map(InsuranceContractMapper::toDTO)
+                    .collect(Collectors.toList());
+
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "count", dtos.size(),
+                    "contracts", dtos
+            ));
+
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", e.getMessage()));
+        }
     }
 }

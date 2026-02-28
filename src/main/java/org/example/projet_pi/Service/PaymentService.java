@@ -4,27 +4,32 @@ import com.stripe.exception.StripeException;
 import com.stripe.model.PaymentIntent;
 import com.stripe.param.PaymentIntentCreateParams;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.example.projet_pi.Dto.PaymentDTO;
 import org.example.projet_pi.Mapper.PaymentMapper;
 import org.example.projet_pi.Repository.InsuranceContractRepository;
 import org.example.projet_pi.Repository.PaymentRepository;
 import org.example.projet_pi.Repository.UserRepository;
 import org.example.projet_pi.entity.*;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @AllArgsConstructor
 public class PaymentService implements IPaymentService {
 
     private final PaymentRepository paymentRepository;
     private final InsuranceContractRepository contractRepository;
-    private final UserRepository userRepository;  // Ajout du repository User
+    private final UserRepository userRepository;
+    private final EmailService emailService;
 
     @Override
     @Transactional
@@ -207,5 +212,75 @@ public class PaymentService implements IPaymentService {
                         " marqué COMPLETED après paiement");
             }
         }
+    }
+
+
+    /**
+     * Vérifie les paiements à venir et envoie des rappels
+     * S'exécute tous les jours à 8h00
+     */
+    @Scheduled(cron = "0 0 8 * * *")
+    @Transactional
+    public void checkUpcomingPayments() {
+        log.info("📧 Début de la vérification des paiements à venir - {}", new Date());
+
+        List<InsuranceContract> activeContracts = contractRepository.findByStatus(ContractStatus.ACTIVE);
+        Date today = new Date();
+
+        int remindersSent = 0;
+
+        for (InsuranceContract contract : activeContracts) {
+            remindersSent += checkAndSendRemindersForContract(contract, today);
+        }
+
+        log.info("📧 Vérification terminée. {} rappels envoyés.", remindersSent);
+    }
+
+    private int checkAndSendRemindersForContract(InsuranceContract contract, Date today) {
+        if (contract.getPayments() == null || contract.getPayments().isEmpty()) {
+            return 0;
+        }
+
+        int remindersSent = 0;
+
+        for (Payment payment : contract.getPayments()) {
+            // Ne vérifier que les paiements en attente
+            if (payment.getStatus() != PaymentStatus.PENDING) continue;
+
+            Date paymentDate = payment.getPaymentDate();
+            long diffInMillies = paymentDate.getTime() - today.getTime();
+            long diffInDays = TimeUnit.DAYS.convert(diffInMillies, TimeUnit.MILLISECONDS);
+
+            // Jours de rappel configurables
+            int[] reminderDays = {30, 15, 7, 3, 1}; // Vous pouvez modifier ces valeurs
+
+            for (int daysBefore : reminderDays) {
+                if (diffInDays == daysBefore) {
+                    emailService.sendPaymentReminderEmail(
+                            contract.getClient(),
+                            contract,
+                            payment,
+                            daysBefore
+                    );
+                    remindersSent++;
+
+                    // Log pour le suivi
+                    log.info("Rappel J-{} envoyé pour le contrat {} (paiement {})",
+                            daysBefore, contract.getContractId(), payment.getPaymentId());
+                }
+            }
+        }
+
+        return remindersSent;
+    }
+
+    /**
+     * Vérification manuelle pour un contrat spécifique
+     */
+    public int checkAndSendRemindersForContract(Long contractId) {
+        InsuranceContract contract = contractRepository.findById(contractId)
+                .orElseThrow(() -> new RuntimeException("Contrat non trouvé"));
+
+        return checkAndSendRemindersForContract(contract, new Date());
     }
 }

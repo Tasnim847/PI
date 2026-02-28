@@ -639,4 +639,46 @@ public class InsuranceContractService implements IInsuranceContractService {
                 .map(InsuranceContractMapper::toDTO)
                 .toList();
     }
+
+    @Override
+    @Transactional
+    public InsuranceContractDTO rejectContract(Long contractId, String agentEmail, String rejectionReason) {
+        // 1. Vérifier que c'est bien un agent
+        User user = userRepository.findByEmail(agentEmail)
+                .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
+
+        if (!(user instanceof AgentAssurance)) {
+            throw new AccessDeniedException("Seuls les agents d'assurance peuvent rejeter des contrats");
+        }
+
+        AgentAssurance agent = (AgentAssurance) user;
+
+        // 2. Récupérer le contrat
+        InsuranceContract contract = contractRepository.findById(contractId)
+                .orElseThrow(() -> new RuntimeException("Contrat non trouvé"));
+
+        // 3. Vérifier que le contrat appartient bien à un client de cet agent
+        if (!contract.getClient().getAgentAssurance().getId().equals(agent.getId())) {
+            throw new AccessDeniedException("Ce contrat n'appartient pas à un de vos clients");
+        }
+
+        // 4. Vérifier que le contrat est INACTIVE
+        if (contract.getStatus() != ContractStatus.INACTIVE) {
+            throw new RuntimeException("Seuls les contrats INACTIVE peuvent être rejetés");
+        }
+
+        // 5. Rejeter le contrat en utilisant CANCELLED
+        contract.setStatus(ContractStatus.CANCELLED);
+
+        // Optionnel: Vous pouvez ajouter un champ rejectionReason dans InsuranceContract si besoin
+        // Mais on ne modifie pas l'existant, donc on ignore ou on log simplement
+
+        contract = contractRepository.save(contract);
+
+        // Log pour traçabilité
+        System.out.println("❌ Contrat " + contractId + " rejeté par l'agent " + agentEmail +
+                " - Raison: " + rejectionReason);
+
+        return InsuranceContractMapper.toDTO(contract);
+    }
 }
