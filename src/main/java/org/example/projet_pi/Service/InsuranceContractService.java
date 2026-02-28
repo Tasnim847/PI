@@ -1,6 +1,7 @@
 package org.example.projet_pi.Service;
 
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.example.projet_pi.Dto.InsuranceContractDTO;
 import org.example.projet_pi.Mapper.InsuranceContractMapper;
 import org.example.projet_pi.Repository.*;
@@ -16,6 +17,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @AllArgsConstructor
 public class InsuranceContractService implements IInsuranceContractService {
@@ -25,6 +27,7 @@ public class InsuranceContractService implements IInsuranceContractService {
     private final AgentAssuranceRepository agentRepository;
     private final InsuranceProductRepository productRepository;
     private final UserRepository userRepository;
+    private final EmailService emailService;
 
     // ============================================================
     // 🔥 ADD CONTRACT
@@ -84,6 +87,8 @@ public class InsuranceContractService implements IInsuranceContractService {
     @Override
     @Transactional
     public InsuranceContractDTO activateContract(Long contractId, String agentEmail) {
+        log.info("🔧 Tentative d'activation du contrat {} par l'agent {}", contractId, agentEmail);
+
         // 1. Vérifier que c'est bien un agent
         User user = userRepository.findByEmail(agentEmail)
                 .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
@@ -93,26 +98,59 @@ public class InsuranceContractService implements IInsuranceContractService {
         }
 
         AgentAssurance agent = (AgentAssurance) user;
+        log.info("✅ Agent authentifié: {} {}", agent.getFirstName(), agent.getLastName());
 
         // 2. Récupérer le contrat
         InsuranceContract contract = contractRepository.findById(contractId)
                 .orElseThrow(() -> new RuntimeException("Contrat non trouvé"));
 
+        log.info("📄 Contrat trouvé: ID={}, Statut={}, Client={}",
+                contract.getContractId(), contract.getStatus(),
+                contract.getClient().getEmail());
+
         // 3. Vérifier que le contrat appartient bien à un client de cet agent
         if (!contract.getClient().getAgentAssurance().getId().equals(agent.getId())) {
+            log.error("❌ Contrat {} n'appartient pas à l'agent {}", contractId, agent.getId());
             throw new AccessDeniedException("Ce contrat n'appartient pas à un de vos clients");
         }
 
         // 4. Vérifier que le contrat est INACTIVE
         if (contract.getStatus() != ContractStatus.INACTIVE) {
+            log.error("❌ Contrat {} n'est pas INACTIVE (statut: {})", contractId, contract.getStatus());
             throw new RuntimeException("Seuls les contrats INACTIVE peuvent être activés");
         }
 
-        // 5. Activer le contrat
+        // 5. Vérifier le niveau de risque
+        if (contract.getRiskClaim() != null && "HIGH".equals(contract.getRiskClaim().getRiskLevel())) {
+            log.error("❌ Contrat {} a un risque HIGH, activation impossible", contractId);
+            throw new RuntimeException("Impossible d'activer un contrat à risque HIGH");
+        }
+
+        // 6. Activer le contrat
         contract.setStatus(ContractStatus.ACTIVE);
         contract = contractRepository.save(contract);
+        log.info("✅ Contrat {} activé avec succès", contractId);
+
+        // 7. Envoyer un email de confirmation au client
+        Client client = contract.getClient();
+        try {
+            emailService.sendContractAcceptedEmail(client, contract);
+            log.info("✅ Email de confirmation envoyé à {} pour le contrat {}",
+                    client.getEmail(), contract.getContractId());
+        } catch (Exception e) {
+            log.error("❌ Erreur lors de l'envoi de l'email de confirmation: {}", e.getMessage());
+            // Ne pas bloquer l'activation même si l'email échoue
+        }
 
         return InsuranceContractMapper.toDTO(contract);
+    }
+
+    // 🔥 NOUVELLE MÉTHODE : Activer et envoyer email en une seule opération
+    @Transactional
+    public InsuranceContractDTO activateAndNotify(Long contractId, String agentEmail) {
+        InsuranceContractDTO activatedContract = activateContract(contractId, agentEmail);
+        // L'email est déjà envoyé dans activateContract
+        return activatedContract;
     }
 
     @Override
@@ -417,20 +455,55 @@ public class InsuranceContractService implements IInsuranceContractService {
     @Scheduled(cron = "0 0 0 * * ?")
     @Transactional
     public void checkLatePayments() {
-        System.out.println("🔍 Vérification quotidienne des retards - " + new Date());
+        log.info("🔍 Vérification quotidienne des retards - {}", new Date());
 
         List<InsuranceContract> activeContracts = contractRepository.findByStatus(ContractStatus.ACTIVE);
-        System.out.println("📊 " + activeContracts.size() + " contrat(s) actif(s)");
+        log.info("📊 {} contrat(s) actif(s)", activeContracts.size());
+
+        int contractsCancelled = 0;
+        int totalLatePayments = 0;
 
         for (InsuranceContract contract : activeContracts) {
+            // Marquer les nouveaux retards
             checkAndMarkLatePaymentsByFrequency(contract);
+
+            // Compter les retards avant annulation
+            int beforeLateCount = countLatePayments(contract);
+
+            // Vérifier si le contrat doit être annulé (≥ 4 retards)
+            ContractStatus beforeStatus = contract.getStatus();
             checkAndCancelContractForLatePayments(contract);
+            ContractStatus afterStatus = contract.getStatus();
+
+            // Compter les retards après traitement
+            int afterLateCount = countLatePayments(contract);
+
+            if (beforeStatus != afterStatus && afterStatus == ContractStatus.CANCELLED) {
+                contractsCancelled++;
+                log.warn("🚨 Contrat {} annulé (avait {} retards)", contract.getContractId(), afterLateCount);
+            }
+
+            totalLatePayments += afterLateCount;
         }
 
+        // Vérifier aussi les contrats INACTIVE
         List<InsuranceContract> inactiveContracts = contractRepository.findByStatus(ContractStatus.INACTIVE);
         for (InsuranceContract contract : inactiveContracts) {
             checkAndMarkLatePaymentsByFrequency(contract);
         }
+
+        log.info("📊 Résumé: {} contrat(s) annulé(s), {} total paiements en retard",
+                contractsCancelled, totalLatePayments);
+    }
+
+    /**
+     * Compter le nombre de paiements en retard pour un contrat
+     */
+    private int countLatePayments(InsuranceContract contract) {
+        if (contract.getPayments() == null) return 0;
+        return (int) contract.getPayments().stream()
+                .filter(p -> p.getStatus() == PaymentStatus.LATE)
+                .count();
     }
 
     @Override
@@ -568,27 +641,56 @@ public class InsuranceContractService implements IInsuranceContractService {
         if (contract.getPayments() == null || contract.getPayments().isEmpty()) return;
 
         int latePaymentCount = 0;
+        int pendingPaymentCount = 0;
         boolean paymentsUpdated = false;
 
+        // Compter les paiements en retard et en attente
         for (Payment payment : contract.getPayments()) {
             if (payment.getStatus() == PaymentStatus.LATE) {
                 latePaymentCount++;
+            } else if (payment.getStatus() == PaymentStatus.PENDING) {
+                pendingPaymentCount++;
             }
         }
 
-        if (latePaymentCount >= 1) {
-            System.out.println("🚨 CONTRAT " + contract.getContractId() + " ANNULÉ - " + latePaymentCount + " retard(s)");
+        // 🚨 NOUVEAU SEUIL: 4 paiements en retard pour annulation
+        if (latePaymentCount >= 4) {
+            log.warn("🚨 CONTRAT {} ANNULÉ - {} paiements en retard (seuil: 4)",
+                    contract.getContractId(), latePaymentCount);
+
+            // Changer le statut du contrat
             contract.setStatus(ContractStatus.CANCELLED);
 
+            // Marquer tous les paiements en attente comme FAILED
             for (Payment payment : contract.getPayments()) {
                 if (payment.getStatus() == PaymentStatus.PENDING || payment.getStatus() == PaymentStatus.LATE) {
                     payment.setStatus(PaymentStatus.FAILED);
                     paymentsUpdated = true;
                 }
             }
+
+            // 📧 Envoyer un email d'annulation au client
+            Client client = contract.getClient();
+            if (client != null && client.getEmail() != null) {
+                try {
+                    emailService.sendContractCancelledEmail(client, contract, latePaymentCount);
+                    log.info("📧 Email d'annulation envoyé à {} pour le contrat {}",
+                            client.getEmail(), contract.getContractId());
+                } catch (Exception e) {
+                    log.error("❌ Erreur lors de l'envoi de l'email d'annulation: {}", e.getMessage());
+                }
+            }
+
+            log.info("📊 Statistiques - Contrat {}: {} paiements en retard, {} paiements en attente marqués FAILED",
+                    contract.getContractId(), latePaymentCount, pendingPaymentCount);
+
+        } else if (latePaymentCount > 0) {
+            // Simple information si des retards existent mais pas encore 4
+            log.info("ℹ️ Contrat {}: {} paiements en retard (seuil non atteint)",
+                    contract.getContractId(), latePaymentCount);
         }
 
-        if (paymentsUpdated || latePaymentCount >= 1) {
+        if (paymentsUpdated || latePaymentCount >= 4) {
             contractRepository.save(contract);
         }
     }
@@ -669,16 +771,24 @@ public class InsuranceContractService implements IInsuranceContractService {
 
         // 5. Rejeter le contrat en utilisant CANCELLED
         contract.setStatus(ContractStatus.CANCELLED);
-
-        // Optionnel: Vous pouvez ajouter un champ rejectionReason dans InsuranceContract si besoin
-        // Mais on ne modifie pas l'existant, donc on ignore ou on log simplement
-
         contract = contractRepository.save(contract);
 
+        // 📧 6. Envoyer un email de notification au client
+        Client client = contract.getClient();
+        try {
+            emailService.sendContractRejectedEmail(client, contract, rejectionReason);
+            log.info("✅ Email de rejet envoyé à {} pour le contrat {}",
+                    client.getEmail(), contract.getContractId());
+        } catch (Exception e) {
+            log.error("❌ Erreur lors de l'envoi de l'email de rejet: {}", e.getMessage());
+            // Ne pas bloquer le rejet même si l'email échoue
+        }
+
         // Log pour traçabilité
-        System.out.println("❌ Contrat " + contractId + " rejeté par l'agent " + agentEmail +
-                " - Raison: " + rejectionReason);
+        log.info("❌ Contrat {} rejeté par l'agent {} - Raison: {}",
+                contractId, agentEmail, rejectionReason);
 
         return InsuranceContractMapper.toDTO(contract);
     }
+
 }

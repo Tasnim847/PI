@@ -1,6 +1,6 @@
 package org.example.projet_pi.Controller;
 
-import lombok.AllArgsConstructor;
+import  lombok.AllArgsConstructor;
 import org.example.projet_pi.Mapper.InsuranceContractMapper;
 import org.example.projet_pi.Repository.UserRepository;
 import org.example.projet_pi.Service.IInsuranceContractService;
@@ -382,6 +382,34 @@ public class InsuranceContractController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    // Dans InsuranceContractController.java, ajoutez :
+
+    /**
+     * Activer un contrat et envoyer une notification par email
+     */
+    @PutMapping("/activate-with-notification/{id}")
+    public ResponseEntity<Map<String, Object>> activateContractWithNotification(
+            @PathVariable Long id,
+            @AuthenticationPrincipal UserDetails currentUser) {
+
+        Map<String, Object> response = new HashMap<>();
+
+        try {
+            InsuranceContractDTO activatedContract = contractService.activateContract(id, currentUser.getUsername());
+
+            response.put("success", true);
+            response.put("message", "Contrat activé et notification envoyée");
+            response.put("contract", activatedContract);
+
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("error", e.getMessage());
+            return ResponseEntity.badRequest().body(response);
         }
     }
 }

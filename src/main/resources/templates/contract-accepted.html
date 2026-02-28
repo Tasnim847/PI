@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Contrat Accepté</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background: linear-gradient(135deg, #003366, #004c99);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-radius: 10px 10px 0 0;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+        }
+        .content {
+            background-color: #f9f9f9;
+            padding: 40px;
+            border: 1px solid #ddd;
+            border-top: none;
+            border-radius: 0 0 10px 10px;
+        }
+        .success-badge {
+            background-color: #28a745;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 50px;
+            display: inline-block;
+            font-size: 20px;
+            font-weight: bold;
+            margin: 20px 0;
+            text-align: center;
+        }
+        .info-box {
+            background-color: white;
+            border-left: 5px solid #003366;
+            padding: 20px;
+            margin: 25px 0;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+        }
+        .label {
+            font-weight: bold;
+            width: 40%;
+            color: #555;
+        }
+        .value {
+            color: #003366;
+            font-weight: 600;
+        }
+        .button {
+            background-color: #28a745;
+            color: white;
+            padding: 12px 30px;
+            text-decoration: none;
+            border-radius: 5px;
+            display: inline-block;
+            margin: 20px 0;
+            font-weight: bold;
+        }
+        .button:hover {
+            background-color: #218838;
+        }
+        .footer {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 0.9em;
+            color: #777;
+            border-top: 1px solid #ddd;
+            padding-top: 20px;
+        }
+        .agent-info {
+            background-color: #e8f4fd;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+<div class="header">
+    <h1>✅ Félicitations !</h1>
+    <p>Votre contrat d'assurance a été accepté</p>
+</div>
+
+<div class="content">
+    <div style="text-align: center;">
+        <div class="success-badge">
+            ✔ CONTRAT ACCEPTÉ
+        </div>
+    </div>
+
+    <p>Bonjour <strong th:text="${clientName}">Client</strong>,</p>
+
+    <p>Nous avons le plaisir de vous informer que votre contrat d'assurance a été <strong style="color: #28a745;">accepté</strong> par notre équipe.</p>
+
+    <div class="info-box">
+        <h3 style="margin-top: 0; color: #003366;">📋 Détails de votre contrat</h3>
+
+        <table>
+            <tr>
+                <td class="label">Numéro de contrat</td>
+                <td class="value" th:text="'CTR-' + ${contractId}">CTR-123</td>
+            </tr>
+            <tr>
+                <td class="label">Date d'effet</td>
+                <td class="value" th:text="${startDate}">01/01/2024</td>
+            </tr>
+            <tr>
+                <td class="label">Date d'échéance</td>
+                <td class="value" th:text="${endDate}">31/12/2024</td>
+            </tr>
+            <tr>
+                <td class="label">Prime totale</td>
+                <td class="value" th:text="${premium} + ' TND'">5000.00 TND</td>
+            </tr>
+            <tr>
+                <td class="label">Fréquence de paiement</td>
+                <td class="value" th:text="${paymentFrequency}">Mensuel</td>
+            </tr>
+            <tr>
+                <td class="label">Date d'acceptation</td>
+                <td class="value" th:text="${currentDate}">28/02/2024</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="agent-info">
+        <h4 style="margin-top: 0; color: #003366;">👤 Votre agent d'assurance</h4>
+        <p><strong th:text="${agentName}">Agent Nom</strong></p>
+        <p th:if="${agentEmail}" th:text="${agentEmail}">agent@email.com</p>
+        <p>Votre agent reste à votre disposition pour toute question.</p>
+    </div>
+
+    <h4>📌 Prochaines étapes :</h4>
+    <ul>
+        <li>Votre contrat est maintenant actif et vous êtes couvert</li>
+        <li>Vous recevrez des rappels pour vos échéances de paiement</li>
+        <li>Vous pouvez consulter votre contrat dans votre espace client</li>
+        <li>En cas de sinistre, contactez immédiatement votre agent</li>
+    </ul>
+
+    <div style="text-align: center;">
+        <a href="#" class="button">🔐 Accéder à mon espace client</a>
+    </div>
+
+    <div class="footer">
+        <p>Cet email est une confirmation officielle de l'acceptation de votre contrat.</p>
+        <p>Pour toute question, contactez votre agent d'assurance.</p>
+        <p>© 2026 Votre Compagnie d'Assurance - Tous droits réservés</p>
+    </div>
+</div>
+</body>
+</html>
