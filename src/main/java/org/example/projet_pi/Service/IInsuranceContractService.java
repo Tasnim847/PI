@@ -31,4 +31,7 @@ public interface IInsuranceContractService {
     void checkCompletedContracts();
 
     List<InsuranceContractDTO> getContractsByClientEmail(String email);
+
+    InsuranceContractDTO rejectContract(Long contractId, String agentEmail, String rejectionReason);
+
 }
