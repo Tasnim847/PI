@@ -88,4 +88,10 @@ public class Repayment {
     public void setCredit(Credit credit) {
         this.credit = credit;
     }
+
+    public void setClient(Client client) {
+    }
+
+
+    ////////////////////////////////////////////////////////////////////////////
 }

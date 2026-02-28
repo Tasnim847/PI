@@ -19,7 +19,7 @@ public class Credit {
 
     private double amount;
     private double interestRate;
-    private double monthlyPayment;
+    private float monthlyPayment;
     private int durationInMonths;
 
     @Temporal(TemporalType.DATE)
@@ -114,7 +114,7 @@ public class Credit {
         return monthlyPayment;
     }
 
-    public void setMonthlyPayment(double monthlyPayment) {
+    public void setMonthlyPayment(float monthlyPayment) {
         this.monthlyPayment = monthlyPayment;
     }
 
@@ -144,4 +144,31 @@ public class Credit {
     public void setDueDate(LocalDate dueDate) {
         this.dueDate = dueDate;
     }
+
+
+
+
+
+
+    //////////////////////////////////////////////////////////
+
+
+
+
+    // À ajouter dans Credit.java avec les autres relations
+
+
+    @ManyToOne
+    @JoinColumn(name = "admin_id")
+    private Admin admin;
+
+    public Admin getAdmin() {
+        return admin;
+    }
+
+    public void setAdmin(Admin admin) {
+        this.admin = admin;
+    }
+
+/////////////////////////////////////////////////////////
 }

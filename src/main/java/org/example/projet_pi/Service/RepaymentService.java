@@ -1,6 +1,7 @@
 package org.example.projet_pi.Service;
 
 import jakarta.transaction.Transactional;
+
 import org.example.projet_pi.Repository.CreditRepository;
 import org.example.projet_pi.Repository.RepaymentRepository;
 import org.example.projet_pi.entity.Credit;
@@ -9,9 +10,12 @@ import org.example.projet_pi.entity.Repayment;
 import org.example.projet_pi.entity.RepaymentStatus;
 import org.springframework.stereotype.Service;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -191,4 +195,15 @@ if (repayment.getPaymentDate() == null) {
 
         return totalPayable.subtract(totalPaid).setScale(2, RoundingMode.HALF_UP);
     }
+    @Override
+    public List<Repayment> getRepaymentsByCreditId(Long creditId) {
+        return repaymentRepository.findByCredit_CreditId(creditId);
+    }
+
+    @Override
+    public List<Repayment> getRepaymentsByClientEmail(String email) {
+        return repaymentRepository.findByClient_Email(email);
+    }
+
+
 }

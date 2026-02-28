@@ -102,7 +102,8 @@ public class CreditService implements ICreditService {
         double totalToPay = amount + (amount * interestRate / 100.0);
         double monthlyPayment = totalToPay / duration;
 
-        credit.setMonthlyPayment(monthlyPayment);
+        credit.setMonthlyPayment((float) monthlyPayment);
+
 
         // ✅ Dates
         Date now = new Date();
@@ -158,5 +159,9 @@ public class CreditService implements ICreditService {
     @Override
     public List<Credit> getAllCredits() {
         return creditRepository.findAll();
+    }
+    @Override
+    public List<Credit> getCreditsByClientEmail(String email) {
+        return creditRepository.findByClient_Email(email);
     }
 }

@@ -91,6 +91,40 @@ public class SecurityConfig {
                         // ⚠️ RiskClaims (généralement gérés par le système)
                         .requestMatchers("/riskclaims/**").hasRole("ADMIN")
 
+                        // ========== CREDIT ENDPOINTS ==========
+                        // ADMIN seulement
+                        .requestMatchers("/Credit/addCredit").hasRole("ADMIN")
+                        .requestMatchers("/Credit/updateCredit").hasRole("ADMIN")
+                        .requestMatchers("/Credit/deleteCredit/**").hasRole("ADMIN")
+                        .requestMatchers("/Credit/getCredit/**").hasRole("ADMIN")
+
+                        // Agent Finance et Admin
+                        .requestMatchers("/Credit/approve/**").hasAnyRole("AGENT_FINANCE", "ADMIN")
+                        .requestMatchers("/Credit/reject/**").hasAnyRole("AGENT_FINANCE", "ADMIN")
+                        .requestMatchers("/Credit/allCredit").hasAnyRole("AGENT_FINANCE", "ADMIN")
+                        .requestMatchers("/Credit/closedCreditsWithAverage/**").hasAnyRole("AGENT_FINANCE", "ADMIN")
+
+                        // Client seulement
+                        .requestMatchers("/Credit/myCredits").hasRole("CLIENT")
+
+                        // ========== REPAYMENT ENDPOINTS ==========
+                        // Client seulement
+                        .requestMatchers("/Repayment/pay-credit/**").hasRole("CLIENT")
+                        .requestMatchers("/Repayment/myPayments").hasRole("CLIENT")
+
+                        // Tous les rôles authentifiés
+                        .requestMatchers("/Repayment/remaining/**").authenticated()
+
+                        // Agent Finance et Admin
+                        .requestMatchers("/Repayment/history/**").hasAnyRole("AGENT_FINANCE", "ADMIN")
+                        .requestMatchers("/Repayment/allRepayment").hasAnyRole("AGENT_FINANCE", "ADMIN")
+
+                        // Admin seulement
+                        .requestMatchers("/Repayment/addRepayment").hasRole("ADMIN")
+                        .requestMatchers("/Repayment/updateRepayment").hasRole("ADMIN")
+                        .requestMatchers("/Repayment/deleteRepayment/**").hasRole("ADMIN")
+                        .requestMatchers("/Repayment/getRepayment/**").hasRole("ADMIN")
+
                         // Toute autre requête nécessite une authentification
                         .anyRequest().authenticated()
                 )

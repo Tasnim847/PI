@@ -13,5 +13,6 @@ public interface ICreditService {
     public void deleteCredit(Long id);
     public Credit getCreditById(Long id);
     public List<Credit> getAllCredits();
+    List<Credit> getCreditsByClientEmail(String email);
 
 }

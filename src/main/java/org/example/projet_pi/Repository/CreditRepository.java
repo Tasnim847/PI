@@ -12,4 +12,5 @@ import java.util.List;
 public interface CreditRepository extends JpaRepository<Credit, Long>{
     // Récupérer tous les crédits CLOSED d’un client
     List<Credit> findByClientAndStatus(Client client, CreditStatus status);
+    List<Credit> findByClient_Email(String email);
 }

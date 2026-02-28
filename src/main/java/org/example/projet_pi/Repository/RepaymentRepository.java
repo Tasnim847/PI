@@ -12,6 +12,8 @@ import java.util.List;
 public interface RepaymentRepository extends JpaRepository<Repayment, Long> {
 
     List<Repayment> findByCreditCreditIdOrderByPaymentDateAsc(Long creditId);
+    List<Repayment> findByCredit_CreditId(Long creditId);
+    List<Repayment> findByClient_Email(String email);
 
     @Query("""
         select sum(r.amount)
@@ -22,3 +24,4 @@ public interface RepaymentRepository extends JpaRepository<Repayment, Long> {
     BigDecimal sumPaidSuccess(@Param("creditId") Long creditId);
 
 }
+
