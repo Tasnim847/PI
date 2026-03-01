@@ -13,8 +13,10 @@ public class RiskClaim {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long riskId;
 
-    private double riskScore;      // score calculé
+    private Double riskScore;      // score calculé
     private String riskLevel;
+
+    @Column(length = 5000)
     private String evaluationNote;
 
 

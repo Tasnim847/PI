@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Évaluation du Risque</title>
+</head>
+<body>
+<h1>Évaluation du contrat : <span th:text="${evaluationData.contractReference}"></span></h1>
+<p>Client : <span th:text="${evaluationData.clientName}"></span></p>
+<p>Agent : <span th:text="${evaluationData.agentName}"></span></p>
+<p>Date : <span th:text="${#dates.format(evaluationData.evaluationDate,'dd/MM/yyyy')}"></span></p>
+
+<h2>Score global</h2>
+<p>Score : <span th:text="${evaluationData.globalRiskScore}"></span></p>
+<p>Niveau de risque : <span th:text="${evaluationData.globalRiskLevel}"></span></p>
+<p>Classe de risque : <span th:text="${evaluationData.globalRiskClass}"></span></p>
+<p>Recommandation : <span th:text="${evaluationData.recommendation}"></span></p>
+<p th:if="${evaluationData.autoReject}">Contrat à rejet automatique</p>
+
+<h2>Détails par catégorie</h2>
+<div th:if="${evaluationData.categories != null}">
+    <ul>
+        <li th:each="entry : ${evaluationData.categories}">
+            <strong th:text="${entry.value.categoryName}"></strong> :
+            Niveau de risque : <span th:text="${entry.value.riskLevel}"></span>,
+            Score : <span th:text="${entry.value.score}"></span>,
+            Poids : <span th:text="${entry.value.weight}"></span>
+            <p th:text="${entry.value.description}"></p>
+            <ul>
+                <li th:each="detail : ${entry.value.details}" th:text="${detail}"></li>
+            </ul>
+        </li>
+    </ul>
+</div>
+
+<h2>Facteurs de risque</h2>
+<div th:if="${evaluationData.riskFactors != null}">
+    <ul>
+        <li th:each="factor : ${evaluationData.riskFactors}">
+            <strong th:text="${factor.factor}"></strong> :
+            Impact : <span th:text="${factor.impact}"></span>,
+            Points : <span th:text="${factor.points}"></span>
+            <p th:text="${factor.description}"></p>
+        </li>
+    </ul>
+</div>
+
+<h2>Points positifs</h2>
+<ul th:if="${evaluationData.positivePoints != null}">
+    <li th:each="point : ${evaluationData.positivePoints}" th:text="${point}"></li>
+</ul>
+
+<h2>Actions recommandées</h2>
+<ul th:if="${evaluationData.recommendedActions != null}">
+    <li th:each="action : ${evaluationData.recommendedActions}" th:text="${action}"></li>
+</ul>
+
+<h2>Rapport détaillé</h2>
+<p th:text="${evaluationData.detailedReport}"></p>
+</body>
+</html>

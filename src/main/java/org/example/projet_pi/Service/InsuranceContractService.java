@@ -2,6 +2,7 @@ package org.example.projet_pi.Service;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.example.projet_pi.Dto.ClientScoreResult;
 import org.example.projet_pi.Dto.InsuranceContractDTO;
 import org.example.projet_pi.Mapper.InsuranceContractMapper;
 import org.example.projet_pi.Repository.*;
@@ -28,6 +29,8 @@ public class InsuranceContractService implements IInsuranceContractService {
     private final InsuranceProductRepository productRepository;
     private final UserRepository userRepository;
     private final EmailService emailService;
+    private final ClientScoringService clientScoringService;
+    private final ClaimRepository claimRepository;
 
     // ============================================================
     // 🔥 ADD CONTRACT
@@ -363,7 +366,7 @@ public class InsuranceContractService implements IInsuranceContractService {
     }
 
     // ============================================================
-// 🔥 CALCUL DU RISQUE - VERSION AMÉLIORÉE
+// 🔥 CALCUL DU RISQUE - VERSION PROFESSIONNELLE AVEC SCORING CLIENT
 // ============================================================
 
     private RiskClaim calculateRisk(InsuranceContract contract) {
@@ -372,76 +375,293 @@ public class InsuranceContractService implements IInsuranceContractService {
 
         double score = 0;
         StringBuilder evaluation = new StringBuilder();
+        List<String> riskFactors = new ArrayList<>();
 
-        // 1. Évaluation de la prime
-        if (contract.getPremium() > 10000) {
-            score += 40;
-            evaluation.append("Prime très élevée (>10000 DT). ");
-        } else if (contract.getPremium() > 5000) {
-            score += 25;
-            evaluation.append("Prime élevée (>5000 DT). ");
-        } else {
-            score += 10;
-            evaluation.append("Prime normale. ");
+        // ============================================================
+        // 1. SCORING CLIENT (30% du poids total)
+        // ============================================================
+
+        Client client = contract.getClient();
+        ClientScoreResult clientScore = clientScoringService.calculateClientScore(client.getId());
+
+        evaluation.append("📊 **ANALYSE CLIENT**\n");
+        evaluation.append("==================\n");
+        evaluation.append(String.format("Score Client: %.2f/100\n", clientScore.getGlobalScore()));
+        evaluation.append(String.format("Niveau de risque: %s\n", clientScore.getRiskLevel()));
+        evaluation.append(String.format("Classe de risque: %s\n", clientScore.getRiskClass()));
+        evaluation.append("\nDétails par composante:\n");
+
+        // Afficher les scores par composante
+        clientScore.getComponentScores().forEach((key, value) -> {
+            evaluation.append(String.format("- %s: %.2f\n", key, value));
+        });
+
+        // Ajouter les recommandations si existantes
+        if (!clientScore.getRecommendations().isEmpty()) {
+            evaluation.append("\nRecommandations client:\n");
+            clientScore.getRecommendations().forEach((key, value) -> {
+                evaluation.append(String.format("- %s\n", value));
+            });
         }
 
-        // 2. Évaluation de la franchise
-        if (contract.getDeductible() < 200) {
-            score += 30;
-            evaluation.append("Franchise très basse (<200 DT). ");
-        } else if (contract.getDeductible() < 500) {
-            score += 20;
-            evaluation.append("Franchise basse. ");
+        // Intégration du score client dans le risque global
+        double clientRiskContribution;
+        if (clientScore.getRiskLevel().equals("TRES_ELEVE")) {
+            clientRiskContribution = 40;
+            riskFactors.add("Client à risque très élevé (score < 35)");
+        } else if (clientScore.getRiskLevel().equals("ELEVE")) {
+            clientRiskContribution = 30;
+            riskFactors.add("Client à risque élevé (score 35-50)");
+        } else if (clientScore.getRiskLevel().equals("MODERE")) {
+            clientRiskContribution = 20;
+            riskFactors.add("Client à risque modéré (score 50-65)");
+        } else if (clientScore.getRiskLevel().equals("FAIBLE")) {
+            clientRiskContribution = 10;
+            riskFactors.add("Client à risque faible (score 65-80)");
         } else {
-            score += 10;
-            evaluation.append("Franchise acceptable. ");
+            clientRiskContribution = 5;
+            riskFactors.add("Client à risque très faible (score > 80)");
         }
 
-        // 3. Évaluation du plafond
-        if (contract.getCoverageLimit() > 100000) {
-            score += 40;
-            evaluation.append("Plafond très élevé (>100000 DT). ");
-        } else if (contract.getCoverageLimit() > 50000) {
-            score += 30;
-            evaluation.append("Plafond élevé (>50000 DT). ");
-        } else if (contract.getCoverageLimit() > 20000) {
-            score += 20;
-            evaluation.append("Plafond modéré. ");
-        } else {
-            score += 10;
-            evaluation.append("Plafond normal. ");
-        }
+        score += clientRiskContribution;
+        evaluation.append(String.format("\nContribution client au risque: +%.0f points\n\n", clientRiskContribution));
 
-        // 4. Évaluation de la durée
-        if (contract.getStartDate() != null && contract.getEndDate() != null) {
-            long durationInDays = (contract.getEndDate().getTime() - contract.getStartDate().getTime()) / (1000 * 60 * 60 * 24);
-            if (durationInDays > 365 * 3) { // plus de 3 ans
+        // ============================================================
+        // 2. ANALYSE DU PRODUIT (20% du poids)
+        // ============================================================
+
+        evaluation.append("📦 **ANALYSE DU PRODUIT**\n");
+        evaluation.append("=====================\n");
+
+        InsuranceProduct product = contract.getProduct();
+        if (product != null) {
+            String productType = product.getProductType();
+            evaluation.append(String.format("Type de produit: %s\n", productType));
+
+            // Risque par type de produit
+            if ("VIE".equalsIgnoreCase(productType)) {
                 score += 20;
-                evaluation.append("Durée longue (>3 ans). ");
-            } else if (durationInDays > 365) { // plus d'un an
+                riskFactors.add("Produit d'assurance vie - risque élevé");
+                evaluation.append("⚠️ Produit vie: +20 points (risque actuariel élevé)\n");
+            } else if ("SANTE".equalsIgnoreCase(productType)) {
+                score += 15;
+                riskFactors.add("Produit santé - risque modéré");
+                evaluation.append("⚕️ Produit santé: +15 points\n");
+            } else if ("AUTO".equalsIgnoreCase(productType)) {
                 score += 10;
-                evaluation.append("Durée moyenne. ");
-            } else {
-                score += 5;
-                evaluation.append("Durée courte. ");
+                riskFactors.add("Produit auto - risque standard");
+                evaluation.append("🚗 Produit auto: +10 points\n");
+            } else if ("HABITATION".equalsIgnoreCase(productType)) {
+                score += 8;
+                evaluation.append("🏠 Produit habitation: +8 points\n");
             }
         }
 
-        riskClaim.setRiskScore(score);
+        evaluation.append("\n");
 
-        // Déterminer le niveau de risque
-        if (score >= 80) {
-            riskClaim.setRiskLevel("HIGH");
-            evaluation.insert(0, "🔴 RISQUE ÉLEVÉ - ");
-            riskClaim.setEvaluationNote(evaluation.toString());
-        } else if (score >= 50) {
-            riskClaim.setRiskLevel("MEDIUM");
-            evaluation.insert(0, "🟡 RISQUE MOYEN - ");
-            riskClaim.setEvaluationNote(evaluation.toString());
+        // ============================================================
+        // 3. ANALYSE FINANCIÈRE DU CONTRAT (30% du poids)
+        // ============================================================
+
+        evaluation.append("💰 **ANALYSE FINANCIÈRE**\n");
+        evaluation.append("======================\n");
+
+        // Ratio prime/revenus
+        if (client.getAnnualIncome() != null && client.getAnnualIncome() > 0) {
+            double premiumToIncomeRatio = (contract.getPremium() / client.getAnnualIncome()) * 100;
+            evaluation.append(String.format("Ratio prime/revenus: %.2f%%\n", premiumToIncomeRatio));
+
+            if (premiumToIncomeRatio > 30) {
+                score += 25;
+                riskFactors.add("Prime excessive (>30% des revenus)");
+                evaluation.append("⚠️ Prime très élevée par rapport aux revenus: +25 points\n");
+            } else if (premiumToIncomeRatio > 20) {
+                score += 15;
+                riskFactors.add("Prime élevée (20-30% des revenus)");
+                evaluation.append("⚠️ Prime élevée par rapport aux revenus: +15 points\n");
+            } else if (premiumToIncomeRatio > 10) {
+                score += 8;
+                evaluation.append("📊 Prime modérée par rapport aux revenus: +8 points\n");
+            } else {
+                evaluation.append("✅ Prime adaptée aux revenus: +0 points\n");
+            }
+        }
+
+        // Analyse de la franchise
+        evaluation.append(String.format("\nFranchise: %.2f DT\n", contract.getDeductible()));
+        if (contract.getDeductible() < 200) {
+            score += 20;
+            riskFactors.add("Franchise trop basse (<200 DT)");
+            evaluation.append("⚠️ Franchise très basse: +20 points\n");
+        } else if (contract.getDeductible() < 500) {
+            score += 10;
+            evaluation.append("📊 Franchise standard: +10 points\n");
         } else {
-            riskClaim.setRiskLevel("LOW");
-            evaluation.insert(0, "🟢 RISQUE FAIBLE - ");
-            riskClaim.setEvaluationNote(evaluation.toString());
+            evaluation.append("✅ Franchise élevée (sécurisante): +5 points\n");
+        }
+
+        // Analyse du plafond
+        evaluation.append(String.format("\nPlafond de couverture: %.2f DT\n", contract.getCoverageLimit()));
+        if (contract.getCoverageLimit() > 200000) {
+            score += 25;
+            riskFactors.add("Plafond très élevé (>200k DT)");
+            evaluation.append("⚠️ Plafond très élevé: +25 points\n");
+        } else if (contract.getCoverageLimit() > 100000) {
+            score += 15;
+            evaluation.append("📊 Plafond élevé: +15 points\n");
+        } else if (contract.getCoverageLimit() > 50000) {
+            score += 8;
+            evaluation.append("✅ Plafond modéré: +8 points\n");
+        } else {
+            evaluation.append("✅ Plafond standard: +5 points\n");
+        }
+
+        evaluation.append("\n");
+
+        // ============================================================
+        // 4. ANALYSE TEMPORELLE (20% du poids)
+        // ============================================================
+
+        evaluation.append("⏱️ **ANALYSE TEMPORELLE**\n");
+        evaluation.append("=====================\n");
+
+        if (contract.getStartDate() != null && contract.getEndDate() != null) {
+            long durationInDays = (contract.getEndDate().getTime() - contract.getStartDate().getTime()) / (1000 * 60 * 60 * 24);
+            long durationInYears = durationInDays / 365;
+
+            evaluation.append(String.format("Durée du contrat: %d ans (%d jours)\n", durationInYears, durationInDays));
+
+            if (durationInYears > 10) {
+                score += 25;
+                riskFactors.add("Durée très longue (>10 ans)");
+                evaluation.append("⚠️ Durée très longue: +25 points\n");
+            } else if (durationInYears > 5) {
+                score += 15;
+                evaluation.append("📊 Durée longue: +15 points\n");
+            } else if (durationInYears > 3) {
+                score += 10;
+                evaluation.append("✅ Durée moyenne: +10 points\n");
+            } else {
+                evaluation.append("✅ Durée courte: +5 points\n");
+            }
+
+            // Vérifier si le client est âgé par rapport à la durée
+            int clientAge = client.getAge();
+            int ageAtEnd = clientAge + (int) durationInYears;
+
+            if (ageAtEnd > 75) {
+                score += 15;
+                riskFactors.add(String.format("Client âgé de %d ans en fin de contrat", ageAtEnd));
+                evaluation.append(String.format("⚠️ Client âgé de %d ans en fin de contrat: +15 points\n", ageAtEnd));
+            }
+        }
+
+        evaluation.append("\n");
+
+        // ============================================================
+        // 5. BONUS/MALUS SPÉCIFIQUES
+        // ============================================================
+
+        evaluation.append("🎯 **BONUS/MALUS**\n");
+        evaluation.append("===============\n");
+
+        // Malus pour cumul de contrats
+        int existingContracts = client.getContracts() != null ? client.getContracts().size() : 0;
+        if (existingContracts > 3) {
+            score += 10;
+            riskFactors.add("Cumul de contrats (>3)");
+            evaluation.append("⚠️ Cumul de contrats: +10 points\n");
+        }
+
+        // Bonus pour client fidèle
+        if (client.getClientTenureInDays() > 365 * 5) {
+            score -= 5; // Bonus = réduction du score de risque
+            evaluation.append("✅ Client fidèle (>5 ans): -5 points (bonus)\n");
+        }
+
+        // Malus pour sinistres antérieurs
+        List<Claim> clientClaims = claimRepository.findByClientId(client.getId());
+        if (clientClaims != null && !clientClaims.isEmpty()) {
+            long approvedClaims = clientClaims.stream()
+                    .filter(c -> c.getStatus() == ClaimStatus.APPROVED)
+                    .count();
+            if (approvedClaims > 2) {
+                score += 15;
+                riskFactors.add("Sinistres répétés");
+                evaluation.append("⚠️ Sinistres répétés: +15 points\n");
+            }
+        }
+
+        evaluation.append("\n");
+
+        // ============================================================
+        // 6. SCORE FINAL ET NIVEAU DE RISQUE
+        // ============================================================
+
+        // Normalisation du score (max 100)
+        double finalScore = Math.min(100, score);
+        riskClaim.setRiskScore(finalScore);
+
+        evaluation.append("📋 **RÉSULTAT FINAL**\n");
+        evaluation.append("=================\n");
+        evaluation.append(String.format("Score total: %.2f/100\n", finalScore));
+
+        // Facteurs de risque
+        if (!riskFactors.isEmpty()) {
+            evaluation.append("\n🔴 Facteurs de risque identifiés:\n");
+            riskFactors.forEach(factor -> evaluation.append("- ").append(factor).append("\n"));
+        }
+
+        // Recommandations du scoring client
+        if (!clientScore.getRecommendations().isEmpty()) {
+            evaluation.append("\n💡 Recommandations du scoring client:\n");
+            clientScore.getRecommendations().values()
+                    .forEach(rec -> evaluation.append("- ").append(rec).append("\n"));
+        }
+
+        // Déterminer le niveau de risque final
+        String riskLevel;
+        String recommendation;
+        boolean autoReject;
+
+        if (finalScore >= 80) {
+            riskLevel = "HIGH";
+            autoReject = true;
+            recommendation = "🔴 RISQUE TRÈS ÉLEVÉ - Contrat automatiquement rejeté. " +
+                    "Score trop élevé et/ou client à risque.";
+            evaluation.insert(0, "🔴 **RISQUE ÉLEVÉ - REJET AUTO**\n\n");
+        } else if (finalScore >= 60) {
+            riskLevel = "MEDIUM";
+            autoReject = false;
+            recommendation = "🟡 RISQUE MOYEN - Nécessite validation par un agent. " +
+                    "Vérifier les points d'attention identifiés.";
+            evaluation.insert(0, "🟡 **RISQUE MOYEN - REVISION NÉCESSAIRE**\n\n");
+        } else if (finalScore >= 40) {
+            riskLevel = "LOW";
+            autoReject = false;
+            recommendation = "🟢 RISQUE FAIBLE - Peut être accepté. " +
+                    "Surveillance standard recommandée.";
+            evaluation.insert(0, "🟢 **RISQUE FAIBLE - ACCEPTABLE**\n\n");
+        } else {
+            riskLevel = "VERY_LOW";
+            autoReject = false;
+            recommendation = "✅ RISQUE TRÈS FAIBLE - Acceptation automatique recommandée.";
+            evaluation.insert(0, "✅ **RISQUE TRÈS FAIBLE - FAVORABLE**\n\n");
+        }
+
+        evaluation.append("\n💡 **RECOMMANDATION**: ").append(recommendation);
+
+        riskClaim.setRiskLevel(riskLevel);
+        riskClaim.setEvaluationNote(evaluation.toString());
+
+        // Log pour le suivi
+        log.info("📊 Calcul de risque pour contrat {}: score={}, niveau={}, autoReject={}",
+                contract.getContractId(), finalScore, riskLevel, autoReject);
+
+        // Si autoReject est true, on notifie
+        if (autoReject) {
+            log.warn("🚨 Contrat {} automatiquement rejeté - Score: {}, Niveau: {}",
+                    contract.getContractId(), finalScore, riskLevel);
         }
 
         return riskClaim;

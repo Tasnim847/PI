@@ -1,6 +1,7 @@
 package org.example.projet_pi.Service;
 
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.example.projet_pi.Dto.ClaimDTO;
 import org.example.projet_pi.Dto.CompensationDetailsDTO;
 import org.example.projet_pi.Dto.DocumentDTO;
@@ -17,6 +18,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @AllArgsConstructor
 public class ClaimService implements IClaimService {
@@ -27,6 +29,7 @@ public class ClaimService implements IClaimService {
     private final ClientRepository clientRepository;
     private final CompensationRepository compensationRepository;
     private final UserRepository userRepository;  // Ajout du repository User
+    private final EmailService emailService;
 
     @Override
     @Transactional
@@ -304,7 +307,16 @@ public class ClaimService implements IClaimService {
         Claim updatedClaim = claimRepository.save(claim);
 
         // Créer automatiquement la compensation
-        createCompensationForApprovedClaim(updatedClaim);
+        Compensation compensation = createCompensationForApprovedClaim(updatedClaim);
+
+        // 📧 Envoyer un email au client
+        try {
+            emailService.sendClaimApprovedEmail(claim.getClient(), updatedClaim, compensation);
+            log.info("✅ Email d'acceptation envoyé à {} pour le claim {}",
+                    claim.getClient().getEmail(), claimId);
+        } catch (Exception e) {
+            log.error("❌ Erreur lors de l'envoi de l'email d'acceptation: {}", e.getMessage());
+        }
 
         return ClaimMapper.toDTO(updatedClaim);
     }
@@ -334,6 +346,16 @@ public class ClaimService implements IClaimService {
         claim.setDescription(claim.getDescription() + " [REJETÉ: " + reason + "]");
 
         Claim updatedClaim = claimRepository.save(claim);
+
+        // 📧 Envoyer un email au client
+        try {
+            emailService.sendClaimRejectedEmail(claim.getClient(), updatedClaim, reason);
+            log.info("✅ Email de rejet envoyé à {} pour le claim {} (raison: {})",
+                    claim.getClient().getEmail(), claimId, reason);
+        } catch (Exception e) {
+            log.error("❌ Erreur lors de l'envoi de l'email de rejet: {}", e.getMessage());
+        }
+
         return ClaimMapper.toDTO(updatedClaim);
     }
 
@@ -342,12 +364,15 @@ public class ClaimService implements IClaimService {
     /**
      * Crée automatiquement une compensation pour un claim approuvé
      */
+    /**
+     * Crée automatiquement une compensation pour un claim approuvé
+     */
     @Transactional
-    protected void createCompensationForApprovedClaim(Claim claim) {
+    protected Compensation createCompensationForApprovedClaim(Claim claim) {
         // Vérifier qu'il n'y a pas déjà une compensation
         if (claim.getCompensation() != null) {
             System.out.println("⚠️ Le claim " + claim.getClaimId() + " a déjà une compensation");
-            return;
+            return claim.getCompensation();
         }
 
         InsuranceContract contract = claim.getContract();
@@ -390,11 +415,13 @@ public class ClaimService implements IClaimService {
         claimRepository.save(claim);
 
         // Affichage des détails
-        System.out.println("🎉 Compensation créée automatiquement pour le claim " + claim.getClaimId());
-        System.out.println("   - Montant réclamé: " + claimedAmount + " DT");
-        System.out.println("   - Montant approuvé: " + approvedAmount + " DT");
-        System.out.println("   - Franchise client: " + franchise + " DT");
-        System.out.println("   - Montant assurance: " + insurancePayment + " DT");
+        log.info("🎉 Compensation créée automatiquement pour le claim {}", claim.getClaimId());
+        log.info("   - Montant réclamé: {} DT", claimedAmount);
+        log.info("   - Montant approuvé: {} DT", approvedAmount);
+        log.info("   - Franchise client: {} DT", franchise);
+        log.info("   - Montant assurance: {} DT", insurancePayment);
+
+        return compensation;
     }
 
     @Override

@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Réclamation Refusée</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background: linear-gradient(135deg, #dc3545, #c82333);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-radius: 10px 10px 0 0;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+        }
+        .content {
+            background-color: #f9f9f9;
+            padding: 40px;
+            border: 1px solid #ddd;
+            border-top: none;
+            border-radius: 0 0 10px 10px;
+        }
+        .rejected-badge {
+            background-color: #dc3545;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 50px;
+            display: inline-block;
+            font-size: 20px;
+            font-weight: bold;
+            margin: 20px 0;
+            text-align: center;
+        }
+        .info-box {
+            background-color: white;
+            border-left: 5px solid #dc3545;
+            padding: 20px;
+            margin: 25px 0;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+        }
+        .label {
+            font-weight: bold;
+            width: 40%;
+            color: #555;
+        }
+        .value {
+            color: #dc3545;
+            font-weight: 600;
+        }
+        .reason-box {
+            background-color: #fff3cd;
+            border: 1px solid #ffeeba;
+            color: #856404;
+            padding: 20px;
+            border-radius: 5px;
+            margin: 20px 0;
+            font-size: 1.1em;
+        }
+        .button {
+            background-color: #dc3545;
+            color: white;
+            padding: 12px 30px;
+            text-decoration: none;
+            border-radius: 5px;
+            display: inline-block;
+            margin: 20px 0;
+            font-weight: bold;
+        }
+        .button:hover {
+            background-color: #c82333;
+        }
+        .footer {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 0.9em;
+            color: #777;
+            border-top: 1px solid #ddd;
+            padding-top: 20px;
+        }
+        .agent-info {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            border: 1px solid #dee2e6;
+        }
+    </style>
+</head>
+<body>
+<div class="header">
+    <h1>❌ Réclamation refusée</h1>
+    <p>Votre réclamation n'a pas pu être acceptée</p>
+</div>
+
+<div class="content">
+    <div style="text-align: center;">
+        <div class="rejected-badge">
+            ✗ RÉCLAMATION REFUSÉE
+        </div>
+    </div>
+
+    <p>Bonjour <strong th:text="${clientName}">Client</strong>,</p>
+
+    <p>Nous regrettons de vous informer que votre réclamation n°<strong th:text="${claimId}">123</strong> a été <strong style="color: #dc3545;">refusée</strong> par notre équipe.</p>
+
+    <div class="reason-box">
+        <strong>📝 Raison du refus :</strong>
+        <p style="margin-top: 10px; font-size: 1.1em;" th:text="${rejectionReason}">Raison non spécifiée</p>
+    </div>
+
+    <div class="info-box">
+        <h3 style="margin-top: 0; color: #dc3545;">📋 Détails de la réclamation</h3>
+
+        <table>
+            <tr>
+                <td class="label">Numéro de réclamation</td>
+                <td class="value" th:text="${claimId}">123</td>
+            </tr>
+            <tr>
+                <td class="label">Contrat concerné</td>
+                <td class="value" th:text="'CTR-' + ${contractId}">CTR-123</td>
+            </tr>
+            <tr>
+                <td class="label">Date de la réclamation</td>
+                <td class="value" th:text="${claimDate}">15/03/2024</td>
+            </tr>
+            <tr>
+                <td class="label">Montant réclamé</td>
+                <td class="value" th:text="${claimedAmount} + ' TND'">2000.00 TND</td>
+            </tr>
+            <tr>
+                <td class="label">Date de la décision</td>
+                <td class="value" th:text="${rejectionDate}">20/03/2024</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="agent-info">
+        <h4 style="margin-top: 0; color: #333;">👤 Votre agent d'assurance</h4>
+        <p><strong th:text="${agentName}">Agent Nom</strong></p>
+        <p th:if="${agentEmail}" th:text="${agentEmail}">agent@email.com</p>
+        <p>N'hésitez pas à contacter votre agent pour plus d'informations.</p>
+    </div>
+
+    <h4>📌 Que faire maintenant ?</h4>
+    <ul>
+        <li>Contactez votre agent pour comprendre les raisons du refus</li>
+        <li>Vous pouvez soumettre une nouvelle réclamation avec des documents supplémentaires</li>
+        <li>Vérifiez les conditions de votre contrat</li>
+        <li>Un agent peut vous aider à préparer une nouvelle demande</li>
+    </ul>
+
+    <div style="text-align: center;">
+        <a href="#" class="button">📞 Contacter mon agent</a>
+    </div>
+
+    <div class="footer">
+        <p>Cet email est une confirmation officielle du refus de votre réclamation.</p>
+        <p>Pour toute question, contactez votre agent d'assurance.</p>
+        <p>© 2026 Votre Compagnie d'Assurance - Tous droits réservés</p>
+    </div>
+</div>
+</body>
+</html>
