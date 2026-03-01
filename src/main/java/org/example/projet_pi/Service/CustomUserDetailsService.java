@@ -2,6 +2,7 @@ package org.example.projet_pi.Service;
 
 import org.example.projet_pi.Repository.UserRepository;
 import org.example.projet_pi.entity.User;
+import org.example.projet_pi.security.CustomUserPrincipal;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -25,17 +26,12 @@ public class CustomUserDetailsService implements UserDetailsService {
 
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() ->
-                        new UsernameNotFoundException("User not found with email: " + email)
+                        new UsernameNotFoundException("User not found")
                 );
 
-        // Ajouter le préfixe "ROLE_" pour utiliser hasRole() au lieu de hasAuthority()
         List<SimpleGrantedAuthority> authorities =
                 List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole().name()));
 
-        return new org.springframework.security.core.userdetails.User(
-                user.getEmail(),
-                user.getPassword(),
-                authorities
-        );
+        return new CustomUserPrincipal(user, authorities);
     }
 }

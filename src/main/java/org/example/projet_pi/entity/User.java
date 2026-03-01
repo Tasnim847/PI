@@ -1,5 +1,6 @@
 package org.example.projet_pi.entity;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -88,7 +89,9 @@ public class User {
     private String firstName;
     private String lastName;
     private String email;
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String password;
+
     private String otp;
     private Date otpExpiry;
     private String telephone;

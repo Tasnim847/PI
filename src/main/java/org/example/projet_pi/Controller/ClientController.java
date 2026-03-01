@@ -1,61 +1,70 @@
 package org.example.projet_pi.Controller;
 
+import lombok.RequiredArgsConstructor;
+import org.example.projet_pi.Dto.ChangePasswordRequest;
 import org.example.projet_pi.Service.IClientService;
 import org.example.projet_pi.entity.Client;
 import org.example.projet_pi.entity.Role;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/clients")
+@RequiredArgsConstructor
 public class ClientController {
 
-    @Autowired
-    private IClientService clientService;
+    private final IClientService clientService;
 
-    // Ajouter un client
+    // =============================
+    // ADMIN + CLIENT update info
+    // =============================
+    @PutMapping("/update/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN','CLIENT') and (#id == authentication.principal.id or hasRole('ADMIN'))")
+    public Client updateClient(
+            @PathVariable Long id,
+            @RequestBody Client client){
+        return clientService.updateClientInfo(id, client);
+    }
+
+    // =============================
+    // CLIENT change password ONLY
+    // =============================
+    @PutMapping("/change-password")
+    @PreAuthorize("hasRole('CLIENT')")
+    public ResponseEntity<?> changePassword(
+            @RequestBody ChangePasswordRequest request){
+
+        clientService.changePassword(
+                request.getId(),
+                request.getOldPassword(),
+                request.getNewPassword()
+        );
+
+        return ResponseEntity.ok("Password changed successfully");
+    }
+
+    // =============================
+    // ADMIN add client
+    // =============================
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/add")
-    public Client addClient(@RequestBody Client client) {
+    public Client addClient(@RequestBody Client client){
         return clientService.addClient(client);
     }
 
-    // Modifier un client
-    @PutMapping("/update")
-    public Client updateClient(@RequestBody Client client) {
-
-        client.setRole(Role.CLIENT);
-
-        return clientService.updateClient(client);
-    }
-    // Supprimer un client
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/delete/{id}")
-    public void deleteClient(@PathVariable Long id) {
+    public void deleteClient(@PathVariable Long id){
         clientService.deleteClient(id);
     }
 
-    // Récupérer un client par ID
+    @PreAuthorize("hasAnyRole('ADMIN','AGENT_ASSURANCE','AGENT_FINANCE')")
     @GetMapping("/{id}")
-    public Client getClientById(@PathVariable Long id) {
+    public Client getClientById(@PathVariable Long id){
         return clientService.getClientById(id);
-    }
-
-    // Récupérer tous les clients
-    @GetMapping("/all")
-    public List<Client> getAllClients() {
-        return clientService.getAllClients();
-    }
-
-    // Récupérer les clients d’un Agent Finance
-    @GetMapping("/finance/{agentId}")
-    public List<Client> getClientsByAgentFinance(@PathVariable Long agentId) {
-        return clientService.getClientsByAgentFinance(agentId);
-    }
-
-    // Récupérer les clients d’un Agent Assurance
-    @GetMapping("/assurance/{agentId}")
-    public List<Client> getClientsByAgentAssurance(@PathVariable Long agentId) {
-        return clientService.getClientsByAgentAssurance(agentId);
     }
 }

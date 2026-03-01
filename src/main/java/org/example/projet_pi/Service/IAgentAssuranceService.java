@@ -15,4 +15,5 @@ public interface IAgentAssuranceService {
     AgentAssurance getAgentById(Long id);
 
     List<AgentAssurance> getAllAgents();
+    void changePassword(Long agentId, String oldPassword, String newPassword);
 }

@@ -1,46 +1,53 @@
 package org.example.projet_pi.Controller;
 
+import lombok.RequiredArgsConstructor;
 import org.example.projet_pi.Service.IAdminService;
 import org.example.projet_pi.entity.Admin;
 import org.example.projet_pi.entity.Role;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/admins")
+@RequiredArgsConstructor
 public class AdminController {
 
-    @Autowired
-    private IAdminService adminService;
+    private final IAdminService adminService;
 
-    // Ajouter un admin
+    //  Ajouter admin (ADMIN seulement)
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/add")
     public Admin addAdmin(@RequestBody Admin admin) {
+        admin.setRole(Role.ADMIN);
         return adminService.addAdmin(admin);
     }
 
-    // Modifier un admin
+    //  Modifier admin (ADMIN seulement)
+    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/update")
     public Admin updateAdmin(@RequestBody Admin admin) {
         admin.setRole(Role.ADMIN);
         return adminService.updateAdmin(admin);
     }
 
-    // Supprimer un admin
+    //  Supprimer admin (ADMIN seulement)
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/delete/{id}")
     public void deleteAdmin(@PathVariable Long id) {
         adminService.deleteAdmin(id);
     }
 
-    // Récupérer un admin par ID
+    //  Voir un admin (ADMIN seulement)
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/{id}")
     public Admin getAdminById(@PathVariable Long id) {
         return adminService.getAdminById(id);
     }
 
-    // Récupérer tous les admins
+    // Voir tous les admins (ADMIN seulement)
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/all")
     public List<Admin> getAllAdmins() {
         return adminService.getAllAdmins();

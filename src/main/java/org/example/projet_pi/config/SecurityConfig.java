@@ -5,6 +5,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -16,6 +17,8 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @RequiredArgsConstructor
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity
+
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthFilter;
@@ -37,21 +40,21 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        // 🔓 Endpoints publics
+                        //  Endpoints publics
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/otp/**").permitAll()
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
 
-                        // 👑 ADMIN uniquement
+                        //  ADMIN uniquement
                         .requestMatchers("/products/addProduct").hasRole("ADMIN")
                         .requestMatchers("/products/updateProduct").hasRole("ADMIN")
                         .requestMatchers("/products/deleteProduct/**").hasRole("ADMIN")
                         .requestMatchers("/admins/**").hasRole("ADMIN")
 
-                        // 🎯 AGENT_ASSURANCE
+                        //  AGENT_ASSURANCE
                         .requestMatchers("/agents-assurance/**").hasAnyRole("AGENT_ASSURANCE", "ADMIN")
 
-                        // 👤 CLIENT - Gestion des contrats
+                        //  CLIENT - Gestion des contrats
                         .requestMatchers("/contrats/addCont").hasRole("CLIENT")
                         .requestMatchers("/contrats/updateCont").hasRole("CLIENT")
                         .requestMatchers("/contrats/deleteCont/**").hasRole("CLIENT")
@@ -62,7 +65,7 @@ public class SecurityConfig {
                         .requestMatchers("/contrats/{id}/risk").hasAnyRole("CLIENT", "AGENT_ASSURANCE", "ADMIN")
                         .requestMatchers("/contrats/myContracts").hasRole("CLIENT")
 
-                        // 👤 CLIENT - Gestion des claims
+                        //  CLIENT - Gestion des claims
                         .requestMatchers("/claims/addClaim").hasRole("CLIENT")
                         .requestMatchers("/claims/updateClaim").hasRole("CLIENT")
                         .requestMatchers("/claims/deleteClaim/**").hasRole("CLIENT")
@@ -72,7 +75,7 @@ public class SecurityConfig {
                         .requestMatchers("/claims/reject/**").hasRole("AGENT_ASSURANCE")
                         .requestMatchers("/claims/calculate-compensation/**").hasAnyRole("CLIENT", "AGENT_ASSURANCE", "ADMIN")
 
-                        // 👤 CLIENT - Gestion des documents
+                        //  CLIENT - Gestion des documents
                         .requestMatchers("/documents/addDoc").hasRole("CLIENT")
                         .requestMatchers("/documents/updateDoc").hasRole("CLIENT")
                         .requestMatchers("/documents/deleteDoc/**").hasRole("CLIENT")
@@ -80,7 +83,7 @@ public class SecurityConfig {
                         .requestMatchers("/documents/allDoc").hasAnyRole("CLIENT","AGENT_ASSURANCE","ADMIN")
                         .requestMatchers("/documents/claim/**").hasAnyRole("CLIENT", "AGENT_ASSURANCE", "ADMIN")
 
-                        // 💰 Paiements
+                        //  Paiements
                         .requestMatchers("/payments/addPayment").hasAnyRole("CLIENT", "AGENT_ASSURANCE", "ADMIN")
                         .requestMatchers("/payments/getPayment/**").hasAnyRole("CLIENT", "AGENT_ASSURANCE", "ADMIN")
                         .requestMatchers("/payments/allPayments").hasAnyRole("CLIENT","AGENT_ASSURANCE","ADMIN")
@@ -88,7 +91,7 @@ public class SecurityConfig {
                         .requestMatchers("/payments/create-payment-intent/**").hasAnyRole("CLIENT", "AGENT_ASSURANCE", "ADMIN")
                         .requestMatchers("/payments/webhook").permitAll() // Webhook Stripe (public)
 
-                        // ⚠️ RiskClaims (généralement gérés par le système)
+                        // ️ RiskClaims (généralement gérés par le système)
                         .requestMatchers("/riskclaims/**").hasRole("ADMIN")
 
                         // Toute autre requête nécessite une authentification
