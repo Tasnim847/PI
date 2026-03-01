@@ -2,6 +2,7 @@ package org.example.projet_pi.Controller;
 
 import org.example.projet_pi.Dto.CreditHistoryDTO;
 import org.example.projet_pi.Service.CreditService;
+import org.example.projet_pi.Service.EmailCredit.CreditNotificationScheduler;
 import org.example.projet_pi.Service.IClientService;
 import org.example.projet_pi.entity.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -249,5 +250,23 @@ public class CreditController {
         // Implémentez la logique pour récupérer l'entité User complète
         // à partir de l'email ou username
         return null; // À implémenter selon votre code
+    }
+
+    @Autowired
+    private CreditNotificationScheduler notificationScheduler;
+
+    @PostMapping("/test-notification/{creditId}")
+    public ResponseEntity<?> testNotification(@PathVariable Long creditId) {
+        try {
+            notificationScheduler.testReminderForCredit(creditId);
+            return ResponseEntity.ok(Map.of(
+                    "message", "Email de test envoyé avec succès",
+                    "creditId", creditId
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "error", "Erreur: " + e.getMessage()
+            ));
+        }
     }
 }

@@ -21,4 +21,8 @@ public interface IRepaymentService {
     BigDecimal getRemainingAmount(Long creditId);
     List<Repayment> getRepaymentsByCreditId(Long creditId);
     List<Repayment> getRepaymentsByClientEmail(String email);
+    byte[] generateAmortissementPdf(Long creditId) throws IOException;
+    void sendAmortissementPdfByEmail(Long creditId) throws IOException;
+
+
 }

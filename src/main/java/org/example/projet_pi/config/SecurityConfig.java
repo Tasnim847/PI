@@ -121,6 +121,7 @@ public class SecurityConfig {
 
                         // Tous les rôles authentifiés
                         .requestMatchers("/Repayment/remaining/**").authenticated()
+                        .requestMatchers("/Repayment/credits/{creditId}/amortissement/pdf").hasAnyRole("CLIENT", "ADMIN")
 
                         // Agent Finance et Admin
                         .requestMatchers("/Repayment/history/**").hasAnyRole("AGENT_FINANCE", "ADMIN")

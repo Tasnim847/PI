@@ -95,15 +95,25 @@ public class CreditService implements ICreditService {
         // ✅ Définir le taux
         credit.setInterestRate(interestRate);
 
-        // ✅ Calcul du paiement mensuel
+// Montant et durée
         double amount = credit.getAmount();
         int duration = credit.getDurationInMonths();
 
-        double totalToPay = amount + (amount * interestRate / 100.0);
-        double monthlyPayment = totalToPay / duration;
+// taux mensuel en décimal
+        double monthlyRate = (interestRate / 100.0) / 12.0;
 
-        credit.setMonthlyPayment((float) monthlyPayment);
+// Calcul mensualité constante
+        float monthlyPayment;
 
+        if (monthlyRate == 0) {
+            monthlyPayment = (float) (amount / duration);
+        } else {
+            monthlyPayment = (float) ((amount * monthlyRate) /
+                    (1 - Math.pow(1 + monthlyRate, -duration)));
+        }
+
+        credit.setMonthlyPayment(monthlyPayment);
+        float TotalPayement = monthlyPayment * duration;
 
         // ✅ Dates
         Date now = new Date();

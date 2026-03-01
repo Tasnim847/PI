@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        .header { text-align: center; margin-bottom: 20px; }
+        .client-info {
+            background-color: #f0f0f0;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+        .remaining-amount {
+            background-color: #e8f4fd;
+            padding: 10px;
+            margin: 10px 0;
+            border-left: 4px solid #2196F3;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid black;
+            padding: 8px;
+            text-align: center;
+        }
+        th {
+            background-color: #e0e0e0;
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h2>AMORTIZATION SCHEDULE</h2>
+</div>
+
+<!-- CLIENT INFORMATION -->
+<div class="client-info">
+    <p><strong>Client:</strong> <span th:text="${clientNomComplet}"></span></p>
+    <p><strong>Phone:</strong> <span th:text="${clientTelephone}"></span></p>
+    <p><strong>Email:</strong> <span th:text="${clientEmail}"></span></p>
+    <p><strong>Credit Reference:</strong> <span th:text="${creditReference}"></span></p>
+    <p><strong>Total Amount:</strong> <span th:text="${montantTotal}"></span></p>
+    <p><strong>Duration:</strong> <span th:text="${dureeMois}"></span></p>
+    <p><strong>Monthly Payment:</strong> <span th:text="${mensualite}"></span></p>
+
+    <!-- 🔴 REMAINING AMOUNT -->
+    <div class="remaining-amount">
+        <p><strong>💰 Amount Paid:</strong> <span th:text="${montantPaye}"></span></p>
+        <p><strong>💰 Remaining Amount:</strong> <span th:text="${montantRestant}"></span></p>
+    </div>
+
+    <p><strong>Generation Date:</strong> <span th:text="${dateGeneration}"></span></p>
+</div>
+
+<!-- AMORTIZATION TABLE -->
+<table>
+    <tr>
+        <th>Year</th>
+        <th>Beginning Balance</th>
+        <th>Interest</th>
+        <th>Principal</th>
+        <th>Annual Payment</th>
+        <th>Ending Balance</th>
+    </tr>
+    <tr th:each="row : ${rows}">
+        <td th:text="${row.year}"></td>
+        <td th:text="${row.capitalDebut} + ' TND'"></td>
+        <td th:text="${row.interet} + ' TND'"></td>
+        <td th:text="${row.amortissement} + ' TND'"></td>
+        <td th:text="${row.annuite} + ' TND'"></td>
+        <td th:text="${row.capitalFin} + ' TND'"></td>
+    </tr>
+</table>
+
+</body>
+</html>

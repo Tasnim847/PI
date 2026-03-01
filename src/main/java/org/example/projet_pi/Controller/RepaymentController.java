@@ -2,13 +2,16 @@ package org.example.projet_pi.Controller;
 
 import org.example.projet_pi.Service.IRepaymentService;
 import org.example.projet_pi.entity.*;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
@@ -236,5 +239,68 @@ public class RepaymentController {
         // Implémentez la logique pour récupérer l'entité Client complète
         // à partir de l'email ou username
         return null; // À implémenter selon votre code
+    }
+    @GetMapping("/credits/{creditId}/amortissement/pdf")
+    public ResponseEntity<?> generatePdf(
+            @PathVariable Long creditId,
+            @AuthenticationPrincipal UserDetails currentUser) {
+
+        try {
+            // 🔴 Vérifier que l'utilisateur est authentifié
+            if (currentUser == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(Map.of("error", "Utilisateur non authentifié"));
+            }
+
+            // 🔴 Vérifier les rôles (CLIENT ou ADMIN)
+            if (!hasRole(currentUser, "CLIENT") && !hasRole(currentUser, "ADMIN")) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body(Map.of("error", "Accès refusé - Rôle insuffisant"));
+            }
+
+            // 🔴 Générer le PDF
+            byte[] pdf = repaymentService.generateAmortissementPdf(creditId);
+
+            // 🔴 Retourner le PDF
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION,
+                            "attachment; filename=amortissement_credit_" + creditId + ".pdf")
+                    .contentType(MediaType.APPLICATION_PDF)
+                    .body(pdf);
+
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("error", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Erreur lors de la génération du PDF: " + e.getMessage()));
+        }
+    }
+
+    // Dans RepaymentController.java, ajoutez:
+
+    @PostMapping("/credits/{creditId}/send-pdf-email")
+    public ResponseEntity<?> sendPdfByEmail(
+            @PathVariable Long creditId,
+            @AuthenticationPrincipal UserDetails currentUser) {
+
+        try {
+            // Vérifier les droits (admin seulement)
+            if (!hasRole(currentUser, "ADMIN")) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body(Map.of("error", "Accès refusé - Admin seulement"));
+            }
+
+            repaymentService.sendAmortissementPdfByEmail(creditId);
+
+            return ResponseEntity.ok(Map.of(
+                    "message", "PDF envoyé par email avec succès",
+                    "creditId", creditId
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "error", "Erreur: " + e.getMessage()
+            ));
+        }
     }
 }

@@ -22,6 +22,10 @@ public interface RepaymentRepository extends JpaRepository<Repayment, Long> {
         and r.status = org.example.projet_pi.entity.RepaymentStatus.PAID
     """)
     BigDecimal sumPaidSuccess(@Param("creditId") Long creditId);
+    @Query("SELECT r FROM Repayment r WHERE r.credit.creditId = :creditId AND r.status IN :statuses")
+    List<Repayment> findByCreditIdAndStatusIn(
+            @Param("creditId") Long creditId,
+            @Param("statuses") List<RepaymentStatus> statuses);
 
 }
 

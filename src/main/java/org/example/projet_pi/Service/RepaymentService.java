@@ -2,19 +2,22 @@ package org.example.projet_pi.Service;
 
 import jakarta.transaction.Transactional;
 
+import org.example.projet_pi.Dto.AnnualAmortissementDTO;
 import org.example.projet_pi.Repository.CreditRepository;
 import org.example.projet_pi.Repository.RepaymentRepository;
-import org.example.projet_pi.entity.Credit;
-import org.example.projet_pi.entity.CreditStatus;
-import org.example.projet_pi.entity.Repayment;
-import org.example.projet_pi.entity.RepaymentStatus;
+import org.example.projet_pi.Service.EmailCredit.CreditEmailService;
+import org.example.projet_pi.entity.*;
 import org.springframework.stereotype.Service;
+import org.thymeleaf.TemplateEngine;
+import org.thymeleaf.context.Context;
+import org.xhtmlrenderer.pdf.ITextRenderer;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -24,11 +27,17 @@ public class RepaymentService implements IRepaymentService {
 
     private final RepaymentRepository repaymentRepository;
     private final CreditRepository creditRepository;
+    private final TemplateEngine templateEngine;
+    private final CreditEmailService creditEmailService;
 
     public RepaymentService(RepaymentRepository repaymentRepository,
-                            CreditRepository creditRepository) {
+                            CreditRepository creditRepository,
+                            TemplateEngine templateEngine,
+                            CreditEmailService creditEmailService) {  // ✅ AJOUTER
         this.repaymentRepository = repaymentRepository;
         this.creditRepository = creditRepository;
+        this.templateEngine = templateEngine;
+        this.creditEmailService = creditEmailService;  // ✅ AJOUTER
     }
 
     // ===== CRUD =====
@@ -61,7 +70,6 @@ public class RepaymentService implements IRepaymentService {
     @Override
     @Transactional
     public Repayment payCredit(Long creditId, Repayment repayment) {
-
         // 1) Validation basique
         if (repayment == null) {
             throw new IllegalArgumentException("Repayment est null");
@@ -94,28 +102,10 @@ public class RepaymentService implements IRepaymentService {
         if (repayment.getPaymentDate() == null) {
             repayment.setPaymentDate(LocalDate.now());
         }
-       /* if (repayment.getCredit() != null
-                && repayment.getPaymentDate() != null
-                && repayment.getCredit().getDueDate() != null
-                && repayment.getPaymentDate().isAfter(repayment.getCredit().getDueDate())) {
 
+        if (repayment.getPaymentDate().isAfter(repayment.getCredit().getDueDate())) {
             repayment.setStatus(RepaymentStatus.LATE);
-
         } else {
-            repayment.setStatus(RepaymentStatus.PAID);
-        }*/
-if(repayment.getCredit() == null)
-{
-    System.out.println("nnnnnnnnnnuuuuuuuuuullllllll getCredit !!!!!!!!");
-}
-if (repayment.getPaymentDate() == null) {
-    System.out.println("nnnnnnnnnnuuuuuuuuuullllllll getPaymentDate !!!!!!!!");
-}
-        if(repayment.getPaymentDate().isAfter(repayment.getCredit().getDueDate()) )
-        {
-            repayment.setStatus(RepaymentStatus.LATE);
-        }
-        else {
             repayment.setStatus(RepaymentStatus.PAID);
         }
 
@@ -151,8 +141,7 @@ if (repayment.getPaymentDate() == null) {
             return repaymentRepository.save(repayment);
         }
 
-        // 8) Paiement valide → PAID
-        //repayment.setStatus(RepaymentStatus.PAID);
+        // 8) Paiement valide
         repayment.setCredit(credit);
         Repayment saved = repaymentRepository.save(repayment);
 
@@ -166,22 +155,20 @@ if (repayment.getPaymentDate() == null) {
 
         if (newRemaining.compareTo(BigDecimal.ZERO) <= 0) {
             credit.setStatus(CreditStatus.CLOSED);
-        }
-        else {
-            if(((repayment.getStatus()==RepaymentStatus.PAID))||(repayment.getStatus()==RepaymentStatus.LATE))
-            {
+        } else {
+            if ((repayment.getStatus() == RepaymentStatus.PAID) || (repayment.getStatus() == RepaymentStatus.LATE)) {
                 credit.setDueDate(credit.getDueDate().plusMonths(1));
-
             }
         }
 
         creditRepository.save(credit);
-
         return saved;
     }
+
     /**
      * Retourne le montant restant à payer pour un crédit
      */
+    @Override
     public BigDecimal getRemainingAmount(Long creditId) {
         Credit credit = creditRepository.findById(creditId)
                 .orElseThrow(() -> new IllegalArgumentException("Credit introuvable"));
@@ -195,6 +182,7 @@ if (repayment.getPaymentDate() == null) {
 
         return totalPayable.subtract(totalPaid).setScale(2, RoundingMode.HALF_UP);
     }
+
     @Override
     public List<Repayment> getRepaymentsByCreditId(Long creditId) {
         return repaymentRepository.findByCredit_CreditId(creditId);
@@ -205,5 +193,175 @@ if (repayment.getPaymentDate() == null) {
         return repaymentRepository.findByClient_Email(email);
     }
 
+    public List<AnnualAmortissementDTO> generateAnnualAmortissement(Long creditId) {
+        Credit credit = creditRepository.findById(creditId)
+                .orElseThrow(() -> new IllegalArgumentException("Credit introuvable"));
 
+        List<AnnualAmortissementDTO> result = new ArrayList<>();
+
+        double capitalRestant = credit.getAmount();
+        double tauxMensuel = (credit.getInterestRate() / 100.0) / 12.0;
+        double mensualite = credit.getMonthlyPayment();
+        int dureeMois = credit.getDurationInMonths();
+
+        for (int annee = 1; annee <= dureeMois / 12; annee++) {
+            double capitalDebutAnnee = capitalRestant;
+            double totalInteretsAnnee = 0;
+            double totalAmortissementAnnee = 0;
+
+            for (int mois = 1; mois <= 12; mois++) {
+                double interetMois = capitalRestant * tauxMensuel;
+                double amortissementMois = mensualite - interetMois;
+
+                capitalRestant -= amortissementMois;
+                totalInteretsAnnee += interetMois;
+                totalAmortissementAnnee += amortissementMois;
+            }
+
+            result.add(new AnnualAmortissementDTO(
+                    annee,
+                    round2(capitalDebutAnnee),
+                    round2(totalInteretsAnnee),
+                    round2(totalAmortissementAnnee),
+                    round2(mensualite * 12),
+                    round2(Math.max(0, capitalRestant))
+            ));
+        }
+        return result;
+    }
+
+    private double round2(double value) {
+        return Math.round(value * 100.0) / 100.0;
+    }
+
+    // ===========================================
+    // ✅ MÉTHODE MODIFIÉE AVEC INFORMATIONS CLIENT
+    // ===========================================
+    @Override
+    public byte[] generateAmortissementPdf(Long creditId) throws IOException {
+
+        // 1️⃣ Récupérer le crédit et les informations du client
+        Credit credit = creditRepository.findById(creditId)
+                .orElseThrow(() -> new IllegalArgumentException("Credit non trouvé"));
+
+        Client client = credit.getClient();
+        if (client == null) {
+            throw new IllegalArgumentException("Ce crédit n'est pas associé à un client");
+        }
+
+        // 🔴 2️⃣ Calculer le montant restant
+        BigDecimal remainingAmount = getRemainingAmount(creditId);
+        BigDecimal totalPaid = repaymentRepository.sumPaidSuccess(creditId);
+        if (totalPaid == null) totalPaid = BigDecimal.ZERO;
+
+        // 3️⃣ Générer les données du tableau annuel
+        List<AnnualAmortissementDTO> data = generateAnnualAmortissement(creditId);
+
+        // 4️⃣ Préparer le contexte Thymeleaf
+        Context context = new Context();
+
+        // ✅ INFORMATIONS DU CLIENT
+        context.setVariable("clientNom", client.getLastName() != null ? client.getLastName() : "");
+        context.setVariable("clientPrenom", client.getFirstName() != null ? client.getFirstName() : "");
+        context.setVariable("clientNomComplet",
+                (client.getFirstName() != null ? client.getFirstName() : "") + " " +
+                        (client.getLastName() != null ? client.getLastName() : ""));
+        context.setVariable("clientTelephone", client.getTelephone() != null ? client.getTelephone() : "Non renseigné");
+        context.setVariable("clientEmail", client.getEmail() != null ? client.getEmail() : "Non renseigné");
+
+        // ✅ INFORMATIONS DU CRÉDIT
+        context.setVariable("creditId", credit.getCreditId());
+        context.setVariable("creditReference", "CRD-" + credit.getCreditId());
+        context.setVariable("montantTotal", String.format("%.2f", credit.getAmount()) + " TND");
+        context.setVariable("tauxInteret", String.format("%.2f", credit.getInterestRate()) + " %");
+        context.setVariable("dureeMois", credit.getDurationInMonths() + " mois");
+        context.setVariable("dureeAnnees", (credit.getDurationInMonths() / 12) + " ans");
+        context.setVariable("mensualite", String.format("%.2f", credit.getMonthlyPayment()) + " TND");
+
+        // 🔴 MONTANT RESTANT
+        context.setVariable("montantRestant", String.format("%.2f", remainingAmount) + " TND");
+        context.setVariable("montantPaye", String.format("%.2f", totalPaid) + " TND"); // ✅ CORRECTION
+
+        // Formatage de la date
+        if (credit.getStartDate() != null) {
+            context.setVariable("dateDebut", credit.getStartDate().toString());
+        } else {
+            context.setVariable("dateDebut", "Non définie");
+        }
+
+        // ✅ TABLEAU D'AMORTISSEMENT
+        context.setVariable("rows", data);
+
+        // ✅ DATE DE GÉNÉRATION
+        context.setVariable("dateGeneration", LocalDate.now().toString());
+
+        // 5️⃣ Générer le HTML
+        String htmlContent = templateEngine.process("amortissement", context);
+
+        // 6️⃣ Convertir en PDF
+        try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
+            ITextRenderer renderer = new ITextRenderer();
+            renderer.setDocumentFromString(htmlContent);
+            renderer.layout();
+            renderer.createPDF(outputStream);
+            return outputStream.toByteArray();
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new IOException("Erreur génération PDF: " + e.getMessage(), e);
+        }
+    }
+
+    @Transactional
+    public void sendAmortissementPdfByEmail(Long creditId) throws IOException {
+
+        // 1️⃣ Récupérer le crédit et le client
+        Credit credit = creditRepository.findById(creditId)
+                .orElseThrow(() -> new IllegalArgumentException("Credit non trouvé"));
+
+        Client client = credit.getClient();
+        if (client == null || client.getEmail() == null) {
+            throw new IllegalArgumentException("Client ou email non trouvé");
+        }
+
+        // 2️⃣ Générer le PDF
+        byte[] pdfContent = generateAmortissementPdf(creditId);
+
+        // 3️⃣ Envoyer par email
+        String clientName = client.getFirstName() + " " + client.getLastName();
+        creditEmailService.sendEmailWithPdf(client.getEmail(), clientName, creditId, pdfContent);
+
+        System.out.println("✅ PDF envoyé par email à " + client.getEmail());
+    }
+
+//    @Override
+//    @Transactional
+//    public void processSuccessfulStripePayment(Long creditId, BigDecimal amount) {
+//        // 1️⃣ Récupérer le crédit
+//        Credit credit = creditRepository.findById(creditId)
+//                .orElseThrow(() -> new IllegalArgumentException("Credit non trouvé"));
+//
+//        // 2️⃣ Créer un nouveau repayment
+//        Repayment repayment = new Repayment();
+//        repayment.setCredit(credit);
+//        repayment.setAmount(amount);
+//        repayment.setPaymentDate(LocalDate.now());
+//        repayment.setPaymentMethod(PaymentMethod.STRIPE);  // ✅ Plus d'erreur
+//        repayment.setReference("STRIPE-" + UUID.randomUUID().toString().substring(0, 8));
+//        repayment.setClient(credit.getClient());
+//
+//        // 3️⃣ Déterminer le statut (PAID ou LATE)
+//        if (repayment.getPaymentDate().isAfter(credit.getDueDate())) {
+//            repayment.setStatus(RepaymentStatus.LATE);
+//        } else {
+//            repayment.setStatus(RepaymentStatus.PAID);
+//        }
+//
+//        // 4️⃣ Sauvegarder le paiement
+//        repaymentRepository.save(repayment);
+//        System.out.println("✅ Paiement Stripe enregistré: " + repayment.getReference());
+//
+//        // 5️⃣ Mettre à jour le statut du crédit
+//        updateCreditStatusAfterPayment(credit);  // ✅ Plus d'erreur
+//    }
+//
 }
