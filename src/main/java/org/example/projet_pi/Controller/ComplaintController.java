@@ -178,11 +178,11 @@ public class ComplaintController implements IComplaintService {
 
         for (Complaint c : complaints) {
             if (c.getAgentAssurance() != null) {
-                String name = c.getAgentAssurance().getName() + " (Assurance)";
+                String name = c.getAgentAssurance().getFirstName() + " (Assurance)";
                 agentCount.put(name, agentCount.getOrDefault(name, 0L) + 1);
             }
             if (c.getAgentFinance() != null) {
-                String name = c.getAgentFinance().getName() + " (Finance)";
+                String name = c.getAgentFinance().getFirstName() + " (Finance)";
                 agentCount.put(name, agentCount.getOrDefault(name, 0L) + 1);
             }
         }
