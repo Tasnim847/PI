@@ -45,4 +45,8 @@ public class UserService implements IUserService {
     public User updateUserById(Long id, User user) {
         return null;
     }
+    @Override
+    public List<User> searchUsers(String keyword) {
+        return userRepository.searchUsers(keyword);
+    }
 }

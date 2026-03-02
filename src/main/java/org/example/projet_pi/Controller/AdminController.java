@@ -6,6 +6,7 @@ import org.example.projet_pi.entity.Admin;
 import org.example.projet_pi.entity.Role;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
 
 import java.util.List;
 
@@ -19,7 +20,7 @@ public class AdminController {
     //  Ajouter admin (ADMIN seulement)
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/add")
-    public Admin addAdmin(@RequestBody Admin admin) {
+    public Admin addAdmin(@Valid @RequestBody Admin admin) {
         admin.setRole(Role.ADMIN);
         return adminService.addAdmin(admin);
     }
@@ -27,7 +28,7 @@ public class AdminController {
     //  Modifier admin (ADMIN seulement)
     @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/update")
-    public Admin updateAdmin(@RequestBody Admin admin) {
+    public Admin updateAdmin(@Valid @RequestBody Admin admin) {
         admin.setRole(Role.ADMIN);
         return adminService.updateAdmin(admin);
     }

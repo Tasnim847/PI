@@ -1,5 +1,6 @@
 package org.example.projet_pi.Controller;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.example.projet_pi.Service.IUserService;
 import org.example.projet_pi.entity.User;
@@ -17,13 +18,13 @@ public class UserController {
 
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/add")
-    public User addUser(@RequestBody User user) {
+    public User addUser(@Valid @RequestBody User user) {
         return userService.addUser(user);
     }
 
     @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/update/{id}")
-    public User updateUser(@PathVariable Long id, @RequestBody User user) {
+    public User updateUser(@Valid @PathVariable Long id, @RequestBody User user) {
         return userService.updateUserById(id, user);
     }
 
@@ -43,5 +44,13 @@ public class UserController {
     @GetMapping("/all")
     public List<User> getAllUsers() {
         return userService.getAllUsers();
+    }
+
+
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/search")
+    public List<User> searchUsers(@RequestParam String keyword) {
+        return userService.searchUsers(keyword);
     }
 }

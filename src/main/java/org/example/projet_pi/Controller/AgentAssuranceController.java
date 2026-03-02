@@ -1,5 +1,6 @@
 package org.example.projet_pi.Controller;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.example.projet_pi.Dto.ChangePasswordRequest;
 import org.example.projet_pi.Service.IAgentAssuranceService;
@@ -21,7 +22,7 @@ public class AgentAssuranceController {
     //  ADMIN seulement peut ajouter un agent
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/add")
-    public AgentAssurance addAgent(@RequestBody AgentAssurance agentAssurance) {
+    public AgentAssurance addAgent(@Valid  @RequestBody AgentAssurance agentAssurance) {
         agentAssurance.setRole(Role.AGENT_ASSURANCE);
         return agentAssuranceService.addAgent(agentAssurance);
     }
@@ -29,7 +30,7 @@ public class AgentAssuranceController {
     //  ADMIN seulement peut modifier agent
     @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/update")
-    public AgentAssurance updateAgent(@RequestBody AgentAssurance agentAssurance) {
+    public AgentAssurance updateAgent(@Valid @RequestBody AgentAssurance agentAssurance) {
         agentAssurance.setRole(Role.AGENT_ASSURANCE);
         return agentAssuranceService.updateAgent(agentAssurance);
     }
@@ -58,7 +59,7 @@ public class AgentAssuranceController {
     @PutMapping("/change-password")
     @PreAuthorize("hasAnyRole('ADMIN','AGENT_ASSURANCE')")
     public ResponseEntity<?> changePassword(
-            @RequestBody ChangePasswordRequest request){
+            @Valid   @RequestBody ChangePasswordRequest request){
 
         agentAssuranceService.changePassword(
                 request.getId(),

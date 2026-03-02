@@ -1,7 +1,10 @@
 package org.example.projet_pi.Controller;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.example.projet_pi.Repository.UserRepository;
+import org.example.projet_pi.Service.EmailService2;
+import org.example.projet_pi.Service.SmsService;
 import org.example.projet_pi.config.JwtUtils;
 import org.example.projet_pi.entity.*;
 import org.springframework.http.HttpStatus;
@@ -11,10 +14,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -29,9 +29,11 @@ public class AuthController {
     private final PasswordEncoder passwordEncoder;
     private final JwtUtils jwtUtils;
     private final AuthenticationManager authenticationManager;
+    private final EmailService2 emailService;
+    private final SmsService smsService;
 
     @PostMapping("/register")
-    public ResponseEntity<?> register(@RequestBody User user) {
+    public ResponseEntity<?> register(@Valid @RequestBody User user) {
 
         if(userRepository.findByEmail(user.getEmail()).isPresent()){
             return ResponseEntity.badRequest().body("Email already exists");
@@ -68,6 +70,18 @@ public class AuthController {
             client.setRole(Role.CLIENT);
 
             savedUser = userRepository.save(client);
+
+            // ⭐ Envoi email bienvenue
+            emailService.sendWelcomeEmail(
+                    savedUser.getEmail(),
+                    savedUser.getFirstName()
+
+            );
+            smsService.sendSms(
+                    savedUser.getTelephone(),
+                    savedUser.getFirstName()
+            );
+
         }
 
         return ResponseEntity.ok("User registered successfully");
@@ -79,7 +93,16 @@ public class AuthController {
 
         try {
 
-            // 1️⃣ Authentification
+            User user = userRepository.findByEmail(userRequest.getEmail())
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+
+            // 🚨 Vérifier si compte bloqué
+            if(!user.isAccountNonLocked()){
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body("Account is blocked. Contact admin.");
+            }
+
+            // Authentification
             authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
                             userRequest.getEmail(),
@@ -87,30 +110,54 @@ public class AuthController {
                     )
             );
 
-            // 2️⃣ Récupérer user complet
-            User user = userRepository.findByEmail(userRequest.getEmail())
-                    .orElseThrow(() -> new RuntimeException("User not found"));
+            // ✅ Reset attempts si login réussi
+            user.setLoginAttempts(0);
+            userRepository.save(user);
 
-            // 3️⃣ Générer token avec role
+            // Token
             String token = jwtUtils.generateToken(
                     user.getEmail(),
                     user.getRole().name()
             );
 
-            // 4️⃣ Construire réponse propre
             Map<String, Object> response = new HashMap<>();
             response.put("token", token);
             response.put("role", user.getRole().name());
-            response.put("id", user.getId());
-            response.put("firstName", user.getFirstName());
-            response.put("lastName", user.getLastName());
-            response.put("email", user.getEmail());
 
             return ResponseEntity.ok(response);
 
-        } catch (AuthenticationException e) {
+        } catch (AuthenticationException e){
+
+            User user = userRepository.findByEmail(userRequest.getEmail()).orElse(null);
+
+            if(user != null){
+
+                int attempts = user.getLoginAttempts() + 1;
+                user.setLoginAttempts(attempts);
+
+                // 🚨 Bloquer après 5 tentatives
+                if(attempts >= 5){
+                    user.setAccountNonLocked(false);
+                }
+
+                userRepository.save(user);
+            }
+
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body("Invalid credentials");
+                    .body("Invalid Password");
         }
+    }
+    @PostMapping("/unlock-user/{id}")
+    public ResponseEntity<?> unlockUser(@PathVariable Long id){
+
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        user.setAccountNonLocked(true);
+        user.setLoginAttempts(0);
+
+        userRepository.save(user);
+
+        return ResponseEntity.ok("User unlocked");
     }
 }

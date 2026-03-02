@@ -17,4 +17,5 @@ public interface IUserService {
     List<User> getAllUsers();
 
     User updateUserById(Long id, User user);
+    List<User> searchUsers(String keyword);
 }

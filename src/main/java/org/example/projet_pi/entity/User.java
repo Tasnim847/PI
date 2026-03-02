@@ -2,100 +2,67 @@ package org.example.projet_pi.entity;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.*;
 import lombok.*;
 
 import java.util.Date;
 
 @Entity
 @Inheritance(strategy = InheritanceType.JOINED)
-@Getter @Setter @NoArgsConstructor @AllArgsConstructor
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class User {
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getFirstName() {
-        return firstName;
-    }
-
-    public void setFirstName(String firstName) {
-        this.firstName = firstName;
-    }
-
-    public String getLastName() {
-        return lastName;
-    }
-
-    public void setLastName(String lastName) {
-        this.lastName = lastName;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public Role getRole() {
-        return role;
-    }
-
-    public void setRole(Role role) {
-        this.role = role;
-    }
-
-    public String getTelephone() {
-        return telephone;
-    }
-
-    public void setTelephone(String telephone) {
-        this.telephone = telephone;
-    }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    public String getOtp() {
-        return otp;
-    }
-
-    public void setOtp(String otp) {
-        this.otp = otp;
-    }
-
-    public Date getOtpExpiry() {
-        return otpExpiry;
-    }
-
-    public void setOtpExpiry(Date otpExpiry) {
-        this.otpExpiry = otpExpiry;
-    }
-
+    // ✅ FirstName : lettres seulement
+    @NotBlank(message = "First name is required")
+    @Pattern(regexp = "^[a-zA-Z]+$", message = "First name must contain only letters")
     private String firstName;
+
+    // ✅ LastName : lettres seulement
+    @NotBlank(message = "Last name is required")
+    @Pattern(regexp = "^[a-zA-Z]+$", message = "Last name must contain only letters")
     private String lastName;
+
+    // ✅ Email format aa@gg.com
+    @NotBlank(message = "Email is required")
+    @Email(message = "Email must be valid (example: aa@gg.com)")
+    @Column(unique = true)
     private String email;
+
+    // ✅ Password sécurisé
+    @NotBlank(message = "Password is required")
+    @Pattern(
+            regexp = "^(?=.*[A-Z])(?=.*[!@#$%^&*(),.?\":{}|<>]).{8,}$",
+            message = "Password must be at least 8 characters, contain 1 uppercase letter and 1 symbol"
+    )
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String password;
 
+    // ✅ Téléphone tunisien +216XXXXXXXX
+    @NotBlank(message = "Telephone is required")
+    @Pattern(
+            regexp = "^\\+216\\d{8}$",
+            message = "Telephone must start with +216 and contain 8 digits"
+    )
+    private String telephone;
+
     private String otp;
     private Date otpExpiry;
-    private String telephone;
+
+    private Integer loginAttempts = 0;
+
+    private Boolean accountNonLocked = true;
+
     @Enumerated(EnumType.STRING)
     private Role role;
-}
 
+    public boolean isAccountNonLocked() {
+        return Boolean.TRUE.equals(this.accountNonLocked);
+    }
+}
