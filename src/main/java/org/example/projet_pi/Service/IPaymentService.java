@@ -19,8 +19,12 @@ public interface IPaymentService {
     // Méthodes Stripe (sans sécurité)
     PaymentIntent createStripePaymentIntent(Long contractId) throws StripeException;
 
-    void handleSuccessfulPayment(String stripePaymentId, Long amountInCents);
+    //void handleSuccessfulPayment(String stripePaymentId, Long amountInCents);
 
+    void handleSuccessfulPayment(String stripePaymentId, Long amountInCents, Long contractId);
+
+    // Méthode avec 2 paramètres (sans contractId) - pour compatibilité
+    void handleSuccessfulPayment(String stripePaymentId, Long amountInCents);
     // Méthodes non utilisées (gardées pour compatibilité)
     PaymentDTO updatePayment(PaymentDTO dto);
 

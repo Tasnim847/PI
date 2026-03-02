@@ -8,7 +8,7 @@ public interface IInsuranceContractService {
     // Méthodes avec userEmail pour la sécurité
     InsuranceContractDTO addContract(InsuranceContractDTO dto, String userEmail);
 
-    InsuranceContractDTO updateContract(InsuranceContractDTO dto, String userEmail);
+    InsuranceContractDTO updateContract(Long contractId, InsuranceContractDTO dto, String userEmail);
 
     void deleteContract(Long id, String userEmail);
 

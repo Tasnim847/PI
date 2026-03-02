@@ -108,6 +108,8 @@ public class SecurityConfig {
                         .requestMatchers("/payments/create-payment-intent/**").hasAnyRole("CLIENT", "AGENT_ASSURANCE", "ADMIN")
                         .requestMatchers("/payments/webhook").permitAll()
 
+                        .requestMatchers("/payments/stripe/webhook").permitAll()
+
                         // ⚠️ RiskClaims
                         .requestMatchers("/riskclaims/**").hasRole("ADMIN")
 
