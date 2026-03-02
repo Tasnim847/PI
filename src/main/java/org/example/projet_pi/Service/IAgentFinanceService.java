@@ -15,4 +15,5 @@ public interface IAgentFinanceService {
     AgentFinance getAgentById(Long id);
 
     List<AgentFinance> getAllAgents();
+    void changePassword(Long agentId, String oldPassword, String newPassword);
 }

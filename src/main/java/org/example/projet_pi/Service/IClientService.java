@@ -9,8 +9,14 @@ public interface IClientService {
     // Ajouter un client
     Client addClient(Client client);
 
-    // Modifier un client
-    Client updateClient(Client client);
+
+
+
+
+    // ===============================
+    // ✅ Update Client
+    // ===============================
+    Client updateClientInfo(Long id, Client clientRequest);
 
     // Supprimer un client
     void deleteClient(Long id);
@@ -26,4 +32,6 @@ public interface IClientService {
 
     // Récupérer les clients d’un Agent Assurance
     List<Client> getClientsByAgentAssurance(Long agentAssuranceId);
+
+    void changePassword(Long clientId, String oldPassword, String newPassword);
 }
