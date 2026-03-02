@@ -7,6 +7,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class AdminService implements IAdminService {
@@ -19,6 +20,11 @@ public class AdminService implements IAdminService {
         this.adminRepository = adminRepository;
         this.passwordEncoder = passwordEncoder;
     }
+
+    public Optional<Admin> findByEmail(String email) {
+        return adminRepository.findByEmail(email);
+    }
+
     @Override
     public Admin addAdmin(Admin admin) {
 

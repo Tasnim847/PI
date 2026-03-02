@@ -2,11 +2,9 @@ package org.example.projet_pi.Service;
 
 import jakarta.transaction.Transactional;
 import org.example.projet_pi.Dto.CreditHistoryDTO;
+import org.example.projet_pi.Repository.ClientRepository;
 import org.example.projet_pi.Repository.CreditRepository;
-import org.example.projet_pi.entity.Client;
-import org.example.projet_pi.entity.Credit;
-import org.example.projet_pi.entity.CreditStatus;
-import org.example.projet_pi.entity.RepaymentStatus;
+import org.example.projet_pi.entity.*;
 import org.springframework.stereotype.Service;
 import org.example.projet_pi.Dto.CreditHistoryWithAverageDTO ;
 
@@ -18,9 +16,11 @@ import java.util.stream.Collectors;
 public class CreditService implements ICreditService {
 
     private final CreditRepository creditRepository;
+    private final ClientRepository clientRepository;
 
-    public CreditService(CreditRepository creditRepository) {
+    public CreditService(CreditRepository creditRepository , ClientRepository clientRepository) {
         this.creditRepository = creditRepository;
+        this.clientRepository = clientRepository;
     }
     public List<CreditHistoryDTO> getClosedCreditsWithLateRepaymentPercentage(Client client) {
         List<Credit> closedCredits = creditRepository.findByClientAndStatus(client, CreditStatus.CLOSED);
@@ -55,7 +55,7 @@ public class CreditService implements ICreditService {
     // ===============================
     @Override
     @Transactional
-    public Credit addCredit(Credit credit) {
+    public Credit addCredit(Credit credit, Admin admin) {  // ✅ Ajout du paramètre admin
 
         if (credit.getAmount() <= 0) {
             throw new IllegalArgumentException("Montant invalide");
@@ -65,12 +65,32 @@ public class CreditService implements ICreditService {
             throw new IllegalArgumentException("Durée invalide");
         }
 
+        // Vérifier que le client est spécifié
+        if (credit.getClient() == null || credit.getClient().getId() == null) {
+            throw new IllegalArgumentException("Le client doit être spécifié");
+        }
+
+        // 🔒 Récupérer le client complet depuis la base
+        Client client = clientRepository.findById(credit.getClient().getId())
+                .orElseThrow(() -> new IllegalArgumentException("Client non trouvé avec l'id: " + credit.getClient().getId()));
+
+        // ✅ Récupérer l'agent financier du client
+        AgentFinance agentFinance = client.getAgentFinance();
+        if (agentFinance == null) {
+            // Option 1: Lever une exception
+            throw new IllegalArgumentException("Le client n'a pas d'agent financier assigné");
+
+            // Option 2: Assigner un agent par défaut (si vous préférez)
+            // agentFinance = agentFinanceRepository.findDefaultAgent();
+        }
+
+        // ✅ Assigner toutes les relations
+        credit.setClient(client);                 // Le client
+        credit.setAdmin(admin);                    // L'admin qui crée le crédit
+        credit.setAgentFinance(agentFinance);      // L'agent financier du client
+
         // 🔒 Toujours PENDING à la création
         credit.setStatus(CreditStatus.PENDING);
-
-        // ❌ On ne touche pas aux champs calculés ici
-        // interestRate, monthlyPayment, startDate, endDate restent null/0
-        // dueDate peut être fourni par le client si nécessaire
 
         return creditRepository.save(credit);
     }

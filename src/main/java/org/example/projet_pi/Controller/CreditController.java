@@ -1,6 +1,7 @@
 package org.example.projet_pi.Controller;
 
 import org.example.projet_pi.Dto.CreditHistoryDTO;
+import org.example.projet_pi.Service.AdminService;
 import org.example.projet_pi.Service.CreditService;
 import org.example.projet_pi.Service.EmailCredit.CreditNotificationScheduler;
 import org.example.projet_pi.Service.IClientService;
@@ -8,7 +9,6 @@ import org.example.projet_pi.entity.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -22,12 +22,14 @@ import java.util.Map;
 @RequestMapping("/Credit")
 public class CreditController {
 
+    private final AdminService adminService;
     private final CreditService creditService;
     @Autowired
     private IClientService clientService;
 
-    public CreditController(CreditService creditService) {
+    public CreditController(CreditService creditService , AdminService adminService) {
         this.creditService = creditService;
+        this.adminService = adminService;
     }
 
     // ===============================
@@ -44,12 +46,26 @@ public class CreditController {
                         .body(Map.of("error", "Accès refusé", "message", "Seul l'admin peut ajouter un crédit"));
             }
 
-            Credit savedCredit = creditService.addCredit(credit);
+            // ✅ Récupérer l'admin connecté
+            Admin admin = getAdminFromUserDetails(currentUser);
+
+            // ✅ Appeler le service avec l'admin
+            Credit savedCredit = creditService.addCredit(credit, admin);
+
             return ResponseEntity.ok(savedCredit);
         } catch (Exception e) {
             return ResponseEntity.badRequest()
                     .body(Map.of("error", "Erreur lors de l'ajout", "message", e.getMessage()));
         }
+    }
+
+    private Admin getAdminFromUserDetails(UserDetails userDetails) {
+        // Récupérer l'email de l'utilisateur connecté
+        String email = userDetails.getUsername();
+
+        // Chercher l'admin dans la base de données par email
+        return adminService.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Admin non trouvé avec l'email: " + email));
     }
 
     // ===============================
