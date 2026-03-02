@@ -2,161 +2,47 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8"/>
-    <title>Contrat d'Assurance</title>
-
+    <title>Contrat d'Assurance Professionnelle</title>
     <style>
-        body {
-            font-family: 'DejaVu Sans', Arial, sans-serif;
-            margin: 40px;
-            color: #1a1a1a;
-            font-size: 14px;
-            line-height: 1.6;
-        }
-
-        /* En-tête officiel avec logo */
-        .header {
-            border-bottom: 3px solid #1e3c72;
-            padding-bottom: 15px;
-            margin-bottom: 30px;
-        }
-
-        .header-table {
-            width: 100%;
-        }
-
-        .logo {
-            height: 80px;
-        }
-
-        .company-name {
-            font-size: 26px;
-            font-weight: bold;
-            color: #1e3c72;
-            text-align: right;
-        }
-
-        .contract-title {
-            font-size: 18px;
-            margin-top: 5px;
-            font-weight: 600;
-            text-align: right;
-        }
-
-        .contract-number {
-            font-size: 13px;
-            margin-top: 5px;
-            color: #555;
-            text-align: right;
-        }
-
-        /* Sections */
-        .section {
-            margin-bottom: 30px;
-        }
-
-        .section-title {
-            font-size: 16px;
-            font-weight: bold;
-            border-left: 4px solid #1e3c72;
-            padding-left: 10px;
-            margin-bottom: 15px;
-            text-transform: uppercase;
-        }
-
-        /* Tableau professionnel */
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 10px;
-        }
-
-        th {
-            background-color: #f2f4f8;
-            border: 1px solid #ccc;
-            padding: 10px;
-            font-weight: 600;
-            text-align: left;
-        }
-
-        td {
-            border: 1px solid #ccc;
-            padding: 8px;
-        }
-
-        /* Informations clés */
-        .info-block {
-            margin-bottom: 10px;
-        }
-
-        .label {
-            font-weight: bold;
-            width: 180px;
-            display: inline-block;
-        }
-
-        /* Montants */
-        .amount {
-            font-weight: bold;
-            color: #1e3c72;
-        }
-
-        /* Statut */
-        .status {
-            font-weight: bold;
-        }
-
-        /* Signature */
-        .signature-section {
-            margin-top: 60px;
-            display: flex;
-            justify-content: space-between;
-        }
-
-        .signature-box {
-            width: 45%;
-            text-align: center;
-        }
-
-        .signature-line {
-            border-top: 1px solid black;
-            margin-top: 60px;
-            padding-top: 5px;
-        }
-
-        /* Footer */
-        .footer {
-            margin-top: 50px;
-            text-align: center;
-            font-size: 12px;
-            border-top: 1px solid #ccc;
-            padding-top: 10px;
-            color: #555;
-        }
+        body { font-family: 'DejaVu Sans', Arial, sans-serif; margin:40px; font-size:14px; line-height:1.6; color:#1a1a1a; }
+        .header { border-bottom:3px solid #1e3c72; padding-bottom:15px; margin-bottom:30px; }
+        .header-table { width:100%; }
+        .logo { height:80px; }
+        .company-name { font-size:26px; font-weight:bold; color:#1e3c72; text-align:right; }
+        .contract-title { font-size:18px; font-weight:600; text-align:right; margin-top:5px; }
+        .contract-number { font-size:13px; margin-top:5px; color:#555; text-align:right; }
+        .section { margin-bottom:30px; }
+        .section-title { font-size:16px; font-weight:bold; border-left:4px solid #1e3c72; padding-left:10px; margin-bottom:15px; text-transform:uppercase; }
+        table { width:100%; border-collapse:collapse; margin-top:10px; }
+        th { background-color:#f2f4f8; border:1px solid #ccc; padding:10px; font-weight:600; text-align:left; }
+        td { border:1px solid #ccc; padding:8px; }
+        .info-block { margin-bottom:10px; }
+        .label { font-weight:bold; width:180px; display:inline-block; }
+        .amount { font-weight:bold; color:#1e3c72; }
+        .status { font-weight:bold; }
+        .signature-section { margin-top:60px; display:flex; justify-content:space-between; }
+        .signature-box { width:45%; text-align:center; }
+        .signature-line { border-top:1px solid black; margin-top:60px; padding-top:5px; }
+        .footer { margin-top:50px; text-align:center; font-size:12px; border-top:1px solid #ccc; padding-top:10px; color:#555; }
     </style>
 </head>
-
 <body>
 
-<!-- HEADER AVEC LOGO -->
-<!-- HEADER AVEC LOGO DEPUIS FICHIER -->
+<!-- HEADER -->
 <div class="header">
-    <table class="header-table">
+    <table class="header-table" style="border:none; width:100%;">
         <tr>
-            <td style="width: 30%;">
-                <!-- Logo depuis le système de fichiers -->
+            <td style="width:30%; border:none; padding:0;">
                 <img src="file:///C:/Users/ghodb/OneDrive/Bureau/PI/PI/src/main/resources/static/images/logo.png"
-                     alt="Logo Assurance"
-                     class="logo"/>
+                     alt="Logo Assurance" class="logo"/>
             </td>
-            <td style="width: 70%;">
+            <td style="width:70%; border:none; padding:0;">
                 <div class="company-name">SurFinity</div>
                 <div class="contract-title">
-                    CONTRAT D’ASSURANCE N°
-                    <span th:text="${contract.contractId}"></span>
+                    CONTRAT D’ASSURANCE PROFESSIONNELLE N° <span th:text="${contract.contractId}"></span>
                 </div>
                 <div class="contract-number">
-                    Émis le
-                    <span th:text="${#dates.format(#dates.createNow(),'dd/MM/yyyy')}"></span>
+                    Émis le <span th:text="${#dates.format(#dates.createNow(),'dd/MM/yyyy')}"></span>
                 </div>
             </td>
         </tr>
@@ -166,32 +52,27 @@
 <!-- INFORMATIONS GÉNÉRALES -->
 <div class="section">
     <div class="section-title">Informations Générales</div>
-
     <div class="info-block">
         <span class="label">Date de début :</span>
         <span th:text="${#dates.format(contract.startDate,'dd/MM/yyyy')}"></span>
     </div>
-
     <div class="info-block">
         <span class="label">Date de fin :</span>
         <span th:text="${#dates.format(contract.endDate,'dd/MM/yyyy')}"></span>
     </div>
-
     <div class="info-block">
         <span class="label">Statut du contrat :</span>
         <span class="status" th:text="${contract.status}"></span>
     </div>
-
     <div class="info-block">
         <span class="label">Fréquence de paiement :</span>
         <span th:text="${contract.paymentFrequency}"></span>
     </div>
 </div>
 
-<!-- PARTIES -->
+<!-- PARTIES CONTRACTANTES -->
 <div class="section">
     <div class="section-title">Parties Contractantes</div>
-
     <table>
         <tr>
             <th>Client</th>
@@ -213,7 +94,6 @@
 <!-- DÉTAILS FINANCIERS -->
 <div class="section">
     <div class="section-title">Détails Financiers</div>
-
     <table>
         <tr>
             <th>Élément</th>
@@ -245,14 +125,12 @@
 <!-- ÉCHÉANCIER -->
 <div class="section" th:if="${payments != null}">
     <div class="section-title">Échéancier des Paiements</div>
-
     <table>
         <tr>
             <th>Date d’échéance</th>
             <th>Montant</th>
             <th>Statut</th>
         </tr>
-
         <tr th:each="payment : ${payments}">
             <td th:text="${#dates.format(payment.paymentDate,'dd/MM/yyyy')}"></td>
             <td th:text="${#numbers.formatDecimal(payment.amount,1,2)}"></td>
@@ -261,45 +139,93 @@
     </table>
 </div>
 
-<!-- SIGNATURES -->
-<div style="margin-top: 70px; width: 100%;">
-    <table style="width:100%; text-align:center;">
-        <tr>
-            <td style="width:50%;">
-                <div style="margin-bottom:60px;"></div>
-                <div style="border-top:1px solid #000; width:80%; margin:0 auto; padding-top:8px;">
-                    Signature du Client<br/>
-                    <strong th:text="${client.firstName + ' ' + client.lastName}"></strong>
-                </div>
-            </td>
+<!-- OBJET DU CONTRAT -->
+<div class="section">
+    <div class="section-title">Objet du Contrat</div>
+    <p>
+        Le présent contrat définit les termes et conditions de couverture d’assurance professionnelle
+        pour <strong th:text="${client.firstName + ' ' + client.lastName}"></strong>, couvrant
+        les risques liés à son activité professionnelle selon le produit sélectionné.
+    </p>
+</div>
 
-            <td style="width:50%;">
-                <div style="margin-bottom:60px;"></div>
-                <div style="border-top:1px solid #000; width:80%; margin:0 auto; padding-top:8px;">
-                    Signature de l’Agent<br/>
-                    <strong th:text="${agent.firstName + ' ' + agent.lastName}"></strong>
-                </div>
-            </td>
-        </tr>
-    </table>
+<!-- CLAUSES DE COUVERTURE -->
+<div class="section">
+    <div class="section-title">Clauses de Couverture</div>
+    <ul>
+        <li>Plafond de garantie : <strong th:text="${#numbers.formatDecimal(contract.coverageLimit,1,2)}"></strong> DT</li>
+        <li>Franchise applicable : <strong th:text="${#numbers.formatDecimal(contract.deductible,1,2)}"></strong> DT</li>
+        <li>Dommages couverts : responsabilité civile professionnelle, erreurs ou omissions professionnelles.</li>
+        <li>Exclusions : dommages intentionnels, fraudes ou sinistres non déclarés dans les délais.</li>
+    </ul>
+</div>
+
+<!-- OBLIGATIONS DES PARTIES -->
+<div class="section">
+    <div class="section-title">Obligations des Parties</div>
+    <ul>
+        <li>Fournir des informations exactes sur l’activité professionnelle et les revenus.</li>
+        <li>L’assureur indemnise les sinistres déclarés dans les délais.</li>
+        <li>Informer l’assureur de tout changement significatif pouvant affecter le risque.</li>
+    </ul>
+</div>
+
+<!-- DURÉE ET RÉSILIATION -->
+<div class="section">
+    <div class="section-title">Durée et Résiliation</div>
+    <p>
+        Le contrat prend effet le <strong th:text="${#dates.format(contract.startDate,'dd/MM/yyyy')}"></strong>
+        et expire le <strong th:text="${#dates.format(contract.endDate,'dd/MM/yyyy')}"></strong>.
+        Il peut être résilié avant échéance en cas de non-paiement ou de déclaration frauduleuse.
+    </p>
+</div>
+
+<!-- LOI APPLICABLE -->
+<div class="section">
+    <div class="section-title">Loi Applicable et Juridiction</div>
+    <p>
+        Le présent contrat est régi par le droit tunisien. Tout litige sera soumis aux tribunaux compétents de Tunis.
+    </p>
+</div>
+
+<!-- CONFIDENTIALITÉ -->
+<div class="section">
+    <div class="section-title">Confidentialité</div>
+    <p>
+        Les parties s’engagent à préserver la confidentialité des informations financières et professionnelles.
+    </p>
+</div>
+
+<!-- CONDITIONS GÉNÉRALES -->
+<div class="section">
+    <div class="section-title">Conditions Générales</div>
+    <p>
+        En signant ce contrat, le client accepte les conditions générales du produit d’assurance.
+    </p>
+</div>
+
+<!-- SIGNATURES -->
+<div class="signature-section">
+    <div class="signature-box">
+        <div class="signature-line">
+            Signature du Client<br/>
+            <strong th:text="${client.firstName + ' ' + client.lastName}"></strong>
+        </div>
+    </div>
+    <div class="signature-box">
+        <div class="signature-line">
+            Signature de l’Agent<br/>
+            <strong th:text="${agent.firstName + ' ' + agent.lastName}"></strong>
+        </div>
+    </div>
 </div>
 
 <!-- FOOTER -->
-<div style="
-    margin-top:60px;
-    text-align:center;
-    font-size:12px;
-    border-top:2px solid #1e3c72;
-    padding-top:15px;
-    color:#555;
-">
+<div class="footer">
     <strong>SurFinity</strong> – Société agréée par l’autorité de régulation.<br/>
     Siège social : Tunis, Tunisie<br/>
     Email : SureFinity@esprit.tn | Téléphone : +216 54567890<br/><br/>
-
-    Document généré automatiquement le
-    <span th:text="${#dates.format(#dates.createNow(),'dd/MM/yyyy HH:mm')}"></span>.<br/>
-
+    Document généré automatiquement le <span th:text="${#dates.format(#dates.createNow(),'dd/MM/yyyy HH:mm')}"></span>.<br/>
     Ce document a valeur contractuelle conformément aux conditions générales.
 </div>
 

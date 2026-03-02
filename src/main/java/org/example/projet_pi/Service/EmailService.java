@@ -425,4 +425,58 @@ public class EmailService {
     }
 
 
+    /**
+     * 📧 Envoyer un email de confirmation de paiement
+     */
+    @Async
+    public void sendPaymentConfirmationEmail(Client client, InsuranceContract contract, Payment payment) {
+        try {
+            if (client.getEmail() == null || client.getEmail().trim().isEmpty()) {
+                log.error("Email client manquant pour le contrat {}", contract.getContractId());
+                return;
+            }
+
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setTo(client.getEmail());
+            helper.setSubject("✅ Confirmation de paiement - Contrat #" + contract.getContractId());
+
+            // Préparer le contexte Thymeleaf
+            Context context = new Context();
+            context.setVariable("clientName", client.getFirstName() + " " + client.getLastName());
+            context.setVariable("contractId", contract.getContractId());
+            context.setVariable("paymentAmount", String.format("%.3f", payment.getAmount()));
+            context.setVariable("paymentDate", new SimpleDateFormat("dd/MM/yyyy HH:mm").format(payment.getPaymentDate()));
+            context.setVariable("paymentMethod", payment.getPaymentMethod() != null ?
+                    payment.getPaymentMethod().toString() : "CARTE");
+            context.setVariable("remainingAmount", String.format("%.3f", contract.getRemainingAmount()));
+            context.setVariable("totalPaid", String.format("%.3f", contract.getTotalPaid()));
+            context.setVariable("premium", String.format("%.3f", contract.getPremium()));
+
+            // 🔥 Remplacer stripePaymentId par paymentId (l'ID du paiement dans votre base)
+            context.setVariable("paymentReference", "PAY-" + payment.getPaymentId());
+
+            context.setVariable("agentName", contract.getAgentAssurance() != null ?
+                    contract.getAgentAssurance().getFirstName() + " " + contract.getAgentAssurance().getLastName() : "Votre agent");
+            context.setVariable("agentEmail", contract.getAgentAssurance() != null ?
+                    contract.getAgentAssurance().getEmail() : "");
+            context.setVariable("currentDate", new SimpleDateFormat("dd/MM/yyyy").format(new Date()));
+
+            String htmlContent = templateEngine.process("payment-confirmation", context);
+            helper.setText(htmlContent, true);
+
+            // Envoyer l'email
+            mailSender.send(message);
+
+            log.info("✅ Email de confirmation de paiement envoyé à {} pour le contrat {} (paiement: {} DT)",
+                    client.getEmail(), contract.getContractId(), payment.getAmount());
+
+        } catch (MessagingException e) {
+            log.error("❌ Erreur lors de l'envoi de l'email de confirmation de paiement à {}: {}",
+                    client.getEmail(), e.getMessage());
+        } catch (Exception e) {
+            log.error("❌ Erreur inattendue: {}", e.getMessage());
+        }
+    }
 }

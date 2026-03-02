@@ -89,7 +89,13 @@ public class SecurityConfig {
                         .requestMatchers("/payments/create-payment-intent/**").hasAnyRole("CLIENT", "AGENT_ASSURANCE", "ADMIN")
                         .requestMatchers("/payments/webhook").permitAll() // Webhook Stripe (public)
 
+
+                        .requestMatchers("/payments/stripe/webhook").permitAll()
+
+                        // ⚠️ RiskClaims
+
                         // ⚠️ RiskClaims (généralement gérés par le système)
+
                         .requestMatchers("/riskclaims/**").hasRole("ADMIN")
 
 

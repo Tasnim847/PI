@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Confirmation de paiement</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            border-radius: 10px 10px 0 0;
+        }
+        .content {
+            background: #f9f9f9;
+            padding: 30px;
+            border-radius: 0 0 10px 10px;
+            border: 1px solid #ddd;
+        }
+        .amount {
+            font-size: 24px;
+            font-weight: bold;
+            color: #28a745;
+            text-align: center;
+            margin: 20px 0;
+        }
+        .details {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .detail-label {
+            font-weight: 600;
+            color: #555;
+        }
+        .detail-value {
+            color: #333;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            color: #777;
+            font-size: 14px;
+        }
+        .success-icon {
+            font-size: 48px;
+            text-align: center;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+<div class="header">
+    <h1>✅ Paiement confirmé</h1>
+</div>
+
+<div class="content">
+    <div class="success-icon">✅</div>
+
+    <p>Bonjour <strong th:text="${clientName}">Jean Dupont</strong>,</p>
+
+    <p>Nous vous confirmons la bonne réception de votre paiement pour le contrat <strong>#<span th:text="${contractId}">123</span></strong>.</p>
+
+    <div class="amount" th:text="'Montant : ' + ${paymentAmount} + ' DT'">Montant : 500,00 DT</div>
+
+    <div class="details">
+        <h3>📋 Détails du paiement</h3>
+
+        <div class="detail-row">
+            <span class="detail-label">Date du paiement :</span>
+            <span class="detail-value" th:text="${paymentDate}">01/03/2026 14:30</span>
+        </div>
+
+        <div class="detail-row">
+            <span class="detail-label">Méthode de paiement :</span>
+            <span class="detail-value" th:text="${paymentMethod}">Carte bancaire</span>
+        </div>
+
+        <div class="detail-row">
+            <span class="detail-label">Référence de paiement :</span>
+            <span class="detail-value" th:text="${paymentReference}">PAY-123</span>
+        </div>
+
+        <div class="detail-row">
+            <span class="detail-label">Montant total du contrat :</span>
+            <span class="detail-value" th:text="${premium} + ' DT'">1000,00 DT</span>
+        </div>
+
+        <div class="detail-row">
+            <span class="detail-label">Total déjà payé :</span>
+            <span class="detail-value" th:text="${totalPaid} + ' DT'">500,00 DT</span>
+        </div>
+
+        <div class="detail-row">
+            <span class="detail-label">Reste à payer :</span>
+            <span class="detail-value" th:text="${remainingAmount} + ' DT'">500,00 DT</span>
+        </div>
+    </div>
+
+    <div class="agent-info">
+        <h4 style="margin-top: 0; color: #003366;">👤 Votre agent d'assurance</h4>
+        <p><strong th:text="${agentName}">Agent Nom</strong></p>
+        <p th:if="${agentEmail}" th:text="${agentEmail}">agent@email.com</p>
+        <p>Votre agent reste à votre disposition pour toute question.</p>
+    </div>
+
+    <p>Merci de votre confiance !</p>
+
+    <p>Cordialement,<br>L'équipe Assurance Pro</p>
+
+    <div class="footer">
+        <p th:text="'Email envoyé le ' + ${currentDate}">Email envoyé le 01/03/2026</p>
+    </div>
+</div>
+</body>
+</html>

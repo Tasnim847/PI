@@ -31,6 +31,7 @@ public class InsuranceContractService implements IInsuranceContractService {
     private final EmailService emailService;
     private final ClientScoringService clientScoringService;
     private final ClaimRepository claimRepository;
+    private final PaymentRepository paymentRepository;
 
     // ============================================================
     // 🔥 ADD CONTRACT
@@ -39,22 +40,21 @@ public class InsuranceContractService implements IInsuranceContractService {
     @Override
     @Transactional
     public InsuranceContractDTO addContract(InsuranceContractDTO dto, String userEmail) {
-        // 1. Récupérer le client connecté
+        // 1️⃣ Récupérer le client connecté
         User user = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
 
         if (!(user instanceof Client)) {
             throw new AccessDeniedException("Seuls les clients peuvent créer des contrats");
         }
-
         Client client = (Client) user;
 
-        // 2. Vérifier que le client a un agent d'assurance assigné
+        // 2️⃣ Vérifier que le client a un agent d'assurance assigné
         if (client.getAgentAssurance() == null) {
             throw new RuntimeException("Vous devez avoir un agent d'assurance assigné pour créer un contrat");
         }
 
-        // 3. Création du contrat
+        // 3️⃣ Création du contrat
         InsuranceContract contract = InsuranceContractMapper.toEntity(dto);
         contract.setClient(client);
         contract.setAgentAssurance(client.getAgentAssurance());
@@ -64,27 +64,71 @@ public class InsuranceContractService implements IInsuranceContractService {
         contract.setProduct(product);
 
         contract.setPaymentFrequency(Enum.valueOf(PaymentFrequency.class, dto.getPaymentFrequency()));
-        contract.setTotalPaid(0.0);
-        contract.setRemainingAmount(contract.getPremium());
 
-        // 4. Calcul du risque
-        RiskClaim riskClaim = calculateRisk(contract);
+        // 4️⃣ Calcul avancé du coverageLimit
+        double coverageLimit = determineAdvancedCoverageLimit(contract);
+        System.out.println("💡 Coverage Limit avancé fixé à : " + coverageLimit);
+
+        // 5️⃣ Ajuster la prime automatiquement selon le coverageLimit
+        double basePremium = dto.getPremium() != null ? dto.getPremium() : coverageLimit * 0.02; // 2% du coverage
+        double finalPremium = basePremium * 1.10; // +10% frais/ajustement
+        contract.setPremium(finalPremium);
+        contract.setTotalPaid(0.0);
+        contract.setRemainingAmount(finalPremium);
+
+        // 6️⃣ Déductible = 10% de la prime
+        contract.setDeductible(finalPremium * 0.10);
+
+        // 7️⃣ Calcul du risque
+        RiskClaim riskClaim = calculateRisk(contract); // ta méthode existante
         riskClaim.setContract(contract);
         contract.setRiskClaim(riskClaim);
 
-        // 5. Statut initial: INACTIF (en attente d'approbation par l'agent)
-        if ("HIGH".equals(riskClaim.getRiskLevel())) {
+        // 8️⃣ Statut initial: INACTIF ou annulé si risque HIGH
+        if ("HIGH".equalsIgnoreCase(riskClaim.getRiskLevel())) {
             contract.setStatus(ContractStatus.CANCELLED);
         } else {
             contract.setStatus(ContractStatus.INACTIVE);
         }
 
-        // 6. Génération des paiements planifiés
+        // 9️⃣ Génération des paiements planifiés selon le montant final et la fréquence
         contract.setPayments(new ArrayList<>());
-        generateScheduledPayments(contract);
+        generateScheduledPayments(contract); // ta méthode existante
 
+        // 🔟 Sauvegarde finale
         contract = contractRepository.save(contract);
+
         return InsuranceContractMapper.toDTO(contract);
+    }
+
+    public double determineAdvancedCoverageLimit(InsuranceContract contract) {
+        if (contract.getProduct() == null || contract.getClient() == null)
+            throw new RuntimeException("Produit ou client non sélectionné");
+
+        double baseLimit = contract.getProduct().getBasePrice();
+        double clientIncome = contract.getClient().getAnnualIncome() != null
+                ? contract.getClient().getAnnualIncome()
+                : 0.0;
+
+        int clientAge = contract.getClient().getAge();
+        boolean hasClaimsHistory = contract.getClient().getClaims() != null && !contract.getClient().getClaims().isEmpty();
+
+        // Facteurs pondérés
+        double factorProduct = 1.5;
+        double factorIncome = 0.3;
+        double factorAge = clientAge > 50 ? 1.2 : 1.0;
+        double factorClaims = hasClaimsHistory ? 0.8 : 1.0;
+
+        // Calcul du coverage limit
+        double coverageLimit = (baseLimit * factorProduct + clientIncome * factorIncome) * factorAge * factorClaims;
+
+        // Plafond et plancher
+        double minLimit = baseLimit;
+        double maxLimit = baseLimit * 10;
+        coverageLimit = Math.max(Math.min(coverageLimit, maxLimit), minLimit);
+
+        contract.setCoverageLimit(coverageLimit);
+        return coverageLimit;
     }
 
     @Override
@@ -215,69 +259,97 @@ public class InsuranceContractService implements IInsuranceContractService {
 
     @Override
     @Transactional
-    public InsuranceContractDTO updateContract(InsuranceContractDTO dto, String userEmail) {
-        InsuranceContract contract = contractRepository.findById(dto.getContractId())
-                .orElseThrow(() -> new RuntimeException("Contrat non trouvé"));
+    public InsuranceContractDTO updateContract(Long contractId, InsuranceContractDTO dto, String userEmail) {
+        if (contractId == null) {
+            throw new IllegalArgumentException("L'id du contrat ne peut pas être null");
+        }
 
+        // 1️⃣ Récupérer le contrat
+        InsuranceContract contract = contractRepository.findById(contractId)
+                .orElseThrow(() -> new RuntimeException("Contrat non trouvé avec id: " + contractId));
+
+        // 2️⃣ Récupérer l'utilisateur
         User user = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
 
-        // Vérification: seul le propriétaire ou admin peut modifier
-        if (user instanceof Client) {
-            if (!contract.getClient().getId().equals(user.getId())) {
+        // 3️⃣ Vérification d'autorisation
+        if (user instanceof Client clientUser) {
+            if (contract.getClient() == null || !contract.getClient().getId().equals(clientUser.getId())) {
                 throw new AccessDeniedException("Vous ne pouvez modifier que vos propres contrats");
             }
         } else if (!(user instanceof Admin) && !(user instanceof AgentAssurance)) {
             throw new AccessDeniedException("Modification non autorisée");
         }
 
-        // ======== MISE À JOUR DES CHAMPS DE BASE ========
+        // 4️⃣ Mise à jour des champs de base (uniquement si non null)
         if (dto.getStartDate() != null) contract.setStartDate(dto.getStartDate());
         if (dto.getEndDate() != null) contract.setEndDate(dto.getEndDate());
-        if (dto.getPremium() > 0) contract.setPremium(dto.getPremium());
-        if (dto.getDeductible() > 0) contract.setDeductible(dto.getDeductible());
-        if (dto.getCoverageLimit() > 0) contract.setCoverageLimit(dto.getCoverageLimit());
+        if (dto.getPremium() != null && dto.getPremium() > 0) contract.setPremium(dto.getPremium());
+        if (dto.getDeductible() != null && dto.getDeductible() > 0) contract.setDeductible(dto.getDeductible());
+        if (dto.getCoverageLimit() != null && dto.getCoverageLimit() > 0) contract.setCoverageLimit(dto.getCoverageLimit());
 
-        // 🔥 MISE À JOUR DU MONTANT RESTANT
+        // 5️⃣ Mise à jour du montant restant
         contract.setRemainingAmount(contract.getPremium() - contract.getTotalPaid());
 
-        // 🔥 MISE À JOUR DU STATUT AUTOMATIQUE
+        // 6️⃣ Mise à jour du statut automatique
         if (contract.getRemainingAmount() <= 0) {
             contract.setStatus(ContractStatus.COMPLETED);
         } else if (dto.getStatus() != null) {
             contract.setStatus(Enum.valueOf(ContractStatus.class, dto.getStatus()));
         }
 
-        // ======== MISE À JOUR DE LA FREQUENCE DE PAIEMENT ========
+        // 7️⃣ Mise à jour de la fréquence de paiement
+        // 7️⃣ Mise à jour de la fréquence de paiement
         if (dto.getPaymentFrequency() != null) {
             PaymentFrequency newFrequency = Enum.valueOf(PaymentFrequency.class, dto.getPaymentFrequency());
 
             if (contract.getPaymentFrequency() != newFrequency) {
+                // Compter les paiements déjà payés
+                long paidCount = contract.getPayments().stream()
+                        .filter(p -> p.getStatus() == PaymentStatus.PAID)
+                        .count();
+
+                if (paidCount > 0) {
+                    throw new RuntimeException(
+                            "Impossible de changer la fréquence après que des paiements aient été effectués");
+                }
+
+                // Supprimer tous les paiements existants
+                contract.getPayments().clear();
+                paymentRepository.deleteByContract_ContractId(contract.getContractId()); // si tu as un repository
+
+                // Appliquer la nouvelle fréquence
                 contract.setPaymentFrequency(newFrequency);
+
+                // Recalculer remainingAmount
+                double totalPaid = contract.getTotalPaid();
+                contract.setRemainingAmount(Math.max(contract.getPremium() - totalPaid, 0));
+
+                // Générer de nouveaux paiements selon la nouvelle fréquence
                 regenerateScheduledPayments(contract);
             }
         }
 
-        // ======== MISE À JOUR DES LIENS ========
+        // 8️⃣ Mise à jour des relations (client, agent, produit)
         if (dto.getClientId() != null) {
             Client client = clientRepository.findById(dto.getClientId())
-                    .orElseThrow(() -> new RuntimeException("Client not found"));
+                    .orElseThrow(() -> new RuntimeException("Client non trouvé"));
             contract.setClient(client);
         }
 
         if (dto.getAgentAssuranceId() != null) {
             AgentAssurance agent = agentRepository.findById(dto.getAgentAssuranceId())
-                    .orElseThrow(() -> new RuntimeException("Agent not found"));
+                    .orElseThrow(() -> new RuntimeException("Agent non trouvé"));
             contract.setAgentAssurance(agent);
         }
 
         if (dto.getProductId() != null) {
             InsuranceProduct product = productRepository.findById(dto.getProductId())
-                    .orElseThrow(() -> new RuntimeException("Product not found"));
+                    .orElseThrow(() -> new RuntimeException("Produit non trouvé"));
             contract.setProduct(product);
         }
 
-        // ======== RE-CALCUL DU RISQUE ========
+        // 9️⃣ Recalcul du risque
         RiskClaim existingRisk = contract.getRiskClaim();
         if (existingRisk == null) {
             existingRisk = calculateRisk(contract);
@@ -290,12 +362,14 @@ public class InsuranceContractService implements IInsuranceContractService {
             existingRisk.setEvaluationNote(updatedRisk.getEvaluationNote());
         }
 
-        // Si risque HIGH, annuler automatiquement
+        // 🔟 Annuler automatiquement si risque HIGH
         if ("HIGH".equals(contract.getRiskClaim().getRiskLevel())) {
             contract.setStatus(ContractStatus.CANCELLED);
         }
 
+        // 1️⃣1️⃣ Sauvegarde finale
         contract = contractRepository.save(contract);
+
         return InsuranceContractMapper.toDTO(contract);
     }
 
@@ -337,7 +411,8 @@ public class InsuranceContractService implements IInsuranceContractService {
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(start);
 
-        while (!calendar.getTime().after(end)) {
+        while (calendar.getTime().before(end) ||
+                calendar.getTime().equals(end)) {
             Payment payment = new Payment();
             payment.setContract(contract);
             payment.setAmount(installment);
@@ -1011,4 +1086,41 @@ public class InsuranceContractService implements IInsuranceContractService {
         return InsuranceContractMapper.toDTO(contract);
     }
 
+    @Scheduled(cron = "0 */05 * * * ?")
+    @Transactional
+    public void updateContractsPaymentStatus() {
+
+        System.out.println("🔄 Vérification automatique des paiements - " + new Date());
+
+        List<InsuranceContract> contracts = contractRepository.findAll();
+
+        for (InsuranceContract contract : contracts) {
+
+            if (contract.getPayments() == null || contract.getPayments().isEmpty())
+                continue;
+
+            double totalPaid = 0.0;
+
+            // 🔎 Calculer la somme des paiements PAYÉS
+            for (Payment payment : contract.getPayments()) {
+                if (payment.getStatus() == PaymentStatus.PAID) {
+                    totalPaid += payment.getAmount();
+                }
+            }
+
+            // 🔄 Mettre à jour les montants
+            contract.setTotalPaid(totalPaid);
+            contract.setRemainingAmount(contract.getPremium() - totalPaid);
+
+            // 🔥 Mise à jour automatique du statut
+            if (contract.getRemainingAmount() <= 0) {
+                contract.setStatus(ContractStatus.COMPLETED);
+                contract.setRemainingAmount(0.0);
+            }
+
+            contractRepository.save(contract);
+        }
+
+        System.out.println("✅ Mise à jour terminée");
+    }
 }

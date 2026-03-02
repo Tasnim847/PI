@@ -52,8 +52,8 @@ public class InsuranceContract {
     private List<Payment> payments;
 
     // ============================================================
-// 🔥 CALCUL DES ÉCHÉANCES SELON LA FRÉQUENCE
-// ============================================================
+        // 🔥 CALCUL DES ÉCHÉANCES SELON LA FRÉQUENCE
+   // ============================================================
     public double calculateInstallmentAmount() {
 
         if (paymentFrequency == null)

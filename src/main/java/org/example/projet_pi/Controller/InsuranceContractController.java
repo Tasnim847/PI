@@ -43,14 +43,28 @@ public class InsuranceContractController {
     public InsuranceContractDTO addContract(
             @RequestBody InsuranceContractDTO dto,
             @AuthenticationPrincipal UserDetails currentUser) {
+
+        // Récupérer l'utilisateur connecté
+        User user = userRepository.findByEmail(currentUser.getUsername())
+                .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
+
+        if (!(user instanceof Client client)) {
+            throw new RuntimeException("Seul un client peut créer un contrat");
+        }
+
+        // Assigner automatiquement le client connecté
+        dto.setClientId(client.getId());
+
+        // Appeler le service pour créer le contrat
         return contractService.addContract(dto, currentUser.getUsername());
     }
 
-    @PutMapping("/updateCont")
+    @PutMapping("/updateCont/{id}")
     public InsuranceContractDTO updateContract(
+            @PathVariable Long id,
             @RequestBody InsuranceContractDTO dto,
             @AuthenticationPrincipal UserDetails currentUser) {
-        return contractService.updateContract(dto, currentUser.getUsername());
+        return contractService.updateContract(id, dto, currentUser.getUsername());
     }
 
     @DeleteMapping("/deleteCont/{id}")

@@ -4,12 +4,19 @@ import com.stripe.exception.StripeException;
 import com.stripe.model.PaymentIntent;
 import lombok.AllArgsConstructor;
 import org.example.projet_pi.Dto.PaymentDTO;
+import org.example.projet_pi.Dto.PaymentRequestDTO;
+import org.example.projet_pi.Mapper.PaymentMapper;
+import org.example.projet_pi.Repository.ClientRepository;
+import org.example.projet_pi.Repository.InsuranceContractRepository;
+import org.example.projet_pi.Repository.PaymentRepository;
 import org.example.projet_pi.Service.IPaymentService;
+import org.example.projet_pi.entity.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -20,6 +27,9 @@ import java.util.Map;
 public class PaymentController {
 
     private final IPaymentService paymentService;
+    private final PaymentRepository paymentRepository;
+    private final ClientRepository clientRepository;
+    private final InsuranceContractRepository contractRepository;
 
     @PostMapping("/addPayment")
     public PaymentDTO addPayment(
@@ -65,11 +75,48 @@ public class PaymentController {
         return ResponseEntity.ok(response);
     }
 
-    // Webhook Stripe (pas de sécurité car appelé par Stripe)
     @PostMapping("/webhook")
     public ResponseEntity<String> handleStripeWebhook(@RequestBody String payload) {
         // Traiter le webhook Stripe
         // Récupérer le PaymentIntent et appeler handleSuccessfulPayment
         return ResponseEntity.ok("Webhook reçu");
+    }
+
+    @PostMapping("/payments")
+    public ResponseEntity<?> makePayment(@RequestBody PaymentRequestDTO request) {
+
+        Client client = clientRepository.findByEmail(request.getClientEmail())
+                .orElseThrow(() -> new RuntimeException("Client not found"));
+
+        // 1️⃣ Récupérer la tranche existante du contrat qui n'est pas encore payée
+        List<Payment> tranches = paymentRepository
+                .findAllByContract_ContractIdAndStatusOrderByPaymentDateAsc(
+                        request.getContractId(),
+                        PaymentStatus.PENDING
+                );
+
+        if (tranches.isEmpty()) {
+            throw new RuntimeException("No pending payment found");
+        }
+
+// On prend la première tranche à payer
+        Payment tranche = tranches.get(0);
+        // 2️⃣ Vérifier la date ou autre logique si nécessaire
+        Date now = new Date();
+        // Optionnel : if(tranche.getDueDate().after(now)) { ... }
+
+        // 3️⃣ Mettre à jour la tranche
+        tranche.setAmount(request.getInstallmentAmount());
+        tranche.setPaymentDate(now);
+        tranche.setPaymentMethod(PaymentMethod.valueOf(request.getPaymentType()));
+        tranche.setStatus(PaymentStatus.PAID);
+
+        // 4️⃣ Sauvegarder
+        Payment savedTranche = paymentRepository.save(tranche);
+
+        // 5️⃣ Mapper en DTO pour la réponse
+        PaymentDTO response = PaymentMapper.toDTO(savedTranche);
+
+        return ResponseEntity.ok(response);
     }
 }
