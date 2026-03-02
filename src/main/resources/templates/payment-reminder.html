@@ -12,6 +12,7 @@
         td { padding: 10px; border-bottom: 1px solid #ddd; }
         .label { font-weight: bold; width: 40%; }
         .urgent { background-color: #dc3545; color: white; padding: 5px 10px; border-radius: 3px; display: inline-block; }
+        .footer { margin-top: 30px; text-align: center; font-size: 0.9em; color: #777; }
     </style>
 </head>
 <body>
@@ -22,46 +23,46 @@
 <div class="content">
     <p>Dear <strong th:text="${clientName}">Client</strong>,</p>
 
-    <p>We remind you that a payment is due in <strong th:text="${daysBefore}">X</strong> days.</p>
+    <p>This is a friendly reminder that a payment is due in <strong th:text="${daysBefore}">X</strong> days.</p>
 
     <div th:if="${urgent}" class="warning">
-        <strong>⚠️ Important :</strong> This reminder is sent 3 days before the due date.
+        <strong>⚠️ Important:</strong> This reminder is sent 3 days before the due date.
     </div>
 
     <h3>Payment Details</h3>
 
     <table>
         <tr>
-            <td class="label">Contract N°</td>
+            <td class="label">Contract #</td>
             <td th:text="'CTR-' + ${contractId}">CTR-123</td>
         </tr>
         <tr>
-            <td class="label">Amount to pay</td>
+            <td class="label">Amount Due</td>
             <td><strong th:text="${paymentAmount} + ' TND'">500.00 TND</strong></td>
         </tr>
         <tr>
-            <td class="label">Due date</td>
+            <td class="label">Due Date</td>
             <td th:text="${paymentDate}">15/12/2024</td>
         </tr>
         <tr>
-            <td class="label">Time remaining</td>
+            <td class="label">Time Remaining</td>
             <td>
                 <span th:text="${daysBefore} + ' days'">3 days</span>
                 <span th:if="${daysBefore == 3}" class="urgent">⚠️ Urgent</span>
             </td>
         </tr>
         <tr>
-            <td class="label">Total paid</td>
+            <td class="label">Total Paid</td>
             <td th:text="${totalPaid} + ' TND'">1000.00 TND</td>
         </tr>
         <tr>
-            <td class="label">Remaining amount</td>
+            <td class="label">Remaining Amount</td>
             <td th:text="${remainingAmount} + ' TND'">2000.00 TND</td>
         </tr>
     </table>
 
-    <div class="footer" style="margin-top: 30px; text-align: center; font-size: 0.9em; color: #777;">
-        <p>This email was sent automatically. Please do not reply to this email.</p>
+    <div class="footer">
+        <p>This email was sent automatically. Please do not reply.</p>
     </div>
 </div>
 </body>

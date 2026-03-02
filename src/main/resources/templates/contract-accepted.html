@@ -2,7 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Contrat Accepté</title>
+    <title>Contract Accepted</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -98,75 +98,75 @@
 </head>
 <body>
 <div class="header">
-    <h1>✅ Félicitations !</h1>
-    <p>Votre contrat d'assurance a été accepté</p>
+    <h1>✅ Congratulations!</h1>
+    <p>Your insurance contract has been accepted</p>
 </div>
 
 <div class="content">
     <div style="text-align: center;">
         <div class="success-badge">
-            ✔ CONTRAT ACCEPTÉ
+            ✔ CONTRACT ACCEPTED
         </div>
     </div>
 
-    <p>Bonjour <strong th:text="${clientName}">Client</strong>,</p>
+    <p>Hello <strong th:text="${clientName}">Client</strong>,</p>
 
-    <p>Nous avons le plaisir de vous informer que votre contrat d'assurance a été <strong style="color: #28a745;">accepté</strong> par notre équipe.</p>
+    <p>We are pleased to inform you that your insurance contract has been <strong style="color: #28a745;">accepted</strong> by our team.</p>
 
     <div class="info-box">
-        <h3 style="margin-top: 0; color: #003366;">📋 Détails de votre contrat</h3>
+        <h3 style="margin-top: 0; color: #003366;">📋 Contract Details</h3>
 
         <table>
             <tr>
-                <td class="label">Numéro de contrat</td>
+                <td class="label">Contract Number</td>
                 <td class="value" th:text="'CTR-' + ${contractId}">CTR-123</td>
             </tr>
             <tr>
-                <td class="label">Date d'effet</td>
+                <td class="label">Effective Date</td>
                 <td class="value" th:text="${startDate}">01/01/2024</td>
             </tr>
             <tr>
-                <td class="label">Date d'échéance</td>
+                <td class="label">Expiry Date</td>
                 <td class="value" th:text="${endDate}">31/12/2024</td>
             </tr>
             <tr>
-                <td class="label">Prime totale</td>
+                <td class="label">Total Premium</td>
                 <td class="value" th:text="${premium} + ' TND'">5000.00 TND</td>
             </tr>
             <tr>
-                <td class="label">Fréquence de paiement</td>
-                <td class="value" th:text="${paymentFrequency}">Mensuel</td>
+                <td class="label">Payment Frequency</td>
+                <td class="value" th:text="${paymentFrequency}">Monthly</td>
             </tr>
             <tr>
-                <td class="label">Date d'acceptation</td>
+                <td class="label">Acceptance Date</td>
                 <td class="value" th:text="${currentDate}">28/02/2024</td>
             </tr>
         </table>
     </div>
 
     <div class="agent-info">
-        <h4 style="margin-top: 0; color: #003366;">👤 Votre agent d'assurance</h4>
-        <p><strong th:text="${agentName}">Agent Nom</strong></p>
+        <h4 style="margin-top: 0; color: #003366;">👤 Your Insurance Agent</h4>
+        <p><strong th:text="${agentName}">Agent Name</strong></p>
         <p th:if="${agentEmail}" th:text="${agentEmail}">agent@email.com</p>
-        <p>Votre agent reste à votre disposition pour toute question.</p>
+        <p>Your agent is available for any questions you may have.</p>
     </div>
 
-    <h4>📌 Prochaines étapes :</h4>
+    <h4>📌 Next Steps:</h4>
     <ul>
-        <li>Votre contrat est maintenant actif et vous êtes couvert</li>
-        <li>Vous recevrez des rappels pour vos échéances de paiement</li>
-        <li>Vous pouvez consulter votre contrat dans votre espace client</li>
-        <li>En cas de sinistre, contactez immédiatement votre agent</li>
+        <li>Your contract is now active and you are covered</li>
+        <li>You will receive reminders for your payment deadlines</li>
+        <li>You can review your contract in your client area</li>
+        <li>In case of a claim, contact your agent immediately</li>
     </ul>
 
     <div style="text-align: center;">
-        <a href="#" class="button">🔐 Accéder à mon espace client</a>
+        <a href="#" class="button">🔐 Access My Client Area</a>
     </div>
 
     <div class="footer">
-        <p>Cet email est une confirmation officielle de l'acceptation de votre contrat.</p>
-        <p>Pour toute question, contactez votre agent d'assurance.</p>
-        <p>© 2026 Votre Compagnie d'Assurance - Tous droits réservés</p>
+        <p>This email is an official confirmation of your contract acceptance.</p>
+        <p>For any questions, contact your insurance agent.</p>
+        <p>© 2026 Your Insurance Company - All rights reserved</p>
     </div>
 </div>
 </body>

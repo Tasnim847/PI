@@ -2,7 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8"/>
-    <title>Contrat d'Assurance Professionnelle</title>
+    <title>Professional Insurance Contract</title>
     <style>
         body { font-family: 'DejaVu Sans', Arial, sans-serif; margin:40px; font-size:14px; line-height:1.6; color:#1a1a1a; }
         .header { border-bottom:3px solid #1e3c72; padding-bottom:15px; margin-bottom:30px; }
@@ -34,102 +34,102 @@
         <tr>
             <td style="width:30%; border:none; padding:0;">
                 <img src="file:///C:/Users/ghodb/OneDrive/Bureau/PI/PI/src/main/resources/static/images/logo.png"
-                     alt="Logo Assurance" class="logo"/>
+                     alt="Insurance Logo" class="logo"/>
             </td>
             <td style="width:70%; border:none; padding:0;">
                 <div class="company-name">SurFinity</div>
                 <div class="contract-title">
-                    CONTRAT D’ASSURANCE PROFESSIONNELLE N° <span th:text="${contract.contractId}"></span>
+                    PROFESSIONAL INSURANCE CONTRACT N° <span th:text="${contract.contractId}"></span>
                 </div>
                 <div class="contract-number">
-                    Émis le <span th:text="${#dates.format(#dates.createNow(),'dd/MM/yyyy')}"></span>
+                    Issued on <span th:text="${#dates.format(#dates.createNow(),'dd/MM/yyyy')}"></span>
                 </div>
             </td>
         </tr>
     </table>
 </div>
 
-<!-- INFORMATIONS GÉNÉRALES -->
+<!-- GENERAL INFORMATION -->
 <div class="section">
-    <div class="section-title">Informations Générales</div>
+    <div class="section-title">General Information</div>
     <div class="info-block">
-        <span class="label">Date de début :</span>
+        <span class="label">Start Date:</span>
         <span th:text="${#dates.format(contract.startDate,'dd/MM/yyyy')}"></span>
     </div>
     <div class="info-block">
-        <span class="label">Date de fin :</span>
+        <span class="label">End Date:</span>
         <span th:text="${#dates.format(contract.endDate,'dd/MM/yyyy')}"></span>
     </div>
     <div class="info-block">
-        <span class="label">Statut du contrat :</span>
+        <span class="label">Contract Status:</span>
         <span class="status" th:text="${contract.status}"></span>
     </div>
     <div class="info-block">
-        <span class="label">Fréquence de paiement :</span>
+        <span class="label">Payment Frequency:</span>
         <span th:text="${contract.paymentFrequency}"></span>
     </div>
 </div>
 
-<!-- PARTIES CONTRACTANTES -->
+<!-- CONTRACTING PARTIES -->
 <div class="section">
-    <div class="section-title">Parties Contractantes</div>
+    <div class="section-title">Contracting Parties</div>
     <table>
         <tr>
             <th>Client</th>
-            <th>Agent d’Assurance</th>
+            <th>Insurance Agent</th>
         </tr>
         <tr>
             <td>
                 <strong th:text="${client.firstName + ' ' + client.lastName}"></strong><br/>
-                Email : <span th:text="${client.email}"></span>
+                Email: <span th:text="${client.email}"></span>
             </td>
             <td>
                 <strong th:text="${agent.firstName + ' ' + agent.lastName}"></strong><br/>
-                Email : <span th:text="${agent.email}"></span>
+                Email: <span th:text="${agent.email}"></span>
             </td>
         </tr>
     </table>
 </div>
 
-<!-- DÉTAILS FINANCIERS -->
+<!-- FINANCIAL DETAILS -->
 <div class="section">
-    <div class="section-title">Détails Financiers</div>
+    <div class="section-title">Financial Details</div>
     <table>
         <tr>
-            <th>Élément</th>
-            <th>Montant (DT)</th>
+            <th>Item</th>
+            <th>Amount (DT)</th>
         </tr>
         <tr>
-            <td>Prime Totale</td>
+            <td>Total Premium</td>
             <td class="amount" th:text="${#numbers.formatDecimal(contract.premium,1,2)}"></td>
         </tr>
         <tr>
-            <td>Franchise</td>
+            <td>Deductible</td>
             <td th:text="${#numbers.formatDecimal(contract.deductible,1,2)}"></td>
         </tr>
         <tr>
-            <td>Plafond de Garantie</td>
+            <td>Coverage Limit</td>
             <td th:text="${#numbers.formatDecimal(contract.coverageLimit,1,2)}"></td>
         </tr>
         <tr>
-            <td>Montant Déjà Payé</td>
+            <td>Amount Paid</td>
             <td th:text="${#numbers.formatDecimal(contract.totalPaid,1,2)}"></td>
         </tr>
         <tr>
-            <td>Reste à Payer</td>
+            <td>Remaining Amount</td>
             <td class="amount" th:text="${#numbers.formatDecimal(contract.remainingAmount,1,2)}"></td>
         </tr>
     </table>
 </div>
 
-<!-- ÉCHÉANCIER -->
+<!-- PAYMENT SCHEDULE -->
 <div class="section" th:if="${payments != null}">
-    <div class="section-title">Échéancier des Paiements</div>
+    <div class="section-title">Payment Schedule</div>
     <table>
         <tr>
-            <th>Date d’échéance</th>
-            <th>Montant</th>
-            <th>Statut</th>
+            <th>Due Date</th>
+            <th>Amount</th>
+            <th>Status</th>
         </tr>
         <tr th:each="payment : ${payments}">
             <td th:text="${#dates.format(payment.paymentDate,'dd/MM/yyyy')}"></td>
@@ -139,68 +139,68 @@
     </table>
 </div>
 
-<!-- OBJET DU CONTRAT -->
+<!-- CONTRACT PURPOSE -->
 <div class="section">
-    <div class="section-title">Objet du Contrat</div>
+    <div class="section-title">Contract Purpose</div>
     <p>
-        Le présent contrat définit les termes et conditions de couverture d’assurance professionnelle
-        pour <strong th:text="${client.firstName + ' ' + client.lastName}"></strong>, couvrant
-        les risques liés à son activité professionnelle selon le produit sélectionné.
+        This contract sets the terms and conditions for professional insurance coverage
+        for <strong th:text="${client.firstName + ' ' + client.lastName}"></strong>, covering
+        risks related to their professional activity according to the selected insurance product.
     </p>
 </div>
 
-<!-- CLAUSES DE COUVERTURE -->
+<!-- COVERAGE CLAUSES -->
 <div class="section">
-    <div class="section-title">Clauses de Couverture</div>
+    <div class="section-title">Coverage Clauses</div>
     <ul>
-        <li>Plafond de garantie : <strong th:text="${#numbers.formatDecimal(contract.coverageLimit,1,2)}"></strong> DT</li>
-        <li>Franchise applicable : <strong th:text="${#numbers.formatDecimal(contract.deductible,1,2)}"></strong> DT</li>
-        <li>Dommages couverts : responsabilité civile professionnelle, erreurs ou omissions professionnelles.</li>
-        <li>Exclusions : dommages intentionnels, fraudes ou sinistres non déclarés dans les délais.</li>
+        <li>Coverage Limit: <strong th:text="${#numbers.formatDecimal(contract.coverageLimit,1,2)}"></strong> DT</li>
+        <li>Applicable Deductible: <strong th:text="${#numbers.formatDecimal(contract.deductible,1,2)}"></strong> DT</li>
+        <li>Covered Damages: professional liability, errors or omissions.</li>
+        <li>Exclusions: intentional damages, fraud, or claims not reported on time.</li>
     </ul>
 </div>
 
-<!-- OBLIGATIONS DES PARTIES -->
+<!-- PARTIES’ OBLIGATIONS -->
 <div class="section">
-    <div class="section-title">Obligations des Parties</div>
+    <div class="section-title">Obligations of the Parties</div>
     <ul>
-        <li>Fournir des informations exactes sur l’activité professionnelle et les revenus.</li>
-        <li>L’assureur indemnise les sinistres déclarés dans les délais.</li>
-        <li>Informer l’assureur de tout changement significatif pouvant affecter le risque.</li>
+        <li>Provide accurate information regarding professional activity and income.</li>
+        <li>The insurer compensates reported claims within the agreed timeframe.</li>
+        <li>Inform the insurer of any significant changes affecting the risk.</li>
     </ul>
 </div>
 
-<!-- DURÉE ET RÉSILIATION -->
+<!-- DURATION & TERMINATION -->
 <div class="section">
-    <div class="section-title">Durée et Résiliation</div>
+    <div class="section-title">Duration and Termination</div>
     <p>
-        Le contrat prend effet le <strong th:text="${#dates.format(contract.startDate,'dd/MM/yyyy')}"></strong>
-        et expire le <strong th:text="${#dates.format(contract.endDate,'dd/MM/yyyy')}"></strong>.
-        Il peut être résilié avant échéance en cas de non-paiement ou de déclaration frauduleuse.
+        The contract takes effect on <strong th:text="${#dates.format(contract.startDate,'dd/MM/yyyy')}"></strong>
+        and expires on <strong th:text="${#dates.format(contract.endDate,'dd/MM/yyyy')}"></strong>.
+        It may be terminated early in case of non-payment or fraudulent declaration.
     </p>
 </div>
 
-<!-- LOI APPLICABLE -->
+<!-- GOVERNING LAW -->
 <div class="section">
-    <div class="section-title">Loi Applicable et Juridiction</div>
+    <div class="section-title">Governing Law and Jurisdiction</div>
     <p>
-        Le présent contrat est régi par le droit tunisien. Tout litige sera soumis aux tribunaux compétents de Tunis.
+        This contract is governed by Tunisian law. Any dispute will be submitted to the competent courts of Tunis.
     </p>
 </div>
 
-<!-- CONFIDENTIALITÉ -->
+<!-- CONFIDENTIALITY -->
 <div class="section">
-    <div class="section-title">Confidentialité</div>
+    <div class="section-title">Confidentiality</div>
     <p>
-        Les parties s’engagent à préserver la confidentialité des informations financières et professionnelles.
+        Both parties commit to maintaining the confidentiality of financial and professional information.
     </p>
 </div>
 
-<!-- CONDITIONS GÉNÉRALES -->
+<!-- TERMS & CONDITIONS -->
 <div class="section">
-    <div class="section-title">Conditions Générales</div>
+    <div class="section-title">Terms and Conditions</div>
     <p>
-        En signant ce contrat, le client accepte les conditions générales du produit d’assurance.
+        By signing this contract, the client accepts the general terms and conditions of the insurance product.
     </p>
 </div>
 
@@ -208,25 +208,34 @@
 <div class="signature-section">
     <div class="signature-box">
         <div class="signature-line">
-            Signature du Client<br/>
+            Client Signature<br/>
             <strong th:text="${client.firstName + ' ' + client.lastName}"></strong>
         </div>
     </div>
     <div class="signature-box">
         <div class="signature-line">
-            Signature de l’Agent<br/>
+            Agent Signature<br/>
             <strong th:text="${agent.firstName + ' ' + agent.lastName}"></strong>
         </div>
     </div>
 </div>
+<!-- QR CODE SECTION -->
+<div class="section" style="text-align:center;">
+    <div class="section-title">Vérification du Contrat</div>
 
+    <p>Scannez ce QR code pour consulter les informations de votre contrat en ligne.</p>
+
+    <img th:src="'data:image/png;base64,' + ${qrCode}"
+         alt="QR Code"
+         style="margin-top:15px; width:180px; height:180px;" />
+</div>
 <!-- FOOTER -->
 <div class="footer">
-    <strong>SurFinity</strong> – Société agréée par l’autorité de régulation.<br/>
-    Siège social : Tunis, Tunisie<br/>
-    Email : SureFinity@esprit.tn | Téléphone : +216 54567890<br/><br/>
-    Document généré automatiquement le <span th:text="${#dates.format(#dates.createNow(),'dd/MM/yyyy HH:mm')}"></span>.<br/>
-    Ce document a valeur contractuelle conformément aux conditions générales.
+    <strong>SurFinity</strong> – Licensed by the regulatory authority.<br/>
+    Headquarters: Tunis, Tunisia<br/>
+    Email: SureFinity@esprit.tn | Phone: +216 54567890<br/><br/>
+    Document automatically generated on <span th:text="${#dates.format(#dates.createNow(),'dd/MM/yyyy HH:mm')}"></span>.<br/>
+    This document has contractual value in accordance with the general terms and conditions.
 </div>
 
 </body>

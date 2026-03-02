@@ -2,7 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Contrat Non Accepté</title>
+    <title>Contract Not Accepted</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -108,64 +108,64 @@
 </head>
 <body>
 <div class="header">
-    <h1>❌ Contrat non accepté</h1>
-    <p>Votre demande de contrat d'assurance n'a pas été acceptée</p>
+    <h1>❌ Contract Not Accepted</h1>
+    <p>Your insurance contract request was not accepted</p>
 </div>
 
 <div class="content">
     <div style="text-align: center;">
         <div class="rejected-badge">
-            ⚠️ CONTRAT REFUSÉ
+            ⚠️ CONTRACT REFUSED
         </div>
     </div>
 
-    <p>Bonjour <strong th:text="${clientName}">Client</strong>,</p>
+    <p>Hello <strong th:text="${clientName}">Client</strong>,</p>
 
-    <p>Nous regrettons de vous informer que votre contrat d'assurance n°<strong th:text="'CTR-' + ${contractId}">CTR-123</strong> n'a pas été accepté par notre équipe.</p>
+    <p>We regret to inform you that your insurance contract no.<strong th:text="'CTR-' + ${contractId}">CTR-123</strong> has not been accepted by our team.</p>
 
     <div class="reason-box">
-        <strong>📝 Raison du refus :</strong>
-        <p style="margin-top: 10px; font-size: 1.1em;" th:text="${rejectionReason}">Raison non spécifiée</p>
+        <strong>📝 Reason for Refusal:</strong>
+        <p style="margin-top: 10px; font-size: 1.1em;" th:text="${rejectionReason}">Reason not specified</p>
     </div>
 
     <div class="info-box">
-        <h3 style="margin-top: 0; color: #856404;">📋 Détails</h3>
+        <h3 style="margin-top: 0; color: #856404;">📋 Contract Details</h3>
 
         <table>
             <tr>
-                <td class="label">Numéro de contrat</td>
+                <td class="label">Contract Number</td>
                 <td class="value" th:text="'CTR-' + ${contractId}">CTR-123</td>
             </tr>
             <tr>
-                <td class="label">Date de la décision</td>
+                <td class="label">Decision Date</td>
                 <td class="value" th:text="${rejectionDate}">28/02/2024</td>
             </tr>
         </table>
     </div>
 
     <div class="agent-info">
-        <h4 style="margin-top: 0; color: #333;">👤 Votre agent d'assurance</h4>
-        <p><strong th:text="${agentName}">Agent Nom</strong></p>
+        <h4 style="margin-top: 0; color: #333;">👤 Your Insurance Agent</h4>
+        <p><strong th:text="${agentName}">Agent Name</strong></p>
         <p th:if="${agentEmail}" th:text="${agentEmail}">agent@email.com</p>
-        <p>N'hésitez pas à contacter votre agent pour plus d'informations ou pour soumettre une nouvelle demande.</p>
+        <p>Feel free to contact your agent for more information or to submit a new request.</p>
     </div>
 
-    <h4>📌 Que faire maintenant ?</h4>
+    <h4>📌 What to do next?</h4>
     <ul>
-        <li>Contactez votre agent pour comprendre les raisons du refus</li>
-        <li>Vous pouvez modifier votre demande et soumettre un nouveau contrat</li>
-        <li>Vérifiez les critères d'éligibilité pour votre assurance</li>
-        <li>Un agent peut vous aider à trouver une meilleure solution</li>
+        <li>Contact your agent to understand the reasons for refusal</li>
+        <li>You can modify your request and submit a new contract</li>
+        <li>Check the eligibility criteria for your insurance</li>
+        <li>An agent can help you find a better solution</li>
     </ul>
 
     <div style="text-align: center;">
-        <a href="#" class="button">📞 Contacter mon agent</a>
+        <a href="#" class="button">📞 Contact My Agent</a>
     </div>
 
     <div class="footer">
-        <p>Cet email est une confirmation officielle du refus de votre contrat.</p>
-        <p>Pour toute question, contactez votre agent d'assurance.</p>
-        <p>© 2026 Votre Compagnie d'Assurance - Tous droits réservés</p>
+        <p>This email is an official confirmation of your contract refusal.</p>
+        <p>For any questions, contact your insurance agent.</p>
+        <p>© 2026 Your Insurance Company - All rights reserved</p>
     </div>
 </div>
 </body>

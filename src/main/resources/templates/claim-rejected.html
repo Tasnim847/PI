@@ -2,7 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Réclamation Refusée</title>
+    <title>Claim Rejected</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -108,76 +108,76 @@
 </head>
 <body>
 <div class="header">
-    <h1>❌ Réclamation refusée</h1>
-    <p>Votre réclamation n'a pas pu être acceptée</p>
+    <h1>❌ Claim Rejected</h1>
+    <p>Your claim could not be approved</p>
 </div>
 
 <div class="content">
     <div style="text-align: center;">
         <div class="rejected-badge">
-            ✗ RÉCLAMATION REFUSÉE
+            ✗ CLAIM REJECTED
         </div>
     </div>
 
-    <p>Bonjour <strong th:text="${clientName}">Client</strong>,</p>
+    <p>Hello <strong th:text="${clientName}">Client</strong>,</p>
 
-    <p>Nous regrettons de vous informer que votre réclamation n°<strong th:text="${claimId}">123</strong> a été <strong style="color: #dc3545;">refusée</strong> par notre équipe.</p>
+    <p>We regret to inform you that your claim no.<strong th:text="${claimId}">123</strong> has been <strong style="color: #dc3545;">rejected</strong> by our team.</p>
 
     <div class="reason-box">
-        <strong>📝 Raison du refus :</strong>
-        <p style="margin-top: 10px; font-size: 1.1em;" th:text="${rejectionReason}">Raison non spécifiée</p>
+        <strong>📝 Reason for Rejection:</strong>
+        <p style="margin-top: 10px; font-size: 1.1em;" th:text="${rejectionReason}">Reason not specified</p>
     </div>
 
     <div class="info-box">
-        <h3 style="margin-top: 0; color: #dc3545;">📋 Détails de la réclamation</h3>
+        <h3 style="margin-top: 0; color: #dc3545;">📋 Claim Details</h3>
 
         <table>
             <tr>
-                <td class="label">Numéro de réclamation</td>
+                <td class="label">Claim Number</td>
                 <td class="value" th:text="${claimId}">123</td>
             </tr>
             <tr>
-                <td class="label">Contrat concerné</td>
+                <td class="label">Related Contract</td>
                 <td class="value" th:text="'CTR-' + ${contractId}">CTR-123</td>
             </tr>
             <tr>
-                <td class="label">Date de la réclamation</td>
+                <td class="label">Claim Date</td>
                 <td class="value" th:text="${claimDate}">15/03/2024</td>
             </tr>
             <tr>
-                <td class="label">Montant réclamé</td>
+                <td class="label">Claimed Amount</td>
                 <td class="value" th:text="${claimedAmount} + ' TND'">2000.00 TND</td>
             </tr>
             <tr>
-                <td class="label">Date de la décision</td>
+                <td class="label">Decision Date</td>
                 <td class="value" th:text="${rejectionDate}">20/03/2024</td>
             </tr>
         </table>
     </div>
 
     <div class="agent-info">
-        <h4 style="margin-top: 0; color: #333;">👤 Votre agent d'assurance</h4>
-        <p><strong th:text="${agentName}">Agent Nom</strong></p>
+        <h4 style="margin-top: 0; color: #333;">👤 Your Insurance Agent</h4>
+        <p><strong th:text="${agentName}">Agent Name</strong></p>
         <p th:if="${agentEmail}" th:text="${agentEmail}">agent@email.com</p>
-        <p>N'hésitez pas à contacter votre agent pour plus d'informations.</p>
+        <p>Feel free to contact your agent for more information.</p>
     </div>
 
-    <h4>📌 Que faire maintenant ?</h4>
+    <h4>📌 What to do next?</h4>
     <ul>
-        <li>Contactez votre agent pour comprendre les raisons du refus</li>
-        <li>Vous pouvez soumettre une nouvelle réclamation avec des documents supplémentaires</li>
-        <li>Vérifiez les conditions de votre contrat</li>
-        <li>Un agent peut vous aider à préparer une nouvelle demande</li>
+        <li>Contact your agent to understand the reasons for rejection</li>
+        <li>You may submit a new claim with additional documents</li>
+        <li>Review your contract terms</li>
+        <li>An agent can help you prepare a new request</li>
     </ul>
 
     <div style="text-align: center;">
-        <a href="#" class="button">📞 Contacter mon agent</a>
+        <a href="#" class="button">📞 Contact My Agent</a>
     </div>
 
     <div class="footer">
-        <p>Cet email est une confirmation officielle du refus de votre réclamation.</p>
-        <p>Pour toute question, contactez votre agent d'assurance.</p>
-        <p>© 2026 Votre Compagnie d'Assurance - Tous droits réservés</p>
+        <p>This email is an official confirmation of your claim rejection.</p>
+        <p>For any questions, contact your insurance agent.</p>
+        <p>© 2026 Your Insurance Company - All rights reserved</p>
     </div>
 </div>
 </body>

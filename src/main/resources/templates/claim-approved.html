@@ -2,7 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Réclamation Acceptée</title>
+    <title>Claim Approved</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -111,95 +111,95 @@
 </head>
 <body>
 <div class="header">
-    <h1>✅ Réclamation acceptée</h1>
-    <p>Votre réclamation a été traitée avec succès</p>
+    <h1>✅ Claim Approved</h1>
+    <p>Your claim has been successfully processed</p>
 </div>
 
 <div class="content">
     <div style="text-align: center;">
         <div class="approved-badge">
-            ✓ RÉCLAMATION ACCEPTÉE
+            ✓ CLAIM APPROVED
         </div>
     </div>
 
-    <p>Bonjour <strong th:text="${clientName}">Client</strong>,</p>
+    <p>Hello <strong th:text="${clientName}">Client</strong>,</p>
 
-    <p>Nous avons le plaisir de vous informer que votre réclamation n°<strong th:text="${claimId}">123</strong> a été <strong style="color: #28a745;">acceptée</strong> par notre équipe.</p>
+    <p>We are pleased to inform you that your claim no.<strong th:text="${claimId}">123</strong> has been <strong style="color: #28a745;">approved</strong> by our team.</p>
 
     <div class="amount-highlight">
-        <p style="margin: 0; font-size: 16px;">Montant approuvé</p>
+        <p style="margin: 0; font-size: 16px;">Approved Amount</p>
         <p class="amount" th:text="${approvedAmount} + ' TND'">1500.00 TND</p>
     </div>
 
     <div class="info-box">
-        <h3 style="margin-top: 0; color: #28a745;">📋 Détails de la réclamation</h3>
+        <h3 style="margin-top: 0; color: #28a745;">📋 Claim Details</h3>
 
         <table>
             <tr>
-                <td class="label">Numéro de réclamation</td>
+                <td class="label">Claim Number</td>
                 <td class="value" th:text="${claimId}">123</td>
             </tr>
             <tr>
-                <td class="label">Contrat concerné</td>
+                <td class="label">Related Contract</td>
                 <td class="value" th:text="'CTR-' + ${contractId}">CTR-123</td>
             </tr>
             <tr>
-                <td class="label">Date de la réclamation</td>
+                <td class="label">Claim Date</td>
                 <td class="value" th:text="${claimDate}">15/03/2024</td>
             </tr>
             <tr>
-                <td class="label">Montant réclamé</td>
+                <td class="label">Claimed Amount</td>
                 <td class="value" th:text="${claimedAmount} + ' TND'">2000.00 TND</td>
             </tr>
             <tr>
-                <td class="label">Montant approuvé</td>
+                <td class="label">Approved Amount</td>
                 <td class="value" th:text="${approvedAmount} + ' TND'">1500.00 TND</td>
             </tr>
         </table>
     </div>
 
     <div class="info-box">
-        <h3 style="margin-top: 0; color: #28a745;">💰 Détails du paiement</h3>
+        <h3 style="margin-top: 0; color: #28a745;">💰 Payment Details</h3>
 
         <table>
             <tr>
-                <td class="label">Franchise applicable</td>
+                <td class="label">Applicable Deductible</td>
                 <td class="value" th:text="${franchise} + ' TND'">200.00 TND</td>
             </tr>
             <tr>
-                <td class="label">Montant pris en charge</td>
+                <td class="label">Insurance Payment</td>
                 <td class="value" th:text="${insurancePayment} + ' TND'">1300.00 TND</td>
             </tr>
             <tr>
-                <td class="label">Date de paiement</td>
+                <td class="label">Payment Date</td>
                 <td class="value" th:text="${paymentDate}">25/03/2024</td>
             </tr>
         </table>
     </div>
 
     <div class="agent-info">
-        <h4 style="margin-top: 0; color: #333;">👤 Votre agent d'assurance</h4>
-        <p><strong th:text="${agentName}">Agent Nom</strong></p>
+        <h4 style="margin-top: 0; color: #333;">👤 Your Insurance Agent</h4>
+        <p><strong th:text="${agentName}">Agent Name</strong></p>
         <p th:if="${agentEmail}" th:text="${agentEmail}">agent@email.com</p>
-        <p>Votre agent reste à votre disposition pour toute question.</p>
+        <p>Your agent is available for any questions you may have.</p>
     </div>
 
-    <h4>📌 Prochaines étapes :</h4>
+    <h4>📌 Next Steps:</h4>
     <ul>
-        <li>Le paiement sera effectué selon les délais prévus</li>
-        <li>Vous recevrez une confirmation de virement</li>
-        <li>Conservez ce document pour vos archives</li>
-        <li>En cas de question, contactez votre agent</li>
+        <li>The payment will be made according to the scheduled timelines</li>
+        <li>You will receive a transfer confirmation</li>
+        <li>Keep this document for your records</li>
+        <li>If you have any questions, contact your agent</li>
     </ul>
 
     <div style="text-align: center;">
-        <a href="#" class="button">📞 Contacter mon agent</a>
+        <a href="#" class="button">📞 Contact My Agent</a>
     </div>
 
     <div class="footer">
-        <p>Cet email est une confirmation officielle de l'acceptation de votre réclamation.</p>
-        <p>Pour toute question, contactez votre agent d'assurance.</p>
-        <p>© 2026 Votre Compagnie d'Assurance - Tous droits réservés</p>
+        <p>This email is an official confirmation of your claim approval.</p>
+        <p>For any questions, contact your insurance agent.</p>
+        <p>© 2026 Your Insurance Company - All rights reserved</p>
     </div>
 </div>
 </body>
