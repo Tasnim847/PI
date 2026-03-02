@@ -3,6 +3,7 @@ package org.example.projet_pi.entity;
 import jakarta.persistence.*;
 
 import java.time.LocalDate;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
 public class Transaction {
@@ -56,7 +57,11 @@ public class Transaction {
 
     private String type;
 
+    @JsonIgnore
     @ManyToOne
     private Account account;
+
+
+
 }
 

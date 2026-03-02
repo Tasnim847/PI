@@ -4,13 +4,9 @@ import lombok.RequiredArgsConstructor;
 import org.example.projet_pi.Dto.ChangePasswordRequest;
 import org.example.projet_pi.Service.IClientService;
 import org.example.projet_pi.entity.Client;
-import org.example.projet_pi.entity.Role;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/clients")
@@ -50,20 +46,27 @@ public class ClientController {
     // =============================
     // ADMIN add client
     // =============================
-    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/add")
+    @PreAuthorize("hasRole('ADMIN')")
     public Client addClient(@RequestBody Client client){
         return clientService.addClient(client);
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
+    // =============================
+    // Supprimer un client
+    // =============================
     @DeleteMapping("/delete/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public void deleteClient(@PathVariable Long id){
         clientService.deleteClient(id);
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN','AGENT_ASSURANCE','AGENT_FINANCE')")
+    // =============================
+    // Obtenir un client par ID
+    // ADMIN / AGENT_ASSURANCE / AGENT_FINANCE
+    // =============================
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN','AGENT_ASSURANCE','AGENT_FINANCE')")
     public Client getClientById(@PathVariable Long id){
         return clientService.getClientById(id);
     }

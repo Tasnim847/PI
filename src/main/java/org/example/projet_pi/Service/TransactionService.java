@@ -12,18 +12,29 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.util.List;
 
+import org.example.projet_pi.Dto.AccountStatisticsDTO;
+
+
+import org.example.projet_pi.Dto.TransactionDTO;
+import org.springframework.data.domain.*;
 //crud
 @Service
 public class TransactionService implements ITransactionService {
 
     private final TransactionRepository transactionRepository;
     private final AccountRepository accountRepository;
+    private final PdfService pdfService;
+    private final EmailActionService emailActionService;
 
     // Injection des repositories via le constructeur
     public TransactionService(TransactionRepository transactionRepository,
-                              AccountRepository accountRepository) {
+                              AccountRepository accountRepository,
+                              PdfService pdfService,
+                              EmailActionService emailActionService) {
         this.transactionRepository = transactionRepository;
         this.accountRepository = accountRepository;
+        this.pdfService = pdfService;
+        this.emailActionService = emailActionService;
     }
 
     // 🔹 Ajouter une transaction (dépôt ou retrait)
@@ -52,6 +63,20 @@ public class TransactionService implements ITransactionService {
 
         // Sauvegarder le compte mis à jour et la transaction
         accountRepository.save(account);
+
+        // 🆕 Envoyer email de confirmation
+        String clientEmail = account.getClient() != null
+                ? account.getClient().getEmail()
+                : null;
+
+        if (clientEmail != null) {
+            emailActionService.sendTransactionEmail(
+                    clientEmail,
+                    transaction.getType(),
+                    transaction.getAmount(),
+                    account.getBalance()
+            );
+        }
         return transactionRepository.save(transaction);
     }
 
@@ -182,5 +207,100 @@ public class TransactionService implements ITransactionService {
                 );
             }
         }
+    }
+
+
+    // 🆕 MÉTIER AVANCÉ : Historique filtrable et paginé avec DTO
+    public Page<TransactionDTO> getTransactions(
+            Long accountId,
+            String type,
+            LocalDate startDate,
+            LocalDate endDate,
+            int page,
+            int size
+    ) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("date").descending());
+
+        Page<Transaction> transactions;
+
+        if (type != null && startDate != null && endDate != null) {
+            // ✅ Correct
+            transactions = transactionRepository
+                    .findByAccountIdAndTypeAndDateBetween(
+                            accountId, type, startDate, endDate, pageable);
+        }
+        else if (type != null) {
+            transactions = transactionRepository
+                    .findByAccountAccountIdAndType(accountId, type, pageable);
+        }
+        else if (startDate != null && endDate != null) {
+            transactions = transactionRepository
+                    .findByAccountAccountIdAndDateBetween(accountId, startDate, endDate, pageable);
+        }
+        else {
+            transactions = transactionRepository
+                    .findByAccountAccountId(accountId, pageable);
+        }
+
+        return transactions.map(this::convertToDTO);
+    }
+
+    // 🔄 Mapper Entity → DTO
+    private TransactionDTO convertToDTO(Transaction t) {
+        return new TransactionDTO(
+                t.getTransactionId(),
+                t.getAmount(),
+                t.getType(),
+                t.getDate()
+        );
+    }
+
+    // 🆕 Générer PDF extrait de compte
+    public byte[] generateAccountStatement(Long accountId) throws Exception {
+        Account account = accountRepository.findById(accountId)
+                .orElseThrow(() -> new RuntimeException("Account not found"));
+
+        List<Transaction> transactions = transactionRepository
+                .findByAccountAccountId(accountId);
+
+        return pdfService.generateStatement(account, transactions);
+    }
+
+
+
+    // 🆕 Statistiques du compte
+    public AccountStatisticsDTO getAccountStatistics(Long accountId) {
+
+        Account account = accountRepository.findById(accountId)
+                .orElseThrow(() -> new RuntimeException("Account not found"));
+
+        double totalDeposits = transactionRepository.getTotalDeposits(accountId) != null
+                ? transactionRepository.getTotalDeposits(accountId) : 0.0;
+
+        double totalWithdrawals = transactionRepository.getTotalWithdrawals(accountId) != null
+                ? transactionRepository.getTotalWithdrawals(accountId) : 0.0;
+
+        double averageAmount = transactionRepository.getAverageTransactionAmount(accountId) != null
+                ? transactionRepository.getAverageTransactionAmount(accountId) : 0.0;
+
+        long totalTransactions = transactionRepository.getTotalTransactions(accountId) != null
+                ? transactionRepository.getTotalTransactions(accountId) : 0L;
+
+        long totalDepositCount = transactionRepository.getTotalDepositCount(accountId) != null
+                ? transactionRepository.getTotalDepositCount(accountId) : 0L;
+
+        long totalWithdrawalCount = transactionRepository.getTotalWithdrawalCount(accountId) != null
+                ? transactionRepository.getTotalWithdrawalCount(accountId) : 0L;
+
+        return new AccountStatisticsDTO(
+                accountId,
+                totalDeposits,
+                totalWithdrawals,
+                account.getBalance(),
+                averageAmount,
+                totalTransactions,
+                totalDepositCount,
+                totalWithdrawalCount
+        );
     }
 }

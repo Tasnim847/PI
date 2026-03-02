@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 @Entity
 public class Account {
 
@@ -93,6 +94,9 @@ public class Account {
         this.monthlyLimit = monthlyLimit;
     }
 
+    @JsonIgnore
     @OneToMany(mappedBy = "account")
     private List<Transaction> transactions;
+
+
 }
