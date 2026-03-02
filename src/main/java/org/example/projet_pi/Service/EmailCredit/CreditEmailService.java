@@ -23,18 +23,17 @@ public class CreditEmailService {
         SimpleMailMessage message = new SimpleMailMessage();
         message.setFrom("hamoudameriem317@gmail.com");
         message.setTo(toEmail);
-        message.setSubject("🔔 Rappel de paiement - Échéance dans 3 jours");
+        message.setSubject("🔔 Payment Reminder – Due in 3 Days");
 
         String text = String.format(
-                "Bonjour %s,\n\n" +
-                        "Ceci est un rappel amical que votre paiement de %.2f TND pour le crédit N°%d " +
-                        "sera dû dans 3 jours, le %s.\n\n" +
-                        "Veuillez effectuer votre paiement avant cette date pour éviter des frais de retard.\n\n" +
-                        "Cordialement,\n" +
-                        "Votre équipe financière",
+                "Hello %s,\n\n" +
+                        "This is a friendly reminder that your payment of %.2f TND for Loan No.%d " +
+                        "is due in 3 days, on %s.\n\n" +
+                        "Please make your payment before this date to avoid late fees.\n\n" +
+                        "Best regards,\n" +
+                        "Your Finance Team",
                 clientName, amount, creditId, dueDate.toString()
         );
-
         message.setText(text);
 
         mailSender.send(message);
@@ -46,16 +45,16 @@ public class CreditEmailService {
         SimpleMailMessage message = new SimpleMailMessage();
         message.setFrom("votre-email@gmail.com");
         message.setTo(toEmail);
-        message.setSubject("⚠️ Paiement en retard - Crédit N°" + creditId);
+        message.setSubject("⚠️ Late Payment – Loan No.%d\"" + creditId);
 
         String text = String.format(
-                "Bonjour %s,\n\n" +
-                        "Nous constatons que votre paiement de %.2f TND pour le crédit N°%d " +
-                        "était dû le %s et n'a pas encore été reçu.\n\n" +
-                        "Veuillez régulariser votre situation dans les plus brefs délais " +
-                        "pour éviter des pénalités supplémentaires.\n\n" +
-                        "Cordialement,\n" +
-                        "Votre équipe financière",
+                "Hello %s,\n\n" +
+                        "We have noticed that your payment of %.2f TND for Loan No.%d " +
+                        "was due on %s and has not yet been received.\n\n" +
+                        "Please settle your account as soon as possible " +
+                        "to avoid additional penalties.\n\n" +
+                        "Best regards,\n" +
+                        "Your Finance Team",
                 clientName, amount, creditId, dueDate.toString()
         );
 
@@ -71,14 +70,14 @@ public class CreditEmailService {
 
             helper.setFrom("hamoudameriem317@gmail.com");
             helper.setTo(toEmail);
-            helper.setSubject("📄 Tableau d'amortissement - Crédit N°" + creditId);
+            helper.setSubject("📄 Amortization Schedule – Loan No." + creditId);
 
             String text = String.format(
-                    "Bonjour %s,\n\n" +
-                            "Veuillez trouver ci-joint le tableau d'amortissement pour votre crédit N°%d.\n\n" +
-                            "Ce document détaille l'échéancier de vos paiements.\n\n" +
-                            "Cordialement,\n" +
-                            "Votre équipe financière",
+                    "Hello %s,\n\n" +
+                            "Please find attached the amortization schedule for your loan No. %d.\n\n" +
+                            "This document details the timetable of your payments.\n\n" +
+                            "Best regards,\n" +
+                            "Your finance team",
                     clientName, creditId
             );
 
@@ -86,7 +85,7 @@ public class CreditEmailService {
 
             // ✅ Ajouter la pièce jointe PDF
             ByteArrayResource attachment = new ByteArrayResource(pdfContent);
-            helper.addAttachment("amortissement_credit_" + creditId + ".pdf", attachment);
+            helper.addAttachment("loan_amortization_" + creditId + ".pdf", attachment);
 
             mailSender.send(message);
 
