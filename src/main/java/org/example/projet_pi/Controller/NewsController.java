@@ -40,7 +40,6 @@ public class NewsController {
         return newsService.getNewsById(id);
     }
 
-    // Récupérer toutes les news
     @GetMapping("/all")
     public List<News> getAllNews() {
         return newsService.getAllNews();

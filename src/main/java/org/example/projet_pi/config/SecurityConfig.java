@@ -135,13 +135,15 @@ public class SecurityConfig {
                         .requestMatchers("/news/all").hasAnyRole("ADMIN","AGENT_ASSURANCE","CLIENT","AGENT_FINANCE")  // Tous peuvent voir la liste
 
                         // ========== COMPLAINT ENDPOINTS ==========
-                        .requestMatchers("/complaints/add").hasRole("CLIENT")                 // Seul le client peut créer une plainte
-                        .requestMatchers("/complaints/update").hasAnyRole("AGENT_ASSURANCE","AGENT_FINANCE","ADMIN") // Agents et admin peuvent modifier
-                        .requestMatchers("/complaints/delete/**").hasRole("ADMIN")            // Seul admin peut supprimer
-                        .requestMatchers("/complaints/{id}").hasAnyRole("CLIENT","AGENT_ASSURANCE","AGENT_FINANCE","ADMIN") // Tous avec droits peuvent voir
-                        .requestMatchers("/complaints/all").hasAnyRole("AGENT_ASSURANCE","AGENT_FINANCE","ADMIN") // Liste accessible aux agents et admin
-                        .requestMatchers("/complaints/search").hasAnyRole("AGENT_ASSURANCE","AGENT_FINANCE","ADMIN") // Recherche avancée
+                                // ========== COMPLAINT ENDPOINTS ==========
 
+                        .requestMatchers("/complaints/addComplaint").hasRole("CLIENT")
+                        .requestMatchers("/complaints/updateComplaint/**").hasAnyRole("AGENT_ASSURANCE","AGENT_FINANCE","ADMIN")
+                        .requestMatchers("/complaints/deleteComplaint/**").hasRole("ADMIN")
+                        .requestMatchers("/complaints/*").hasAnyRole("CLIENT","AGENT_ASSURANCE","AGENT_FINANCE","ADMIN")
+                        .requestMatchers("/complaints/all").hasAnyRole("AGENT_ASSURANCE","AGENT_FINANCE","ADMIN")
+                        .requestMatchers("/complaints/search").hasAnyRole("AGENT_ASSURANCE","AGENT_FINANCE","ADMIN")
+                        .requestMatchers("/complaints/kpi/**").hasAnyRole("AGENT_ASSURANCE","AGENT_FINANCE","ADMIN")
                         // Toute autre requête nécessite une authentification
                         .anyRequest().authenticated()
                 )

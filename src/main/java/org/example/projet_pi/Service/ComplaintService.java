@@ -1,43 +1,89 @@
 package org.example.projet_pi.Service;
 
+import org.example.projet_pi.Dto.ComplaintDTO;
 import org.example.projet_pi.Dto.ComplaintSearchDTO;
-import org.example.projet_pi.entity.Complaint;
+import org.example.projet_pi.Repository.ClientRepository;
 import org.example.projet_pi.Repository.ComplaintRepository;
+import org.example.projet_pi.entity.Client;
+import org.example.projet_pi.entity.Complaint;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-import java.time.ZoneId;
-import java.time.temporal.ChronoUnit;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class ComplaintService implements IComplaintService {
 
     private final ComplaintRepository complaintRepository;
+    private final ClientRepository clientRepository;
 
-    public ComplaintService(ComplaintRepository complaintRepository) {
+    public ComplaintService(ComplaintRepository complaintRepository, ClientRepository clientRepository) {
         this.complaintRepository = complaintRepository;
+        this.clientRepository = clientRepository;
+    }
+
+    // 🔹 Conversion entity -> DTO
+    private ComplaintDTO toDTO(Complaint complaint) {
+        if (complaint == null) return null;
+        ComplaintDTO dto = new ComplaintDTO();
+        dto.setId(complaint.getId());
+        dto.setStatus(complaint.getStatus());
+        dto.setMessage(complaint.getMessage());
+        dto.setClaimDate(complaint.getClaimDate() != null ? complaint.getClaimDate().toInstant().atZone(java.time.ZoneId.systemDefault()).toLocalDateTime() : null);
+        dto.setResolutionDate(complaint.getResolutionDate() != null ? complaint.getResolutionDate().toInstant().atZone(java.time.ZoneId.systemDefault()).toLocalDateTime() : null);
+        dto.setClientId(complaint.getClient() != null ? complaint.getClient().getId() : null);
+        dto.setAgentAssuranceId(complaint.getAgentAssurance() != null ? complaint.getAgentAssurance().getId() : null);
+        dto.setAgentFinanceId(complaint.getAgentFinance() != null ? complaint.getAgentFinance().getId() : null);
+        return dto;
+    }
+
+    // 🔹 Conversion DTO -> entity
+    private Complaint toEntity(ComplaintDTO dto) {
+        Complaint complaint = new Complaint();
+        complaint.setStatus(dto.getStatus());
+        complaint.setMessage(dto.getMessage());
+        // client, agents et dates seront remplis automatiquement
+        return complaint;
     }
 
     // ---------------- CRUD ----------------
 
     @Override
-    public Complaint addComplaint(Complaint complaint) {
-        return complaintRepository.save(complaint);
+    public ComplaintDTO addComplaint(ComplaintDTO dto) {
+        Complaint complaint = toEntity(dto);
+
+        // Récupère le client connecté
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+        Client client = clientRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Client non trouvé"));
+
+        complaint.setClient(client);
+        complaint.setAgentAssurance(client.getAgentAssurance());
+        complaint.setAgentFinance(client.getAgentFinance());
+        complaint.setClaimDate(new Date());
+        complaint.setStatus("PENDING");
+
+        Complaint saved = complaintRepository.save(complaint);
+        return toDTO(saved);
     }
 
     @Override
-    public Complaint updateComplaint(Complaint complaint) {
-        // Vérifie que la réclamation existe avant mise à jour
-        Complaint existing = complaintRepository.findById(complaint.getId())
-                .orElseThrow(() -> new RuntimeException("Complaint not found"));
-        existing.setStatus(complaint.getStatus());
-        existing.setMessage(complaint.getMessage());
-        existing.setClaimDate(complaint.getClaimDate());
-        existing.setResolutionDate(complaint.getResolutionDate());
-        existing.setAgentAssurance(complaint.getAgentAssurance());
-        existing.setAgentFinance(complaint.getAgentFinance());
-        existing.setClient(complaint.getClient());
-        return complaintRepository.save(existing);
+    public ComplaintDTO updateComplaint(Long id, ComplaintDTO dto) {
+        Complaint existing = complaintRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Complaint non trouvée"));
+
+        if (dto.getMessage() != null) existing.setMessage(dto.getMessage());
+        if (dto.getStatus() != null) existing.setStatus(dto.getStatus());
+
+        // On peut gérer les dates si nécessaires
+        if (dto.getClaimDate() != null) existing.setClaimDate(java.util.Date.from(dto.getClaimDate().atZone(java.time.ZoneId.systemDefault()).toInstant()));
+        if (dto.getResolutionDate() != null) existing.setResolutionDate(java.util.Date.from(dto.getResolutionDate().atZone(java.time.ZoneId.systemDefault()).toInstant()));
+
+        Complaint updated = complaintRepository.save(existing);
+        return toDTO(updated);
     }
 
     @Override
@@ -46,19 +92,19 @@ public class ComplaintService implements IComplaintService {
     }
 
     @Override
-    public Complaint getComplaintById(Long id) {
-        return complaintRepository.findById(id).orElse(null);
+    public ComplaintDTO getComplaintById(Long id) {
+        return complaintRepository.findById(id).map(this::toDTO).orElse(null);
     }
 
     @Override
-    public List<Complaint> getAllComplaints() {
-        return complaintRepository.findAll();
+    public List<ComplaintDTO> getAllComplaints() {
+        return complaintRepository.findAll().stream().map(this::toDTO).collect(Collectors.toList());
     }
 
     // ---------------- Recherche avancée ----------------
 
     @Override
-    public List<Complaint> searchComplaints(ComplaintSearchDTO dto) {
+    public List<ComplaintDTO> searchComplaints(ComplaintSearchDTO dto) {
         return complaintRepository.searchComplaints(
                 dto.getStatus(),
                 dto.getKeyword(),
@@ -67,12 +113,11 @@ public class ComplaintService implements IComplaintService {
                 dto.getAgentFinanceId(),
                 dto.getDateDebut(),
                 dto.getDateFin()
-        );
+        ).stream().map(this::toDTO).collect(Collectors.toList());
     }
 
     // ---------------- KPI ----------------
 
-    // 1️⃣ Temps moyen de traitement (en jours)
     @Override
     public double calculateAverageProcessingTime() {
         List<Complaint> closed = complaintRepository.findByStatus("CLOSED");
@@ -83,9 +128,9 @@ public class ComplaintService implements IComplaintService {
 
         for (Complaint c : closed) {
             if (c.getClaimDate() != null && c.getResolutionDate() != null) {
-                long days = ChronoUnit.DAYS.between(
-                        c.getClaimDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate(),
-                        c.getResolutionDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
+                long days = java.time.temporal.ChronoUnit.DAYS.between(
+                        c.getClaimDate().toInstant().atZone(java.time.ZoneId.systemDefault()).toLocalDate(),
+                        c.getResolutionDate().toInstant().atZone(java.time.ZoneId.systemDefault()).toLocalDate()
                 );
                 totalDays += days;
                 count++;
@@ -95,27 +140,22 @@ public class ComplaintService implements IComplaintService {
         return count == 0 ? 0 : totalDays / (double) count;
     }
 
-    // 2️⃣ Taux de résolution
     @Override
     public double resolutionRate() {
         long total = complaintRepository.count();
         if (total == 0) return 0;
-
         long resolved = complaintRepository.countByStatus("APPROVED");
         return (resolved * 100.0) / total;
     }
 
-    // 3️⃣ Taux de rejet
     @Override
     public double rejectionRate() {
         long total = complaintRepository.count();
         if (total == 0) return 0;
-
         long rejected = complaintRepository.countByStatus("REJECTED");
         return (rejected * 100.0) / total;
     }
 
-    // 4️⃣ Agent le plus performant
     @Override
     public String findTopAgent() {
         List<Complaint> complaints = complaintRepository.findAll();
@@ -123,7 +163,7 @@ public class ComplaintService implements IComplaintService {
 
         for (Complaint c : complaints) {
             if (c.getAgentAssurance() != null) {
-                String name = c.getAgentAssurance().getFirstName()+ " (Assurance)";
+                String name = c.getAgentAssurance().getFirstName() + " (Assurance)";
                 agentCount.put(name, agentCount.getOrDefault(name, 0L) + 1);
             }
             if (c.getAgentFinance() != null) {
@@ -135,10 +175,9 @@ public class ComplaintService implements IComplaintService {
         return agentCount.entrySet().stream()
                 .max(Map.Entry.comparingByValue())
                 .map(Map.Entry::getKey)
-                .orElse("No Agent");
+                .orElse("Aucun agent");
     }
 
-    // 5️⃣ Dashboard KPI complet
     @Override
     public Map<String, Object> getDashboardKpi() {
         Map<String, Object> dashboard = new HashMap<>();

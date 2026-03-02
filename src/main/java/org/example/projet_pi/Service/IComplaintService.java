@@ -1,7 +1,7 @@
 package org.example.projet_pi.Service;
 
+import org.example.projet_pi.Dto.ComplaintDTO;
 import org.example.projet_pi.Dto.ComplaintSearchDTO;
-import org.example.projet_pi.entity.Complaint;
 
 import java.util.List;
 import java.util.Map;
@@ -9,14 +9,14 @@ import java.util.Map;
 public interface IComplaintService {
 
     // 🔹 CRUD
-    Complaint addComplaint(Complaint complaintDTO);
-    Complaint updateComplaint(Complaint complaintDTO);
+    ComplaintDTO addComplaint(ComplaintDTO complaintDTO);
+    ComplaintDTO updateComplaint(Long id, ComplaintDTO complaintDTO);
     void deleteComplaint(Long id);
-    Complaint getComplaintById(Long id);
-    List<Complaint> getAllComplaints();
+    ComplaintDTO getComplaintById(Long id);
+    List<ComplaintDTO> getAllComplaints();
 
     // 🔹 Recherche avancée
-    List<Complaint> searchComplaints(ComplaintSearchDTO dto);
+    List<ComplaintDTO> searchComplaints(ComplaintSearchDTO dto);
 
     // 🔥 KPI
     double calculateAverageProcessingTime();

@@ -26,13 +26,13 @@ public class Complaint {
 
     @ManyToOne
     @JoinColumn(name = "client_id")
-    private User client;
+    private Client client;
 
     @ManyToOne
     @JoinColumn(name = "agent_assurance_id")
-    private User agentAssurance;
+    private AgentAssurance agentAssurance;
 
     @ManyToOne
     @JoinColumn(name = "agent_finance_id")
-    private User agentFinance;
+    private AgentFinance agentFinance;
 }
