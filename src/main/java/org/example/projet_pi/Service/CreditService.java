@@ -2,6 +2,7 @@ package org.example.projet_pi.Service;
 
 import jakarta.transaction.Transactional;
 import org.example.projet_pi.Dto.CreditHistoryDTO;
+import org.example.projet_pi.Repository.AccountRepository;
 import org.example.projet_pi.Repository.ClientRepository;
 import org.example.projet_pi.Repository.CreditRepository;
 import org.example.projet_pi.Service.EmailCredit.CreditEmailService;  // ✅ AJOUT
@@ -19,14 +20,17 @@ public class CreditService implements ICreditService {
     private final CreditRepository creditRepository;
     private final ClientRepository clientRepository;
     private final CreditEmailService creditEmailService;  // ✅ AJOUT
+    private final AccountRepository accountRepository;
 
     // ✅ MODIFIER LE CONSTRUCTEUR
     public CreditService(CreditRepository creditRepository,
                          ClientRepository clientRepository,
-                         CreditEmailService creditEmailService) {  // ✅ AJOUT
+                         CreditEmailService creditEmailService,
+                         AccountRepository accountRepository) {  // ✅ AJOUT
         this.creditRepository = creditRepository;
         this.clientRepository = clientRepository;
-        this.creditEmailService = creditEmailService;  // ✅ INITIALISER
+        this.creditEmailService = creditEmailService;
+        this.accountRepository = accountRepository;  // ✅ INITIALISER
     }
 
     public List<CreditHistoryDTO> getClosedCreditsWithLateRepaymentPercentage(Client client) {
@@ -82,6 +86,26 @@ public class CreditService implements ICreditService {
         // 🔒 Récupérer le client complet depuis la base
         Client client = clientRepository.findById(credit.getClient().getId())
                 .orElseThrow(() -> new IllegalArgumentException("Client non trouvé avec l'id: " + credit.getClient().getId()));
+
+        // ✅ NOUVEAU: VÉRIFICATION DE L'EXISTENCE D'UN COMPTE
+        List<Account> clientAccounts = accountRepository.findByClientId(client.getId());
+
+        if (clientAccounts.isEmpty()) {
+            throw new IllegalArgumentException(
+                    "Le client doit avoir un compte bancaire pour obtenir un crédit. " +
+                            "Veuillez créer un compte pour le client avant de procéder."
+            );
+        }
+
+        // ✅ Vérification optionnelle: compte actif
+        boolean hasActiveAccount = clientAccounts.stream()
+                .anyMatch(account -> "ACTIVE".equalsIgnoreCase(account.getStatus()));
+
+        if (!hasActiveAccount) {
+            throw new IllegalArgumentException(
+                    "Le client doit avoir un compte ACTIF pour obtenir un crédit."
+            );
+        }
 
         // ✅ VÉRIFICATION DE L'HISTORIQUE DE RETARDS
         List<Credit> closedCredits = creditRepository.findByClientAndStatus(client, CreditStatus.CLOSED);

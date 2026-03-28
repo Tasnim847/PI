@@ -1,5 +1,6 @@
 package org.example.projet_pi.Controller;
 
+import org.example.projet_pi.Dto.RepaymentDTO;
 import org.example.projet_pi.Service.IRepaymentService;
 import org.example.projet_pi.entity.*;
 import org.springframework.http.HttpHeaders;
@@ -27,7 +28,7 @@ public class RepaymentController {
     }
 
     // ===============================
-    // PAYER UN CRÉDIT - CLIENT SEULEMENT
+    // PAYER UN CRÉDIT - CLIENT SEULEMENT (CASH, CARD, BANK_TRANSFER)
     // ===============================
     @PostMapping("/pay-credit/{creditId}")
     public ResponseEntity<?> payCredit(
@@ -50,6 +51,48 @@ public class RepaymentController {
         } catch (Exception e) {
             return ResponseEntity.badRequest()
                     .body(Map.of("error", "Erreur lors du paiement", "message", e.getMessage()));
+        }
+    }
+
+    // ===============================
+    // PAIEMENT STRIPE - CLIENT SEULEMENT
+    // ===============================
+    @PostMapping("/stripe-pay/{creditId}")
+    public ResponseEntity<?> stripePay(
+            @PathVariable Long creditId,
+            @RequestBody Repayment repayment,
+            @AuthenticationPrincipal UserDetails currentUser) {
+        try {
+            if (!hasRole(currentUser, "CLIENT")) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body(Map.of("error", "Accès refusé - Client seulement"));
+            }
+
+            // Vérifier que c'est bien un paiement Stripe
+            if (repayment.getPaymentMethod() != PaymentMethod.STRIPE) {
+                return ResponseEntity.badRequest()
+                        .body(Map.of("error", "La méthode de paiement doit être STRIPE"));
+            }
+
+            // Créer le PaymentIntent Stripe
+            RepaymentDTO result = repaymentService.createStripePaymentIntent(
+                    creditId,
+                    repayment.getAmount(),
+                    "USD"
+            );
+
+            return ResponseEntity.ok(Map.of(
+                    "clientSecret", result.getClientSecret(),
+                    "paymentIntentId", result.getPaymentIntentId(),
+                    "creditId", creditId,
+                    "amount", result.getAmount(),
+                    "currency", result.getCurrency(),
+                    "message", "Paiement Stripe initié. Utilisez clientSecret pour confirmer le paiement."
+            ));
+
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("error", e.getMessage()));
         }
     }
 
@@ -228,40 +271,26 @@ public class RepaymentController {
     }
 
     // ===============================
-    // UTILITAIRES
+    // PDF - AMORTISSEMENT
     // ===============================
-    private boolean hasRole(UserDetails userDetails, String role) {
-        return userDetails.getAuthorities().stream()
-                .anyMatch(a -> a.getAuthority().equals("ROLE_" + role));
-    }
-
-    private Client getClientFromUserDetails(UserDetails userDetails) {
-        // Implémentez la logique pour récupérer l'entité Client complète
-        // à partir de l'email ou username
-        return null; // À implémenter selon votre code
-    }
     @GetMapping("/credits/{creditId}/amortissement/pdf")
     public ResponseEntity<?> generatePdf(
             @PathVariable Long creditId,
             @AuthenticationPrincipal UserDetails currentUser) {
 
         try {
-            // 🔴 Vérifier que l'utilisateur est authentifié
             if (currentUser == null) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                         .body(Map.of("error", "Utilisateur non authentifié"));
             }
 
-            // 🔴 Vérifier les rôles (CLIENT ou ADMIN)
             if (!hasRole(currentUser, "CLIENT") && !hasRole(currentUser, "ADMIN")) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN)
                         .body(Map.of("error", "Accès refusé - Rôle insuffisant"));
             }
 
-            // 🔴 Générer le PDF
             byte[] pdf = repaymentService.generateAmortissementPdf(creditId);
 
-            // 🔴 Retourner le PDF
             return ResponseEntity.ok()
                     .header(HttpHeaders.CONTENT_DISPOSITION,
                             "attachment; filename=amortissement_credit_" + creditId + ".pdf")
@@ -277,15 +306,15 @@ public class RepaymentController {
         }
     }
 
-    // Dans RepaymentController.java, ajoutez:
-
+    // ===============================
+    // ENVOI PDF PAR EMAIL - ADMIN SEULEMENT
+    // ===============================
     @PostMapping("/credits/{creditId}/send-pdf-email")
     public ResponseEntity<?> sendPdfByEmail(
             @PathVariable Long creditId,
             @AuthenticationPrincipal UserDetails currentUser) {
 
         try {
-            // Vérifier les droits (admin seulement)
             if (!hasRole(currentUser, "ADMIN")) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN)
                         .body(Map.of("error", "Accès refusé - Admin seulement"));
@@ -302,5 +331,19 @@ public class RepaymentController {
                     "error", "Erreur: " + e.getMessage()
             ));
         }
+    }
+
+    // ===============================
+    // UTILITAIRES
+    // ===============================
+    private boolean hasRole(UserDetails userDetails, String role) {
+        return userDetails.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_" + role));
+    }
+
+    private Client getClientFromUserDetails(UserDetails userDetails) {
+        // Implémentez la logique pour récupérer l'entité Client complète
+        // à partir de l'email ou username
+        return null; // À implémenter selon votre code
     }
 }
