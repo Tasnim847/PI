@@ -28,6 +28,26 @@ public class EmailService {
     private final JavaMailSender mailSender;
     private final TemplateEngine templateEngine;
     private final PaymentReminderRepository reminderRepository;
+    private final VonageSmsService smsService;  // 🔥 SEUL AJOUT
+
+    // ============================================================
+    // 🔥 NOUVELLE MÉTHODE PRIVÉE POUR ENVOYER SMS (SANS MODIFIER L'EXISTANT)
+    // ============================================================
+
+    private void sendSmsIfAvailable(Client client, String message) {
+        try {
+            if (client.getTelephone() != null && !client.getTelephone().trim().isEmpty()) {
+                smsService.sendSms(client.getTelephone(), message);
+                log.info("✅ SMS envoyé à {}", client.getTelephone());
+            }
+        } catch (Exception e) {
+            log.error("❌ Erreur envoi SMS: {}", e.getMessage());
+        }
+    }
+
+    // ============================================================
+    // 🔥 RAPPEL DE PAIEMENT AVEC SMS AJOUTÉ
+    // ============================================================
 
     @Async
     public void sendPaymentReminderEmail(Client client, InsuranceContract contract, Payment payment, int daysBefore) {
@@ -72,6 +92,20 @@ public class EmailService {
 
             log.info("✅ Email envoyé avec succès à {} pour le contrat {} (J-{})",
                     client.getEmail(), contract.getContractId(), daysBefore);
+
+            // 🔥 AJOUT SMS
+            String smsMessage;
+            if (daysBefore == 0) {
+                smsMessage = String.format("URGENT: Paiement de %.2f DT pour contrat %s dû AUJOURD'HUI!",
+                        payment.getAmount(), contract.getContractId());
+            } else if (daysBefore == 1) {
+                smsMessage = String.format("Rappel: Paiement de %.2f DT pour contrat %s DEMAIN.",
+                        payment.getAmount(), contract.getContractId());
+            } else {
+                smsMessage = String.format("Rappel: Paiement de %.2f DT pour contrat %s dans %d jours.",
+                        payment.getAmount(), contract.getContractId(), daysBefore);
+            }
+            sendSmsIfAvailable(client, smsMessage);
 
         } catch (MailSendException e) {
             log.error("❌ Erreur d'envoi mail à {}: {}", client.getEmail(), e.getMessage());
@@ -212,6 +246,12 @@ public class EmailService {
             log.info("✅ Email d'acceptation envoyé à {} pour le contrat {}",
                     client.getEmail(), contract.getContractId());
 
+            // 🔥 AJOUT SMS
+            String smsMessage = String.format("Félicitations! Contrat %s accepté. Prime: %.2f DT/%s",
+                    contract.getContractId(), contract.getPremium(),
+                    contract.getPaymentFrequency() != null ? contract.getPaymentFrequency().toString() : "mois");
+            sendSmsIfAvailable(client, smsMessage);
+
         } catch (MessagingException e) {
             log.error("❌ Erreur lors de l'envoi de l'email d'acceptation à {}: {}",
                     client.getEmail(), e.getMessage());
@@ -221,7 +261,7 @@ public class EmailService {
     }
 
     /**
-     * 🚨 NOUVELLE MÉTHODE À AJOUTER : Envoyer un email d'annulation de contrat
+     * 🚨 Envoyer un email d'annulation de contrat
      */
     @Async
     public void sendContractCancelledEmail(Client client, InsuranceContract contract, int latePaymentCount) {
@@ -256,6 +296,11 @@ public class EmailService {
 
             log.info("✅ Email d'annulation envoyé à {} pour le contrat {} ({} retards)",
                     client.getEmail(), contract.getContractId(), latePaymentCount);
+
+            // 🔥 AJOUT SMS
+            String smsMessage = String.format("URGENT: Contrat %s annulé (%d retards). Contactez votre agent.",
+                    contract.getContractId(), latePaymentCount);
+            sendSmsIfAvailable(client, smsMessage);
 
         } catch (MessagingException e) {
             log.error("❌ Erreur lors de l'envoi de l'email d'annulation à {}: {}",
@@ -302,6 +347,14 @@ public class EmailService {
 
             log.info("✅ Email de rejet envoyé à {} pour le contrat {} (raison: {})",
                     client.getEmail(), contract.getContractId(), rejectionReason);
+
+            // 🔥 AJOUT SMS
+            String shortReason = rejectionReason != null && rejectionReason.length() > 50
+                    ? rejectionReason.substring(0, 47) + "..."
+                    : rejectionReason;
+            String smsMessage = String.format("Contrat %s rejeté. Motif: %s. Contactez votre agent.",
+                    contract.getContractId(), shortReason != null ? shortReason : "Non spécifié");
+            sendSmsIfAvailable(client, smsMessage);
 
         } catch (MessagingException e) {
             log.error("❌ Erreur lors de l'envoi de l'email de rejet à {}: {}",
@@ -368,6 +421,11 @@ public class EmailService {
             log.info("✅ Email d'acceptation de claim envoyé à {} pour le claim {}",
                     client.getEmail(), claim.getClaimId());
 
+            // 🔥 AJOUT SMS
+            String smsMessage = String.format("Réclamation %s acceptée. Compensation: %.2f DT.",
+                    claim.getClaimId(), claim.getApprovedAmount());
+            sendSmsIfAvailable(client, smsMessage);
+
         } catch (MessagingException e) {
             log.error("❌ Erreur lors de l'envoi de l'email d'acceptation de claim à {}: {}",
                     client.getEmail(), e.getMessage());
@@ -416,6 +474,14 @@ public class EmailService {
             log.info("✅ Email de rejet de claim envoyé à {} pour le claim {} (raison: {})",
                     client.getEmail(), claim.getClaimId(), rejectionReason);
 
+            // 🔥 AJOUT SMS
+            String shortReason = rejectionReason != null && rejectionReason.length() > 50
+                    ? rejectionReason.substring(0, 47) + "..."
+                    : rejectionReason;
+            String smsMessage = String.format("Réclamation %s rejetée. Raison: %s",
+                    claim.getClaimId(), shortReason != null ? shortReason : "Non spécifiée");
+            sendSmsIfAvailable(client, smsMessage);
+
         } catch (MessagingException e) {
             log.error("❌ Erreur lors de l'envoi de l'email de rejet de claim à {}: {}",
                     client.getEmail(), e.getMessage());
@@ -454,7 +520,6 @@ public class EmailService {
             context.setVariable("totalPaid", String.format("%.3f", contract.getTotalPaid()));
             context.setVariable("premium", String.format("%.3f", contract.getPremium()));
 
-            // 🔥 Remplacer stripePaymentId par paymentId (l'ID du paiement dans votre base)
             context.setVariable("paymentReference", "PAY-" + payment.getPaymentId());
 
             context.setVariable("agentName", contract.getAgentAssurance() != null ?
@@ -471,6 +536,11 @@ public class EmailService {
 
             log.info("✅ Email de confirmation de paiement envoyé à {} pour le contrat {} (paiement: {} DT)",
                     client.getEmail(), contract.getContractId(), payment.getAmount());
+
+            // 🔥 AJOUT SMS
+            String smsMessage = String.format("Paiement de %.2f DT recu pour votre contrat. Merci! Reste: %.2f DT",
+                    payment.getAmount(), contract.getRemainingAmount());
+            sendSmsIfAvailable(client, smsMessage);
 
         } catch (MessagingException e) {
             log.error("❌ Erreur lors de l'envoi de l'email de confirmation de paiement à {}: {}",
@@ -523,6 +593,11 @@ public class EmailService {
             mailSender.send(message);
             log.info("✅ Email de contrat complété envoyé à {} pour le contrat {}",
                     client.getEmail(), contract.getContractId());
+
+            // 🔥 AJOUT SMS
+            String smsMessage = String.format("Félicitations! Contrat %s entièrement payé. Merci pour votre confiance!",
+                    contract.getContractId());
+            sendSmsIfAvailable(client, smsMessage);
 
         } catch (MessagingException e) {
             log.error("❌ Erreur lors de l'envoi de l'email de contrat complété à {}: {}",
