@@ -42,5 +42,7 @@ public class Claim {
     private List<Document> documents= new ArrayList<>();
 
 
+    private Boolean fraud = false;
+    private String message;
 
 }

@@ -1,5 +1,7 @@
 package org.example.projet_pi.Service;
 
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.projet_pi.entity.Client;
@@ -9,9 +11,15 @@ import org.example.projet_pi.entity.ContractStatus;
 import org.example.projet_pi.entity.PaymentStatus;
 import org.example.projet_pi.Repository.ClientRepository;
 import org.example.projet_pi.Repository.InsuranceContractRepository;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.thymeleaf.TemplateEngine;
+import org.thymeleaf.context.Context;
 
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -25,6 +33,9 @@ public class BulkEmailService {
     private final ClientRepository clientRepository;
     private final InsuranceContractRepository contractRepository;
     private final EmailService emailService;
+    private final VonageSmsService smsService;
+    private final JavaMailSender mailSender;
+    private final TemplateEngine templateEngine;
 
     /**
      * MÉTHODE PRINCIPALE : Envoie les rappels selon les règles :
@@ -180,36 +191,39 @@ public class BulkEmailService {
     /**
      * Envoyer une newsletter à tous les clients
      */
-    public void sendEmailToAllClients(String subject, String message) {
+    public void sendEmailToAllClients(String subject, String messageContent) {
+        log.info("📧 Début envoi newsletter: '{}' - {}", subject, new Date());
+
         List<Client> allClients = clientRepository.findAll();
         int sentCount = 0;
+        int failedCount = 0;
 
         for (Client client : allClients) {
             if (client.getEmail() != null && !client.getEmail().isEmpty()) {
                 try {
-                    // Utiliser le service d'email pour envoyer
-                    List<InsuranceContract> contracts = contractRepository.findByClient(client);
-                    if (!contracts.isEmpty()) {
-                        InsuranceContract contract = contracts.get(0);
-                        List<Payment> pendingPayments = contract.getPayments().stream()
-                                .filter(p -> p.getStatus() == PaymentStatus.PENDING)
-                                .toList();
-
-                        if (!pendingPayments.isEmpty()) {
-                            emailService.sendPaymentReminderEmail(
-                                    client, contract, pendingPayments.get(0), 3
-                            );
-                            sentCount++;
-                            log.info("📧 Newsletter envoyée à {}", client.getEmail());
-                        }
-                    }
+                    sendNewsletter(client, subject, messageContent);
+                    sentCount++;
+                    log.info("✅ Newsletter envoyée à {}", client.getEmail());
                     Thread.sleep(100);
                 } catch (Exception e) {
-                    log.error("Erreur pour {}: {}", client.getEmail(), e.getMessage());
+                    failedCount++;
+                    log.error("❌ Erreur pour {}: {}", client.getEmail(), e.getMessage());
                 }
             }
         }
-        log.info("📧 Newsletter envoyée à {} clients", sentCount);
+
+        log.info("📧 Newsletter terminée: {} envoyés, {} échecs", sentCount, failedCount);
+    }
+
+    /**
+     * Envoyer une newsletter à un client spécifique
+     */
+    public void sendNewsletterToClient(Long clientId, String subject, String messageContent) {
+        Client client = clientRepository.findById(clientId)
+                .orElseThrow(() -> new RuntimeException("Client non trouvé"));
+
+        sendNewsletter(client, subject, messageContent);
+        log.info("📧 Newsletter envoyée à {}", client.getEmail());
     }
 
     /**
@@ -237,5 +251,56 @@ public class BulkEmailService {
         stats.put("domains", domainCount);
 
         return stats;
+    }
+
+    /**
+     * 📧 Envoyer une newsletter à un client (méthode interne)
+     */
+    private void sendNewsletter(Client client, String subject, String messageContent) {
+        try {
+            if (client.getEmail() == null || client.getEmail().trim().isEmpty()) {
+                log.error("❌ Email client manquant pour {}", client.getFirstName());
+                return;
+            }
+
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setTo(client.getEmail());
+            helper.setSubject(subject);
+
+            // Préparer le contexte Thymeleaf
+            Context context = new Context();
+            context.setVariable("clientName", client.getFirstName() + " " + client.getLastName());
+            context.setVariable("clientEmail", client.getEmail());
+            context.setVariable("messageContent", messageContent);
+            context.setVariable("currentDate", new SimpleDateFormat("dd/MM/yyyy").format(new Date()));
+
+            String htmlContent = templateEngine.process("newsletter", context);
+            helper.setText(htmlContent, true);
+
+            mailSender.send(message);
+
+            log.info("✅ Newsletter envoyée à {}", client.getEmail());
+
+        } catch (MessagingException e) {
+            log.error("❌ Erreur envoi newsletter à {}: {}", client.getEmail(), e.getMessage());
+        } catch (Exception e) {
+            log.error("❌ Erreur inattendue: {}", e.getMessage());
+        }
+    }
+
+    /**
+     * Méthode utilitaire pour envoyer SMS
+     */
+    private void sendSmsIfAvailable(Client client, String message) {
+        try {
+            if (client.getTelephone() != null && !client.getTelephone().trim().isEmpty()) {
+                smsService.sendSms(client.getTelephone(), message);
+                log.info("✅ SMS newsletter envoyé à {}", client.getTelephone());
+            }
+        } catch (Exception e) {
+            log.error("❌ Erreur envoi SMS newsletter: {}", e.getMessage());
+        }
     }
 }

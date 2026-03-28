@@ -26,7 +26,7 @@ public class Compensation {
     private Double originalClaimedAmount; // Montant initial réclamé
     private Double approvedAmount; // Montant approuvé
 
-    @Column(length = 500)
+    @Column(length = 5000)
     private String message; // Message explicatif pour le client
 
     @Enumerated(EnumType.STRING)

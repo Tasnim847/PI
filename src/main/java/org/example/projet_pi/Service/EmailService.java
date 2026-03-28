@@ -606,4 +606,73 @@ public class EmailService {
             log.error("❌ Erreur inattendue: {}", e.getMessage());
         }
     }
+
+    /**
+     * Envoyer une newsletter à un client
+     */
+    @Async
+    public void sendNewsletter(Client client, String subject, String messageContent) {
+        try {
+            if (client.getEmail() == null || client.getEmail().trim().isEmpty()) {
+                log.error("Email client manquant");
+                return;
+            }
+
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setTo(client.getEmail());
+            helper.setSubject(subject);
+
+            // Préparer le contexte Thymeleaf pour la newsletter
+            Context context = new Context();
+            context.setVariable("clientName", client.getFirstName() + " " + client.getLastName());
+            context.setVariable("messageContent", messageContent);
+            context.setVariable("currentDate", new SimpleDateFormat("dd/MM/yyyy").format(new Date()));
+            context.setVariable("unsubscribeLink", "http://localhost:8081/newsletter/unsubscribe?email=" + client.getEmail());
+
+            String htmlContent = templateEngine.process("newsletter", context);
+            helper.setText(htmlContent, true);
+
+            mailSender.send(message);
+
+            log.info("✅ Newsletter envoyée à {}", client.getEmail());
+
+            // Optionnel : envoyer aussi par SMS
+            String smsMessage = String.format("📧 Newsletter: %s - %s", subject,
+                    messageContent.length() > 100 ? messageContent.substring(0, 97) + "..." : messageContent);
+            sendSmsIfAvailable(client, smsMessage);
+
+        } catch (MessagingException e) {
+            log.error("❌ Erreur envoi newsletter à {}: {}", client.getEmail(), e.getMessage());
+        } catch (Exception e) {
+            log.error("❌ Erreur inattendue: {}", e.getMessage());
+        }
+    }
+
+    /**
+     * Envoyer un email générique
+     */
+    @Async
+    public void sendGenericEmail(String to, String subject, String textContent) {
+        try {
+            if (to == null || to.trim().isEmpty()) {
+                log.error("Email destinataire manquant");
+                return;
+            }
+
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setTo(to);
+            helper.setSubject(subject);
+            helper.setText(textContent, false); // false = texte simple
+
+            mailSender.send(message);
+            log.info("✅ Email générique envoyé à {}", to);
+
+        } catch (MessagingException e) {
+            log.error("❌ Erreur envoi email à {}: {}", to, e.getMessage());
+        }
+    }
 }

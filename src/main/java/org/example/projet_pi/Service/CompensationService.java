@@ -3,14 +3,17 @@ package org.example.projet_pi.Service;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.projet_pi.Dto.ClaimScoreDTO;
+import org.example.projet_pi.Repository.AccountRepository;
 import org.example.projet_pi.Repository.CompensationRepository;
 import org.example.projet_pi.Repository.ClaimRepository;
 import org.example.projet_pi.Dto.CompensationDTO;
+import org.example.projet_pi.Repository.TransactionRepository;
 import org.example.projet_pi.entity.*;
 import org.example.projet_pi.Mapper.CompensationMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -23,6 +26,9 @@ public class CompensationService implements ICompensationService {
     private final CompensationRepository compensationRepository;
     private final ClaimRepository claimRepository;
     private final AdvancedClaimScoringService advancedClaimScoringService;
+    private final AccountRepository accountRepository;
+    private final TransactionRepository transactionRepository;
+    private final EmailService emailService;
 
     @Override
     @Transactional
@@ -380,4 +386,200 @@ public class CompensationService implements ICompensationService {
 
         return addCompensation(dto);
     }
+
+    /**
+     * 🔥 NOUVELLE MÉTHODE : Payer la compensation via le compte du client
+     * @param compensationId ID de la compensation
+     * @param clientId ID du client
+     * @param userEmail Email de l'utilisateur pour l'audit
+     * @return CompensationDTO mis à jour
+     */
+    @Transactional
+    public CompensationDTO payCompensation(Long compensationId, Long clientId, String userEmail) {
+        // 1. Récupérer la compensation
+        Compensation compensation = compensationRepository.findById(compensationId)
+                .orElseThrow(() -> new RuntimeException("Compensation non trouvée"));
+
+        // 2. Vérifier que la compensation n'est pas déjà payée
+        if (compensation.getStatus() == CompensationStatus.PAID) {
+            throw new RuntimeException("Cette compensation a déjà été payée !");
+        }
+
+        // 3. Récupérer le compte du client
+        Account account = accountRepository.findByClientId(clientId).stream()
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("Aucun compte trouvé pour ce client"));
+
+        // 4. Vérifier que le compte a assez de solde
+        double amountToPay = compensation.getAmount();
+        if (account.getBalance() < amountToPay) {
+            throw new RuntimeException(String.format(
+                    "Solde insuffisant ! Solde actuel: %.2f DT, Montant à payer: %.2f DT",
+                    account.getBalance(), amountToPay
+            ));
+        }
+
+        // 5. Créer la transaction de paiement (WITHDRAW)
+        Transaction paymentTransaction = new Transaction();
+        paymentTransaction.setAccount(account);
+        paymentTransaction.setAmount(amountToPay);
+        paymentTransaction.setType(TransactionType.WITHDRAW.name());
+        paymentTransaction.setDate(LocalDate.now());
+
+        transactionRepository.save(paymentTransaction);
+
+        // 6. Mettre à jour le solde du compte
+        account.setBalance(account.getBalance() - amountToPay);
+        accountRepository.save(account);
+
+        // 7. Marquer la compensation comme payée
+        compensation.setStatus(CompensationStatus.PAID);
+        compensation.setPaymentDate(new Date());
+        compensation = compensationRepository.save(compensation);
+
+        // 8. Envoyer un email de confirmation au client
+        try {
+            Client client = account.getClient();
+            if (client != null && client.getEmail() != null) {
+                String subject = "✅ Confirmation de paiement de compensation";
+                String message = String.format(
+                        "Bonjour %s,\n\n" +
+                                "Votre compensation de %.2f DT pour le claim %d a été payée avec succès.\n\n" +
+                                "Détails:\n" +
+                                "- Montant: %.2f DT\n" +
+                                "- Date: %s\n" +
+                                "- Compte: %s (%.2f DT)\n\n" +
+                                "Cordialement,\nVotre assurance",
+                        client.getFirstName() + " " + client.getLastName(),
+                        amountToPay,
+                        compensation.getClaim().getClaimId(),
+                        amountToPay,
+                        new Date(),
+                        account.getType(),
+                        account.getBalance()
+                );
+                emailService.sendGenericEmail(client.getEmail(), subject, message);
+            }
+        } catch (Exception e) {
+            log.error("❌ Erreur envoi email confirmation paiement: {}", e.getMessage());
+        }
+
+        log.info("💰 Compensation {} payée: {} DT depuis le compte {} (Client: {})",
+                compensationId, amountToPay, account.getAccountId(), clientId);
+
+        return CompensationMapper.toDTO(compensation);
+    }
+
+    /**
+     * 🔥 NOUVELLE MÉTHODE : Payer la compensation avec vérification des limites
+     */
+    @Transactional
+    public CompensationDTO payCompensationWithLimits(Long compensationId, Long clientId, String userEmail) {
+        // 1. Récupérer la compensation
+        Compensation compensation = compensationRepository.findById(compensationId)
+                .orElseThrow(() -> new RuntimeException("Compensation non trouvée"));
+
+        if (compensation.getStatus() == CompensationStatus.PAID) {
+            throw new RuntimeException("Cette compensation a déjà été payée !");
+        }
+
+        // 2. Récupérer le compte du client
+        Account account = accountRepository.findByClientId(clientId).stream()
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("Aucun compte trouvé pour ce client"));
+
+        double amountToPay = compensation.getAmount();
+
+        // 3. Vérifier les limites de retrait
+        checkWithdrawLimits(account, amountToPay);
+
+        // 4. Vérifier le solde
+        if (account.getBalance() < amountToPay) {
+            throw new RuntimeException(String.format(
+                    "Solde insuffisant ! Solde actuel: %.2f DT",
+                    account.getBalance()
+            ));
+        }
+
+        // 5. Créer la transaction
+        Transaction paymentTransaction = new Transaction();
+        paymentTransaction.setAccount(account);
+        paymentTransaction.setAmount(amountToPay);
+        paymentTransaction.setType(TransactionType.WITHDRAW.name());
+        paymentTransaction.setDate(LocalDate.now());
+        transactionRepository.save(paymentTransaction);
+
+        // 6. Mettre à jour le solde
+        account.setBalance(account.getBalance() - amountToPay);
+        accountRepository.save(account);
+
+        // 7. Marquer comme payée
+        compensation.setStatus(CompensationStatus.PAID);
+        compensation.setPaymentDate(new Date());
+        compensation = compensationRepository.save(compensation);
+
+        log.info("💰 Compensation {} payée avec vérification des limites: {} DT",
+                compensationId, amountToPay);
+
+        return CompensationMapper.toDTO(compensation);
+    }
+
+    /**
+     * Vérifier les limites de retrait (quotidienne et mensuelle)
+     */
+    private void checkWithdrawLimits(Account account, double amount) {
+        LocalDate today = LocalDate.now();
+
+        // Vérifier limite quotidienne
+        if (account.getDailyLimit() > 0) {
+            double dailyTotal = getDailyWithdrawTotal(account.getAccountId());
+            if (dailyTotal + amount > account.getDailyLimit()) {
+                throw new RuntimeException(String.format(
+                        "Limite quotidienne dépassée. Limite: %.2f DT, Déjà retiré aujourd'hui: %.2f DT",
+                        account.getDailyLimit(), dailyTotal
+                ));
+            }
+        }
+
+        // Vérifier limite mensuelle
+        if (account.getMonthlyLimit() > 0) {
+            double monthlyTotal = getMonthlyWithdrawTotal(account.getAccountId());
+            if (monthlyTotal + amount > account.getMonthlyLimit()) {
+                throw new RuntimeException(String.format(
+                        "Limite mensuelle dépassée. Limite: %.2f DT, Déjà retiré ce mois: %.2f DT",
+                        account.getMonthlyLimit(), monthlyTotal
+                ));
+            }
+        }
+    }
+
+    /**
+     * Calculer le total des retraits du jour pour un compte
+     */
+    private double getDailyWithdrawTotal(Long accountId) {
+        LocalDate today = LocalDate.now();
+        List<Transaction> transactions = transactionRepository
+                .findByAccountAccountIdAndDateBetween(accountId, today, today);
+
+        return transactions.stream()
+                .filter(t -> t.getType().equalsIgnoreCase("WITHDRAW"))
+                .mapToDouble(Transaction::getAmount)
+                .sum();
+    }
+
+    /**
+     * Calculer le total des retraits du mois pour un compte
+     */
+    private double getMonthlyWithdrawTotal(Long accountId) {
+        LocalDate startOfMonth = LocalDate.now().withDayOfMonth(1);
+        LocalDate today = LocalDate.now();
+        List<Transaction> transactions = transactionRepository
+                .findByAccountAccountIdAndDateBetween(accountId, startOfMonth, today);
+
+        return transactions.stream()
+                .filter(t -> t.getType().equalsIgnoreCase("WITHDRAW"))
+                .mapToDouble(Transaction::getAmount)
+                .sum();
+    }
+
 }

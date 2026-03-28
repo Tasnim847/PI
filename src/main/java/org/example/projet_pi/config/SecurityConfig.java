@@ -112,7 +112,18 @@ public class SecurityConfig {
                         .requestMatchers("/api/scoring/claim/*/detailed-analysis").hasAnyRole("ADMIN", "AGENT_ASSURANCE")
 
                         // Compensations endpoints
-                        .requestMatchers("/compensations/**").hasAnyRole("ADMIN", "AGENT_ASSURANCE", "CLIENT")
+                        // ========== COMPENSATIONS ENDPOINTS ==========
+                        .requestMatchers("/compensations/addComp").hasRole("ADMIN")
+                        .requestMatchers("/compensations/updateComp").hasRole("ADMIN")
+                        .requestMatchers("/compensations/deleteComp/**").hasRole("ADMIN")
+                        .requestMatchers("/compensations/getComp/**").hasAnyRole("ADMIN", "AGENT_ASSURANCE", "CLIENT")
+                        .requestMatchers("/compensations/allComp").hasAnyRole("ADMIN", "AGENT_ASSURANCE")
+                        .requestMatchers("/compensations/{id}/pay").hasAnyRole("ADMIN", "AGENT_ASSURANCE", "CLIENT")
+                        .requestMatchers("/compensations/recalculate/{claimId}").hasAnyRole("ADMIN", "AGENT_ASSURANCE")
+                        .requestMatchers("/compensations/{id}/details").hasAnyRole("ADMIN", "AGENT_ASSURANCE", "CLIENT")
+                        .requestMatchers("/compensations/{id}/with-scoring").hasAnyRole("ADMIN", "AGENT_ASSURANCE")
+                        .requestMatchers("/compensations/my-compensations").hasAnyRole("ADMIN", "AGENT_ASSURANCE", "CLIENT")
+
                         // ========== CREDIT ENDPOINTS ==========
                         .requestMatchers("/Credit/addCredit").hasRole("ADMIN")
                         .requestMatchers("/Credit/updateCredit").hasRole("ADMIN")

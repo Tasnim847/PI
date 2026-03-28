@@ -51,11 +51,32 @@ public class AdvancedClaimScoringService {
         // 2. Analyse des risques spécifiques au claim
         Map<String, Double> riskFactors = analyzeRiskFactors(claim);
 
+        // 🔥 LOGS DES FACTEURS DE RISQUE
+        log.info("========== FACTEURS DE RISQUE ==========");
+        log.info("Facteur montant: {}/100", riskFactors.getOrDefault("amount", 0.0));
+        log.info("Facteur délai: {}/100", riskFactors.getOrDefault("delay", 0.0));
+        log.info("Facteur documents: {}/100", riskFactors.getOrDefault("documents", 0.0));
+        log.info("Facteur fréquence: {}/100", riskFactors.getOrDefault("frequency", 0.0));
+        log.info("Facteur historique: {}/100", riskFactors.getOrDefault("history", 0.0));
+        log.info("=========================================");
+
         // 3. Calcul du score du claim (0-100)
         double claimRiskScore = calculateClaimRiskScore(riskFactors);
 
         // 4. Score final combiné (client + claim)
         double finalScore = (clientGlobalScore * 0.6) + (claimRiskScore * 0.4);
+
+        // 🔥 LOGS DU SCORE FINAL
+        log.info("========== DÉTAIL SCORING ==========");
+        log.info("Claim ID: {}", claimId);
+        log.info("Montant réclamé: {} DT", claim.getClaimedAmount());
+        log.info("Documents: {}", claim.getDocuments() != null ? claim.getDocuments().size() : 0);
+        log.info("Score client: {}/100", clientGlobalScore);
+        log.info("Score claim: {}/100", claimRiskScore);
+        log.info("Score final: {}/100", finalScore);
+        log.info("Seuil approbation: {} (>= {})", finalScore >= AUTO_APPROVE_THRESHOLD ? "✅ ATTEINT" : "❌ NON ATTEINT", AUTO_APPROVE_THRESHOLD);
+        log.info("Seuil rejet: {} (< {})", finalScore < AUTO_REJECT_THRESHOLD ? "✅ ATTEINT" : "❌ NON ATTEINT", AUTO_REJECT_THRESHOLD);
+        log.info("====================================");
 
         // 5. Déterminer la décision suggérée
         ClaimScoreDTO.DecisionSuggestion decision = determineDecision(finalScore, riskFactors);
