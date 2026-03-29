@@ -1,12 +1,15 @@
 package org.example.projet_pi.Controller;
 
 import org.example.projet_pi.Dto.CreditHistoryDTO;
+import org.example.projet_pi.Dto.CreditRequestDTO;
+import org.example.projet_pi.Repository.AccountRepository;
+import org.example.projet_pi.Repository.CreditRepository;
 import org.example.projet_pi.Service.AdminService;
 import org.example.projet_pi.Service.CreditService;
+import org.example.projet_pi.Service.EmailCredit.CreditEmailService;
 import org.example.projet_pi.Service.EmailCredit.CreditNotificationScheduler;
 import org.example.projet_pi.Service.IClientService;
 import org.example.projet_pi.entity.*;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -24,18 +27,26 @@ public class CreditController {
 
     private final AdminService adminService;
     private final CreditService creditService;
-    private final IClientService clientService;  // ✅ MODIFIÉ: final et sans @Autowired
-    private final CreditNotificationScheduler notificationScheduler;  // ✅ AJOUTÉ: final
+    private final IClientService clientService;
+    private final CreditNotificationScheduler notificationScheduler;
+    private final AccountRepository accountRepository;
+    private final CreditRepository creditRepository;
+    private final CreditEmailService creditEmailService;
 
-    // ✅ CONSTRUCTEUR CORRIGÉ
     public CreditController(CreditService creditService,
                             AdminService adminService,
                             IClientService clientService,
-                            CreditNotificationScheduler notificationScheduler) {
+                            CreditNotificationScheduler notificationScheduler,
+                            AccountRepository accountRepository,
+                            CreditRepository creditRepository,
+                            CreditEmailService creditEmailService) {
         this.creditService = creditService;
         this.adminService = adminService;
         this.clientService = clientService;
         this.notificationScheduler = notificationScheduler;
+        this.accountRepository = accountRepository;
+        this.creditRepository = creditRepository;
+        this.creditEmailService = creditEmailService;
     }
 
     // ===============================
@@ -46,16 +57,12 @@ public class CreditController {
             @RequestBody Credit credit,
             @AuthenticationPrincipal UserDetails currentUser) {
         try {
-            // Vérification que l'utilisateur est admin
             if (!hasRole(currentUser, "ADMIN")) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN)
                         .body(Map.of("error", "Accès refusé", "message", "Seul l'admin peut ajouter un crédit"));
             }
 
-            // ✅ Récupérer l'admin connecté
             Admin admin = getAdminFromUserDetails(currentUser);
-
-            // ✅ Appeler le service avec l'admin
             Credit savedCredit = creditService.addCredit(credit, admin);
 
             return ResponseEntity.ok(savedCredit);
@@ -65,11 +72,97 @@ public class CreditController {
         }
     }
 
-    private Admin getAdminFromUserDetails(UserDetails userDetails) {
-        // Récupérer l'email de l'utilisateur connecté
-        String email = userDetails.getUsername();
+    // ===============================
+    // DEMANDE DE CRÉDIT - CLIENT
+    // ===============================
+    @PostMapping("/requestCredit")
+    public ResponseEntity<?> requestCredit(
+            @RequestBody CreditRequestDTO request,
+            @AuthenticationPrincipal UserDetails currentUser) {
+        try {
+            // Vérifier que c'est un client
+            if (!hasRole(currentUser, "CLIENT")) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body(Map.of("error", "Accès refusé - Client seulement"));
+            }
 
-        // Chercher l'admin dans la base de données par email
+            // ✅ Récupérer le client connecté en filtrant la liste des clients
+            String email = currentUser.getUsername();
+            Client client = null;
+
+            List<Client> allClients = clientService.getAllClients();
+            for (Client c : allClients) {
+                if (c.getEmail() != null && c.getEmail().equals(email)) {
+                    client = c;
+                    break;
+                }
+            }
+
+            if (client == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(Map.of("error", "Client non trouvé avec l'email: " + email));
+            }
+
+            // Vérifier que le client a un compte
+            List<Account> accounts = accountRepository.findByClientId(client.getId());
+            if (accounts.isEmpty()) {
+                return ResponseEntity.badRequest()
+                        .body(Map.of("error", "Vous devez avoir un compte bancaire pour demander un crédit"));
+            }
+
+            // Vérifier l'historique de retards
+            List<Credit> closedCredits = creditRepository.findByClientAndStatus(client, CreditStatus.CLOSED);
+            double averageLatePercentage = calculateAverageLatePercentage(closedCredits);
+
+            // Si historique > 40%, rejet automatique
+            if (averageLatePercentage > 40) {
+                String clientName = client.getFirstName() + " " + client.getLastName();
+                creditEmailService.sendAutoRejectionNotification(
+                        client.getEmail(),
+                        clientName,
+                        request.getAmount(),
+                        averageLatePercentage
+                );
+
+                return ResponseEntity.badRequest()
+                        .body(Map.of(
+                                "error", "Demande rejetée",
+                                "reason", "Historique de retards trop élevé (" + averageLatePercentage + "%)",
+                                "required", "Moins de 40%"
+                        ));
+            }
+
+            // Créer le crédit en PENDING
+            Credit credit = new Credit();
+            credit.setAmount(request.getAmount());
+            credit.setDurationInMonths(request.getDurationInMonths());
+            credit.setDueDate(request.getDueDate());
+            credit.setClient(client);
+            credit.setStatus(CreditStatus.PENDING);
+
+            // Sauvegarder le crédit
+            Credit savedCredit = creditService.addCredit(credit, null);
+
+            // Envoyer notification à l'admin
+            sendNotificationToAdmins(savedCredit, client);
+
+            return ResponseEntity.ok(Map.of(
+                    "message", "Votre demande de crédit a été envoyée avec succès",
+                    "creditId", savedCredit.getCreditId(),
+                    "status", "PENDING",
+                    "amount", savedCredit.getAmount(),
+                    "duration", savedCredit.getDurationInMonths(),
+                    "dueDate", savedCredit.getDueDate()
+            ));
+
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    private Admin getAdminFromUserDetails(UserDetails userDetails) {
+        String email = userDetails.getUsername();
         return adminService.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Admin non trouvé avec l'email: " + email));
     }
@@ -83,7 +176,6 @@ public class CreditController {
             @RequestParam double interestRate,
             @AuthenticationPrincipal UserDetails currentUser) {
         try {
-            // Vérification des rôles
             if (!hasRole(currentUser, "AGENT_FINANCE") && !hasRole(currentUser, "ADMIN")) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN)
                         .body(Map.of("error", "Accès refusé",
@@ -92,7 +184,6 @@ public class CreditController {
 
             Credit approvedCredit = creditService.approveCredit(id, interestRate);
 
-            // Récupérer l'utilisateur complet pour l'association
             User user = getUserFromUserDetails(currentUser);
             if (user instanceof AgentFinance) {
                 approvedCredit.setAgentFinance((AgentFinance) user);
@@ -261,20 +352,6 @@ public class CreditController {
     }
 
     // ===============================
-    // UTILITAIRES
-    // ===============================
-    private boolean hasRole(UserDetails userDetails, String role) {
-        return userDetails.getAuthorities().stream()
-                .anyMatch(a -> a.getAuthority().equals("ROLE_" + role));
-    }
-
-    private User getUserFromUserDetails(UserDetails userDetails) {
-        // Implémentez la logique pour récupérer l'entité User complète
-        // à partir de l'email ou username
-        return null; // À implémenter selon votre code
-    }
-
-    // ===============================
     // TEST NOTIFICATION ENDPOINT
     // ===============================
     @PostMapping("/test-notification/{creditId}")
@@ -289,6 +366,65 @@ public class CreditController {
             return ResponseEntity.badRequest().body(Map.of(
                     "error", "Erreur: " + e.getMessage()
             ));
+        }
+    }
+
+    // ===============================
+    // UTILITAIRES
+    // ===============================
+    private boolean hasRole(UserDetails userDetails, String role) {
+        return userDetails.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_" + role));
+    }
+
+    private User getUserFromUserDetails(UserDetails userDetails) {
+        return null;
+    }
+
+    // ===============================
+    // MÉTHODES PRIVÉES
+    // ===============================
+
+    private double calculateAverageLatePercentage(List<Credit> closedCredits) {
+        if (closedCredits.isEmpty()) return 0;
+
+        double totalLatePercentage = 0;
+        for (Credit credit : closedCredits) {
+            long totalRepayments = credit.getRepayments().size();
+            long lateRepayments = credit.getRepayments().stream()
+                    .filter(r -> r.getStatus() == RepaymentStatus.LATE)
+                    .count();
+
+            double latePercentage = totalRepayments > 0 ?
+                    ((double) lateRepayments / totalRepayments) * 100 : 0;
+            totalLatePercentage += latePercentage;
+        }
+        return totalLatePercentage / closedCredits.size();
+    }
+
+    private void sendNotificationToAdmins(Credit credit, Client client) {
+        try {
+            List<Admin> admins = adminService.getAllAdmins();
+
+            String clientName = client.getFirstName() + " " + client.getLastName();
+
+            for (Admin admin : admins) {
+                if (admin.getEmail() != null && !admin.getEmail().isEmpty()) {
+                    creditEmailService.sendCreditRequestNotification(
+                            admin.getEmail(),
+                            admin.getFirstName() + " " + admin.getLastName(),
+                            clientName,
+                            credit.getAmount(),
+                            credit.getDurationInMonths(),
+                            credit.getCreditId()
+                    );
+                }
+            }
+
+            System.out.println("📧 Notification envoyée à " + admins.size() + " admins");
+
+        } catch (Exception e) {
+            System.err.println("Erreur lors de l'envoi des notifications: " + e.getMessage());
         }
     }
 }

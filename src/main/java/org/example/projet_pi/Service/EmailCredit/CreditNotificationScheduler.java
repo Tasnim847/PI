@@ -25,7 +25,7 @@ public class CreditNotificationScheduler {
      * ✅ POUR TEST: S'exécute toutes les minutes
      * ⚠️ À CHANGER en "0 0 8 * * ?" après test
      */
-    @Scheduled(cron = "0 * * * * ?")  // ✅ Toutes les minutes (pour tester)
+    @Scheduled(cron = "0 0 8 * * ?")  // ✅ Toutes les minutes (pour tester)
     public void sendUpcomingDueDateReminders() {
         System.out.println("========================================");
         System.out.println("🔍 Vérification des échéances...");

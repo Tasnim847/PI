@@ -37,9 +37,6 @@ public class CreditEmailService {
         message.setText(text);
 
         mailSender.send(message);
-
-        // ⚠️ COMMENTÉ - Ne s'affiche pas dans la console
-        // System.out.println("✅ Payment reminder sent to " + toEmail);
     }
 
     public void sendLatePaymentNotification(String toEmail, String clientName,
@@ -64,9 +61,6 @@ public class CreditEmailService {
         message.setText(text);
 
         mailSender.send(message);
-
-        // ⚠️ COMMENTÉ - Ne s'affiche pas dans la console
-        // System.out.println("⚠️ Late payment notification sent to " + toEmail);
     }
 
     public void sendAutoRejectionNotification(String toEmail, String clientName,
@@ -95,12 +89,8 @@ public class CreditEmailService {
             helper.setText(text);
             mailSender.send(message);
 
-            // ⚠️ COMMENTÉ - Ne s'affiche pas dans la console
-            // System.out.println("❌ Auto-rejection notification sent to " + toEmail);
-
         } catch (MessagingException e) {
-            // ⚠️ COMMENTÉ - Ne s'affiche pas dans la console
-            // System.err.println("Error sending rejection notification: " + e.getMessage());
+            // Silencieux
         }
     }
 
@@ -110,7 +100,7 @@ public class CreditEmailService {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
-            helper.setFrom("hamoudameriem317@gmail.com");
+            helper.setFrom("lotfimakhlouf2000@gmail.com");
             helper.setTo(toEmail);
             helper.setSubject("📄 Amortization Schedule – Loan No." + creditId);
 
@@ -130,12 +120,44 @@ public class CreditEmailService {
 
             mailSender.send(message);
 
-            // ⚠️ COMMENTÉ - Ne s'affiche pas dans la console
-            // System.out.println("📄 PDF sent to " + toEmail);
+        } catch (MessagingException e) {
+            // Silencieux
+        }
+    }
+
+    // ✅ NOUVELLE MÉTHODE: Notification à l'admin pour une demande de crédit
+    public void sendCreditRequestNotification(String toAdminEmail, String adminName,
+                                              String clientName, Double amount,
+                                              int duration, Long creditId) {
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setFrom("hamoudameriem317@gmail.com");
+            helper.setTo(toAdminEmail);
+            helper.setSubject("🔔 Nouvelle demande de crédit à examiner");
+
+            String text = String.format(
+                    "Bonjour %s,\n\n" +
+                            "Un nouveau client a fait une demande de crédit.\n\n" +
+                            "📋 Détails de la demande :\n" +
+                            "   • Client : %s\n" +
+                            "   • Montant : %.2f TND\n" +
+                            "   • Durée : %d mois\n" +
+                            "   • Référence : CRD-%d\n\n" +
+                            "🔗 Pour traiter cette demande, veuillez vous connecter à l'application.\n\n" +
+                            "Cordialement,\n" +
+                            "Votre système de gestion de crédit",
+                    adminName, clientName, amount, duration, creditId
+            );
+
+            helper.setText(text);
+            mailSender.send(message);
+
+            System.out.println("✅ Notification de demande de crédit envoyée à l'admin: " + toAdminEmail);
 
         } catch (MessagingException e) {
-            // ⚠️ COMMENTÉ - Ne s'affiche pas dans la console
-            // throw new RuntimeException("Erreur lors de l'envoi de l'email avec PDF: " + e.getMessage());
+            System.err.println("❌ Erreur envoi notification admin: " + e.getMessage());
         }
     }
 }
