@@ -18,6 +18,7 @@ public class InsuranceProductService implements IInsuranceProductService {
 
     @Override
     public InsuranceProductDTO addProduct(InsuranceProductDTO dto) {
+        // 1️⃣ Vérifier que le produit n'existe pas déjà
         boolean exists = repository.findAll().stream()
                 .anyMatch(p -> p.getName().equalsIgnoreCase(dto.getName())
                         && p.getProductType().equalsIgnoreCase(dto.getProductType()));
@@ -25,15 +26,20 @@ public class InsuranceProductService implements IInsuranceProductService {
             throw new RuntimeException("Le produit existe déjà dans la base de données.");
         }
 
-        // Statut par défaut INACTIVE
+        // 2️⃣ Validation stricte par type (méthier avancé)
+        validateByType(dto);  // <-- exécuter ici
+
+        // 3️⃣ Statut par défaut INACTIVE (avant calcul du statut réel)
         dto.setStatus("INACTIVE");
 
-        // Vérification couverture minimum
+        // 4️⃣ Déterminer le statut selon le prix minimum
         ProductStatus status = determineStatus(dto);
         dto.setStatus(status.name());
 
+        // 5️⃣ Sauvegarder le produit
         InsuranceProduct product = InsuranceProductMapper.toEntity(dto);
         product = repository.save(product);
+
         return InsuranceProductMapper.toDTO(product);
     }
 
@@ -57,12 +63,17 @@ public class InsuranceProductService implements IInsuranceProductService {
 
         if (dto.getName() != null) product.setName(dto.getName());
         if (dto.getDescription() != null) product.setDescription(dto.getDescription());
-        if (dto.getBasePrice() > 0) product.setBasePrice(dto.getBasePrice());
+        if (dto.getBasePrice() != null && dto.getBasePrice() > 0) product.setBasePrice(dto.getBasePrice());
         if (dto.getProductType() != null) product.setProductType(dto.getProductType());
 
-        // Statut mis à jour automatiquement
-        ProductStatus status = determineStatus(InsuranceProductMapper.toDTO(product));
-        product.setStatus(status);
+        // 🔹 Si l'ADMIN a fourni un statut valide, on l'applique directement
+        if (dto.getStatus() != null) {
+            try {
+                product.setStatus(ProductStatus.valueOf(dto.getStatus()));
+            } catch (IllegalArgumentException e) {
+                throw new RuntimeException("Statut invalide : " + dto.getStatus());
+            }
+        }
 
         product = repository.save(product);
         return InsuranceProductMapper.toDTO(product);
@@ -86,6 +97,15 @@ public class InsuranceProductService implements IInsuranceProductService {
                 .toList();
     }
 
+    // Dans InsuranceProductService
+    @Override
+    public List<InsuranceProductDTO> getActiveProducts() {
+        return repository.findAll().stream()
+                .filter(p -> p.getStatus() == ProductStatus.ACTIVE) // seuls produits actifs
+                .map(InsuranceProductMapper::toDTO)
+                .toList();
+    }
+
     // ================= MÉTIER AVANCÉ : VALIDATION PAR TYPE =================
     private void validateByType(InsuranceProductDTO dto) {
         switch (dto.getProductType().toUpperCase()) {
@@ -101,5 +121,20 @@ public class InsuranceProductService implements IInsuranceProductService {
             default:
                 throw new RuntimeException("Type de produit inconnu");
         }
+    }
+
+    public InsuranceProductDTO changeProductStatus(Long productId, String statusStr) {
+        InsuranceProduct product = repository.findById(productId)
+                .orElseThrow(() -> new RuntimeException("Produit non trouvé"));
+
+        try {
+            ProductStatus status = ProductStatus.valueOf(statusStr.toUpperCase());
+            product.setStatus(status);
+        } catch (IllegalArgumentException e) {
+            throw new RuntimeException("Statut invalide : " + statusStr);
+        }
+
+        product = repository.save(product);
+        return InsuranceProductMapper.toDTO(product);
     }
 }

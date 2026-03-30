@@ -49,6 +49,7 @@ public class SecurityConfig {
                         .requestMatchers("/products/addProduct").hasRole("ADMIN")
                         .requestMatchers("/products/updateProduct").hasRole("ADMIN")
                         .requestMatchers("/products/deleteProduct/**").hasRole("ADMIN")
+                        .requestMatchers("/products/activeProducts").hasAnyRole("CLIENT", "AGENT_ASSURANCE")
                         .requestMatchers("/admins/**").hasRole("ADMIN")
 
                         // 🎯 AGENT_ASSURANCE
