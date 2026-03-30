@@ -15,4 +15,8 @@ public interface IInsuranceProductService {
     InsuranceProductDTO getProductById(Long id);
 
     List<InsuranceProductDTO> getAllProducts();
+
+    List<InsuranceProductDTO> getActiveProducts();
+
+    InsuranceProductDTO changeProductStatus(Long productId, String statusStr);
 }

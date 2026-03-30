@@ -34,7 +34,8 @@ public class InsuranceProductController {
     public ResponseEntity<?> updateProduct(@RequestBody InsuranceProductDTO dto) {
         try {
             InsuranceProductDTO result = insuranceProductService.updateProduct(dto);
-            return ResponseEntity.ok(result);
+            String message = "Produit mis à jour avec succès. Statut actuel : " + result.getStatus();
+            return ResponseEntity.ok().body(message);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
@@ -70,6 +71,43 @@ public class InsuranceProductController {
             List<InsuranceProductDTO> result = insuranceProductService.getAllProducts();
             return ResponseEntity.ok(result);
         } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    // Dans InsuranceProductController
+
+    // Tous les utilisateurs authentifiés (CLIENT et AGENT) peuvent voir les produits actifs
+    @GetMapping("/activeProducts")
+    public ResponseEntity<?> getActiveProducts() {
+        try {
+            List<InsuranceProductDTO> products = insuranceProductService.getActiveProducts();
+            return ResponseEntity.ok(products);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    // Activer un produit
+    @PutMapping("/activate/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> activateProduct(@PathVariable Long id) {
+        try {
+            InsuranceProductDTO updated = insuranceProductService.changeProductStatus(id, "ACTIVE");
+            return ResponseEntity.ok("Produit activé avec succès : " + updated.getStatus());
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    // Désactiver un produit
+    @PutMapping("/deactivate/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> deactivateProduct(@PathVariable Long id) {
+        try {
+            InsuranceProductDTO updated = insuranceProductService.changeProductStatus(id, "INACTIVE");
+            return ResponseEntity.ok("Produit désactivé avec succès : " + updated.getStatus());
+        } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
