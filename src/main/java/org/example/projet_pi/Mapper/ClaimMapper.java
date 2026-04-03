@@ -1,17 +1,17 @@
 package org.example.projet_pi.Mapper;
 
-import org.example.projet_pi.Dto.ClaimDTO;
-import org.example.projet_pi.Dto.DocumentDTO;
+import org.example.projet_pi.Dto.*;
 import org.example.projet_pi.entity.*;
 
-import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
 public class ClaimMapper {
 
+    // =========================
     // Entity -> DTO
+    // =========================
     public static ClaimDTO toDTO(Claim claim) {
         if (claim == null) return null;
 
@@ -26,11 +26,14 @@ public class ClaimMapper {
         if (claim.getContract() != null) {
             dto.setContractId(claim.getContract().getContractId());
         }
+        if (claim.getClient() != null) {
+            dto.setClientId(claim.getClient().getId());
+        }
         if (claim.getCompensation() != null) {
             dto.setCompensationId(claim.getCompensation().getCompensationId());
         }
 
-        // Conversion: Garder LocalDateTime (pas de conversion vers Date)
+        // Documents
         if (claim.getDocuments() != null) {
             List<DocumentDTO> documentDTOs = new ArrayList<>();
             for (Document doc : claim.getDocuments()) {
@@ -39,10 +42,7 @@ public class ClaimMapper {
                 docDTO.setName(doc.getName());
                 docDTO.setType(doc.getType());
                 docDTO.setFilePath(doc.getFilePath());
-
-                // 🔥 Garder LocalDateTime, pas de conversion
                 docDTO.setUploadDate(doc.getUploadDate());
-
                 docDTO.setStatus(doc.getStatus() != null ? doc.getStatus().name() : null);
                 documentDTOs.add(docDTO);
             }
@@ -53,13 +53,26 @@ public class ClaimMapper {
                     .collect(Collectors.toList()));
         }
 
+        // Détails selon type produit
+        if (claim.getAutoDetails() != null) {
+            dto.setAutoDetails(AutoClaimMapper.toDTO(claim.getAutoDetails()));
+        }
+        if (claim.getHealthDetails() != null) {
+            dto.setHealthDetails(HealthClaimMapper.toDTO(claim.getHealthDetails()));
+        }
+        if (claim.getHomeDetails() != null) {
+            dto.setHomeDetails(HomeClaimMapper.toDTO(claim.getHomeDetails()));
+        }
+
         return dto;
     }
 
+    // =========================
     // DTO -> Entity
+    // =========================
     public static Claim toEntity(ClaimDTO dto,
                                  InsuranceContract contract,
-                                 Compensation compensation,
+                                 Client client,
                                  List<Document> documents) {
         if (dto == null) return null;
 
@@ -70,11 +83,28 @@ public class ClaimMapper {
         claim.setApprovedAmount(dto.getApprovedAmount());
         claim.setDescription(dto.getDescription());
         claim.setContract(contract);
-        claim.setCompensation(compensation);
+        claim.setClient(client);
         claim.setDocuments(documents);
 
         if (dto.getStatus() != null) {
             claim.setStatus(ClaimStatus.valueOf(dto.getStatus()));
+        }
+
+        // Détails selon type
+        if (dto.getAutoDetails() != null) {
+            AutoClaimDetails auto = AutoClaimMapper.toEntity(dto.getAutoDetails());
+            auto.setClaim(claim);
+            claim.setAutoDetails(auto);
+        }
+        if (dto.getHealthDetails() != null) {
+            HealthClaimDetails health = HealthClaimMapper.toEntity(dto.getHealthDetails());
+            health.setClaim(claim);
+            claim.setHealthDetails(health);
+        }
+        if (dto.getHomeDetails() != null) {
+            HomeClaimDetails home = HomeClaimMapper.toEntity(dto.getHomeDetails());
+            home.setClaim(claim);
+            claim.setHomeDetails(home);
         }
 
         return claim;

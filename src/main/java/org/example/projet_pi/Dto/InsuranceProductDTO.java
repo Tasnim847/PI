@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.example.projet_pi.entity.ProductType;
 
 @Getter
 @Setter
@@ -15,7 +16,9 @@ public class InsuranceProductDTO {
     private String name;
     private String description;
     private Double basePrice;
-    private String productType; // AUTO, HABITATION, SANTE
+    private ProductType productType; // AUTO, HABITATION, SANTE
+    private String otherProductType;
+    private String imageUrl;
 
     private String status;
 }

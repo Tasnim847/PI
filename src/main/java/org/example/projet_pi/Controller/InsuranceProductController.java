@@ -1,11 +1,14 @@
 package org.example.projet_pi.Controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
 import org.example.projet_pi.Dto.InsuranceProductDTO;
 import org.example.projet_pi.Service.IInsuranceProductService;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -15,29 +18,38 @@ import java.util.List;
 public class InsuranceProductController {
 
     private final IInsuranceProductService insuranceProductService;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
-    // Seul l'ADMIN peut ajouter un produit
-    @PostMapping("/addProduct")
+
+    @PostMapping(value = "/addProduct", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> addProduct(@RequestBody InsuranceProductDTO dto) {
+    public ResponseEntity<?> addProduct(
+            @RequestPart("product") String productJson,
+            @RequestPart(value = "image", required = false) MultipartFile imageFile) {
         try {
-            InsuranceProductDTO result = insuranceProductService.addProduct(dto);
+            InsuranceProductDTO dto = objectMapper.readValue(productJson, InsuranceProductDTO.class);
+            InsuranceProductDTO result = insuranceProductService.addProduct(dto, imageFile);
             return ResponseEntity.ok(result);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Erreur: " + e.getMessage());
         }
     }
 
-    // Seul l'ADMIN peut modifier un produit
-    @PutMapping("/updateProduct")
+    @PutMapping(value = "/updateProduct", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> updateProduct(@RequestBody InsuranceProductDTO dto) {
+    public ResponseEntity<?> updateProduct(
+            @RequestPart("product") String productJson,
+            @RequestPart(value = "image", required = false) MultipartFile imageFile) {
         try {
-            InsuranceProductDTO result = insuranceProductService.updateProduct(dto);
-            String message = "Produit mis à jour avec succès. Statut actuel : " + result.getStatus();
-            return ResponseEntity.ok().body(message);
+            InsuranceProductDTO dto = objectMapper.readValue(productJson, InsuranceProductDTO.class);
+            InsuranceProductDTO result = insuranceProductService.updateProduct(dto, imageFile);
+            return ResponseEntity.ok("Produit mis à jour avec succès. Statut actuel : " + result.getStatus());
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Erreur: " + e.getMessage());
         }
     }
 
@@ -95,6 +107,37 @@ public class InsuranceProductController {
         try {
             InsuranceProductDTO updated = insuranceProductService.changeProductStatus(id, "ACTIVE");
             return ResponseEntity.ok("Produit activé avec succès : " + updated.getStatus());
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    // Affecter/Modifier l'image d'un produit
+    @PutMapping(value = "/{productId}/image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> assignImageToProduct(
+            @PathVariable Long productId,
+            @RequestPart(value = "image", required = false) MultipartFile imageFile) {
+        try {
+            if (imageFile == null || imageFile.isEmpty()) {
+                return ResponseEntity.badRequest().body("Veuillez sélectionner une image");
+            }
+
+            InsuranceProductDTO result = insuranceProductService.assignImageToProduct(productId, imageFile);
+            return ResponseEntity.ok(result);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Erreur: " + e.getMessage());
+        }
+    }
+
+    @DeleteMapping("/{productId}/image")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> removeImageFromProduct(@PathVariable Long productId) {
+        try {
+            InsuranceProductDTO result = insuranceProductService.removeImageFromProduct(productId);
+            return ResponseEntity.ok("Image supprimée avec succès");
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }

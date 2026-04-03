@@ -17,8 +17,15 @@ public class InsuranceProduct {
     private String description;
     private Double basePrice;
 
-    private String productType;
+    @Enumerated(EnumType.STRING)
+    private ProductType productType;
 
     @Enumerated(EnumType.STRING)
     private ProductStatus status;
+
+    @Column(name = "other_type")
+    private String otherType;
+
+    @Column(name = "image_url")
+    private String imageUrl;
 }

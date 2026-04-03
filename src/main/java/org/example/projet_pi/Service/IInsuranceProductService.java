@@ -1,14 +1,15 @@
 package org.example.projet_pi.Service;
 
 import org.example.projet_pi.Dto.InsuranceProductDTO;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
 public interface IInsuranceProductService {
 
-    InsuranceProductDTO addProduct(InsuranceProductDTO dto);
+    InsuranceProductDTO addProduct(InsuranceProductDTO dto, MultipartFile imageFile);
 
-    InsuranceProductDTO updateProduct(InsuranceProductDTO dto);
+    InsuranceProductDTO updateProduct(InsuranceProductDTO dto, MultipartFile imageFile);
 
     void deleteProduct(Long id);
 
@@ -19,4 +20,8 @@ public interface IInsuranceProductService {
     List<InsuranceProductDTO> getActiveProducts();
 
     InsuranceProductDTO changeProductStatus(Long productId, String statusStr);
+
+    InsuranceProductDTO assignImageToProduct(Long productId, MultipartFile imageFile);
+
+    InsuranceProductDTO removeImageFromProduct(Long productId);
 }

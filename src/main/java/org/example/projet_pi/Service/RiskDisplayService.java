@@ -280,14 +280,24 @@ public class RiskDisplayService {
      * Calcule le score produit
      */
     private double calculateProductScore(InsuranceContract contract) {
-        if (contract.getProduct() == null) return 50.0;
+        if (contract.getProduct() == null || contract.getProduct().getProductType() == null) {
+            return 50.0;
+        }
 
-        String productType = contract.getProduct().getProductType();
-        if ("VIE".equalsIgnoreCase(productType)) return 80.0;
-        if ("SANTE".equalsIgnoreCase(productType)) return 60.0;
-        if ("AUTO".equalsIgnoreCase(productType)) return 40.0;
-        if ("HABITATION".equalsIgnoreCase(productType)) return 30.0;
-        return 50.0;
+        ProductType productType = contract.getProduct().getProductType();
+
+        switch (productType) {
+            case LIFE:
+                return 80.0;
+            case HEALTH:
+                return 60.0;
+            case AUTO:
+                return 40.0;
+            case HOME:
+                return 30.0;
+            default:
+                return 50.0; // OTHER ou null
+        }
     }
 
     /**

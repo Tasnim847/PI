@@ -27,4 +27,8 @@ public class ClaimDTO {
     private Long compensationId;
     private List<Long> documentIds;
     private List<DocumentDTO> documents;
+
+    private AutoClaimDetailsDTO autoDetails;
+    private HealthClaimDetailsDTO healthDetails;
+    private HomeClaimDetailsDTO homeDetails;
 }

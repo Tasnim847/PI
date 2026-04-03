@@ -563,25 +563,30 @@ public class InsuranceContractService implements IInsuranceContractService {
 
         InsuranceProduct product = contract.getProduct();
         if (product != null) {
-            String productType = product.getProductType();
-            evaluation.append(String.format("Type de produit: %s\n", productType));
+            ProductType productType = product.getProductType(); // enum
 
-            // Risque par type de produit
-            if ("VIE".equalsIgnoreCase(productType)) {
+            // Pour l'affichage
+            evaluation.append(String.format("Type de produit: %s\n", productType.name()));
+
+            // Comparaison avec l'enum
+            if (productType == ProductType.LIFE) {
                 score += 20;
                 riskFactors.add("Produit d'assurance vie - risque élevé");
                 evaluation.append("⚠️ Produit vie: +20 points (risque actuariel élevé)\n");
-            } else if ("SANTE".equalsIgnoreCase(productType)) {
+            } else if (productType == ProductType.HEALTH) {
                 score += 15;
                 riskFactors.add("Produit santé - risque modéré");
                 evaluation.append("⚕️ Produit santé: +15 points\n");
-            } else if ("AUTO".equalsIgnoreCase(productType)) {
+            } else if (productType == ProductType.AUTO) {
                 score += 10;
                 riskFactors.add("Produit auto - risque standard");
                 evaluation.append("🚗 Produit auto: +10 points\n");
-            } else if ("HABITATION".equalsIgnoreCase(productType)) {
+            } else if (productType == ProductType.HOME) {
                 score += 8;
                 evaluation.append("🏠 Produit habitation: +8 points\n");
+            } else if (productType == ProductType.OTHER) {
+                score += 5; // ou selon ta logique
+                evaluation.append("📦 Produit autre: +5 points\n");
             }
         }
 

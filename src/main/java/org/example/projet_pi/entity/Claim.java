@@ -45,4 +45,13 @@ public class Claim {
     private Boolean fraud = false;
     private String message;
 
+    @OneToOne(mappedBy = "claim", cascade = CascadeType.ALL)
+    private AutoClaimDetails autoDetails;
+
+    @OneToOne(mappedBy = "claim", cascade = CascadeType.ALL)
+    private HealthClaimDetails healthDetails;
+
+    @OneToOne(mappedBy = "claim", cascade = CascadeType.ALL)
+    private HomeClaimDetails homeDetails;
+
 }

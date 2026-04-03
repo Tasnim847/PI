@@ -3,7 +3,10 @@ package org.example.projet_pi.Service;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.projet_pi.Dto.*;
+import org.example.projet_pi.Mapper.AutoClaimMapper;
 import org.example.projet_pi.Mapper.ClaimMapper;
+import org.example.projet_pi.Mapper.HealthClaimMapper;
+import org.example.projet_pi.Mapper.HomeClaimMapper;
 import org.example.projet_pi.Repository.*;
 import org.example.projet_pi.entity.*;
 import org.springframework.security.access.AccessDeniedException;
@@ -32,6 +35,7 @@ public class ClaimService implements IClaimService {
     private final ClientScoringService clientScoringService;
     private final AdvancedClaimScoringService advancedClaimScoringService;
 
+    /*
     @Override
     @Transactional
     public ClaimDTO addClaim(ClaimDTO claimDTO, String userEmail) {
@@ -126,6 +130,163 @@ public class ClaimService implements IClaimService {
 
         return response;
     }
+*/
+    @Override
+    @Transactional
+    public ClaimDTO addClaim(ClaimDTO claimDTO, String userEmail) {
+
+        User user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
+
+        if (!(user instanceof Client)) {
+            throw new AccessDeniedException("Seuls les clients peuvent créer des claims");
+        }
+
+        Client client = (Client) user;
+
+        if (claimDTO.getContractId() == null) {
+            throw new IllegalArgumentException("Le contractId est obligatoire");
+        }
+
+        InsuranceContract contract = contractRepository.findById(claimDTO.getContractId())
+                .orElseThrow(() -> new RuntimeException(
+                        "Le contrat avec l'id " + claimDTO.getContractId() + " n'existe pas"));
+
+        if (!contract.getClient().getId().equals(client.getId())) {
+            throw new AccessDeniedException("Ce contrat ne vous appartient pas");
+        }
+
+        if (contract.getStatus() != ContractStatus.ACTIVE) {
+            throw new RuntimeException("Vous ne pouvez créer un claim que sur un contrat actif");
+        }
+
+        if (claimDTO.getClaimedAmount() == null || claimDTO.getClaimedAmount() <= 0) {
+            throw new IllegalArgumentException("Le montant réclamé doit être supérieur à 0");
+        }
+
+        boolean hasActiveClaim =
+                claimRepository.existsByContract_ContractIdAndClient_IdAndStatusIn(
+                        contract.getContractId(),
+                        client.getId(),
+                        List.of(ClaimStatus.IN_REVIEW, ClaimStatus.APPROVED)
+                );
+
+        if (hasActiveClaim) {
+            throw new RuntimeException("Vous avez déjà un claim actif pour ce contrat");
+        }
+
+        if (claimDTO.getDocuments() == null || claimDTO.getDocuments().isEmpty()) {
+            throw new RuntimeException("Au moins un document est obligatoire");
+        }
+
+        // ✅ Message informatif si dépassement
+        boolean exceedsLimit = claimDTO.getClaimedAmount() > contract.getCoverageLimit();
+
+        // ===============================
+        // 🔥 CREATION CLAIM
+        // ===============================
+        Claim claim = new Claim();
+        claim.setClaimDate(new Date());
+        claim.setClaimedAmount(claimDTO.getClaimedAmount());
+        claim.setApprovedAmount(0.0);
+        claim.setDescription(claimDTO.getDescription());
+        claim.setContract(contract);
+        claim.setClient(client);
+        claim.setStatus(ClaimStatus.IN_REVIEW);
+
+        // ===============================
+        // 🔥 AJOUT DES DETAILS SELON TYPE PRODUIT
+        // ===============================
+        // Récupération de l'enum
+        ProductType type = contract.getProduct().getProductType();
+
+        switch (type) {
+
+            case AUTO:
+                if (claimDTO.getAutoDetails() == null) {
+                    throw new RuntimeException("Auto details obligatoire");
+                }
+
+                AutoClaimDetails auto =
+                        AutoClaimMapper.toEntity(claimDTO.getAutoDetails());
+
+                auto.setClaim(claim);
+                claim.setAutoDetails(auto);
+                break;
+
+            case HEALTH:
+                if (claimDTO.getHealthDetails() == null) {
+                    throw new RuntimeException("Health details obligatoire");
+                }
+
+                HealthClaimDetails health =
+                        HealthClaimMapper.toEntity(claimDTO.getHealthDetails());
+
+                health.setClaim(claim);
+                claim.setHealthDetails(health);
+                break;
+
+            case HOME:
+                if (claimDTO.getHomeDetails() == null) {
+                    throw new RuntimeException("Home details obligatoire");
+                }
+
+                HomeClaimDetails home =
+                        HomeClaimMapper.toEntity(claimDTO.getHomeDetails());
+
+                home.setClaim(claim);
+                claim.setHomeDetails(home);
+                break;
+
+            case LIFE:
+            case OTHER:
+                // formulaire simple pour ces types
+                break;
+
+            default:
+                throw new RuntimeException("Type de produit inconnu");
+        }
+
+        // ===============================
+        // 📄 DOCUMENTS
+        // ===============================
+        List<Document> documents = new ArrayList<>();
+
+        for (DocumentDTO docDTO : claimDTO.getDocuments()) {
+
+            Document doc = new Document();
+            doc.setName(docDTO.getName());
+            doc.setType(docDTO.getType());
+            doc.setFilePath(docDTO.getFilePath());
+            doc.setUploadDate(
+                    docDTO.getUploadDate() != null ?
+                            docDTO.getUploadDate() :
+                            LocalDateTime.now()
+            );
+
+            doc.setStatus(DocumentStatus.UPLOADED);
+            doc.setClaim(claim);
+            doc.setClient(client);
+
+            documents.add(doc);
+        }
+
+        claim.setDocuments(documents);
+
+        // ===============================
+        // 💾 SAVE
+        // ===============================
+        Claim savedClaim = claimRepository.save(claim);
+
+        ClaimDTO response = ClaimMapper.toDTO(savedClaim);
+
+        // 🔥 Ajouter message informatif
+        if (exceedsLimit) {
+            response.setMessage("Attention : le montant dépasse le plafond du contrat.");
+        }
+
+        return response;
+    }
 
     @Override
     @Transactional
@@ -167,6 +328,28 @@ public class ClaimService implements IClaimService {
         }
         if (claimDTO.getDescription() != null) {
             claim.setDescription(claimDTO.getDescription());
+        }
+
+        // 🔥 UPDATE AUTO / HEALTH / HOME
+        if (claimDTO.getAutoDetails() != null) {
+            AutoClaimDetails auto =
+                    AutoClaimMapper.toEntity(claimDTO.getAutoDetails());
+            auto.setClaim(claim);
+            claim.setAutoDetails(auto);
+        }
+
+        if (claimDTO.getHealthDetails() != null) {
+            HealthClaimDetails health =
+                    HealthClaimMapper.toEntity(claimDTO.getHealthDetails());
+            health.setClaim(claim);
+            claim.setHealthDetails(health);
+        }
+
+        if (claimDTO.getHomeDetails() != null) {
+            HomeClaimDetails home =
+                    HomeClaimMapper.toEntity(claimDTO.getHomeDetails());
+            home.setClaim(claim);
+            claim.setHomeDetails(home);
         }
 
         // Mise à jour du statut

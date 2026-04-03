@@ -14,6 +14,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.multipart.support.MultipartFilter;
 
 @RequiredArgsConstructor
 @Configuration
@@ -35,10 +36,20 @@ public class SecurityConfig {
     }
 
     @Bean
+    public MultipartFilter multipartFilter() {
+        MultipartFilter multipartFilter = new MultipartFilter();
+        multipartFilter.setMultipartResolverBeanName("multipartResolver");
+        return multipartFilter;
+    }
+
+    @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 // 🔹 Désactive CSRF pour POST/PUT/DELETE depuis Postman
                 .csrf(csrf -> csrf.disable())
+
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterAfter(multipartFilter(), JwtAuthenticationFilter.class)
 
                 .authorizeHttpRequests(auth -> auth
                         // 🔓 Endpoints publics
@@ -52,6 +63,8 @@ public class SecurityConfig {
                         .requestMatchers("/products/deleteProduct/**").hasRole("ADMIN")
                         .requestMatchers("/products/activeProducts").hasAnyRole("CLIENT", "AGENT_ASSURANCE")
                         .requestMatchers("/admins/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/products/*/image").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/products/*/image").hasRole("ADMIN")
 
                         // 🎯 AGENT_ASSURANCE
                         .requestMatchers("/agents-assurance/**").hasAnyRole("AGENT_ASSURANCE", "ADMIN")
