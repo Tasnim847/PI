@@ -51,6 +51,7 @@ public class CreditController {
 
     // ===============================
     // CREATE CREDIT - ADMIN SEULEMENT
+
     // ===============================
     @PostMapping("/addCredit")
     public ResponseEntity<?> addCredit(
@@ -71,6 +72,10 @@ public class CreditController {
                     .body(Map.of("error", "Erreur lors de l'ajout", "message", e.getMessage()));
         }
     }
+
+
+
+
 
     // ===============================
     // DEMANDE DE CRÉDIT - CLIENT
