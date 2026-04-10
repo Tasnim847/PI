@@ -1,52 +1,35 @@
-// src/app/Features/Insurance/pages/insurance-page/insurance-page.component.ts
+// src/app/Features/Insurance/pages/client/my-contracts/my-contracts.component.ts
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
-import { ContractService } from '../../services/contract.service';
-import { AddContractComponent } from '../client/add-contract/add-contract.component';
+import { ContractService } from '../../../services/contract.service';
 import { ToastrService } from 'ngx-toastr';
 import { saveAs } from 'file-saver';
-import { AuthService } from '../../../../services/auth.service';
 
 @Component({
-  selector: 'app-insurance-page',
+  selector: 'app-my-contracts',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule, AddContractComponent],
-  templateUrl: './insurance-page.component.html',
-  styleUrls: ['./insurance-page.component.css']
+  imports: [CommonModule, FormsModule, RouterModule],
+  templateUrl: './my-contracts.component.html',
+  styleUrls: ['./my-contracts.component.css']
 })
-export class InsurancePageComponent implements OnInit {
+export class MyContractsComponent implements OnInit {
   contracts: any[] = [];
   filteredContracts: any[] = [];
   selectedStatus: string = 'ALL';
+  statuses = ['ALL', 'ACTIVE', 'INACTIVE', 'COMPLETED', 'CANCELLED', 'EXPIRED'];
   isLoading = false;
   selectedContract: any = null;
   showRiskModal = false;
-  showAddContractForm = false;
-  isLoggedIn = false;
-
-  statuses = ['ALL', 'ACTIVE', 'INACTIVE', 'COMPLETED', 'CANCELLED', 'EXPIRED'];
 
   constructor(
     private contractService: ContractService,
-    private authService: AuthService,
     private toastr: ToastrService
   ) {}
 
   ngOnInit(): void {
-    this.checkAuthAndLoadContracts();
-  }
-
-  checkAuthAndLoadContracts(): void {
-    this.isLoggedIn = this.authService.isLoggedIn();
-    
-    if (this.isLoggedIn) {
-      this.loadContracts();
-    } else {
-      // Afficher un message invitant à se connecter
-      console.log('Utilisateur non connecté');
-    }
+    this.loadContracts();
   }
 
   loadContracts(): void {
@@ -59,12 +42,7 @@ export class InsurancePageComponent implements OnInit {
       },
       error: (err) => {
         console.error('Erreur:', err);
-        if (err.status === 401) {
-          this.toastr.error('Session expirée, veuillez vous reconnecter');
-          this.authService.logout();
-        } else {
-          this.toastr.error('Erreur lors du chargement des contrats');
-        }
+        this.toastr.error('Erreur lors du chargement des contrats');
         this.isLoading = false;
       }
     });
@@ -78,10 +56,6 @@ export class InsurancePageComponent implements OnInit {
         c => c.status === this.selectedStatus
       );
     }
-  }
-
-  onStatusChange(): void {
-    this.filterContracts();
   }
 
   getStatusBadgeClass(status: string): string {
@@ -123,6 +97,7 @@ export class InsurancePageComponent implements OnInit {
   downloadPdf(contractId: number): void {
     this.contractService.downloadContractPdf(contractId).subscribe({
       next: (blob) => {
+        // Téléchargement avec file-saver
         saveAs(blob, `contrat_${contractId}.pdf`);
         this.toastr.success('PDF téléchargé avec succès');
       },
@@ -148,32 +123,10 @@ export class InsurancePageComponent implements OnInit {
     }
   }
 
+  // Méthode helper pour formater les dates manuellement (alternative)
   formatDate(date: Date | string): string {
     if (!date) return 'N/A';
     const d = new Date(date);
     return d.toLocaleDateString('fr-FR');
-  }
-
-  closeModal(): void {
-    this.showRiskModal = false;
-    this.selectedContract = null;
-  }
-
-  toggleAddContractForm(): void {
-    if (!this.isLoggedIn) {
-      this.toastr.warning('Veuillez vous connecter pour créer un contrat');
-      return;
-    }
-    this.showAddContractForm = !this.showAddContractForm;
-  }
-
-  onContractAdded(): void {
-    this.showAddContractForm = false;
-    this.loadContracts();
-    this.toastr.success('Contrat créé avec succès !');
-  }
-
-  onCancelAddContract(): void {
-    this.showAddContractForm = false;
   }
 }

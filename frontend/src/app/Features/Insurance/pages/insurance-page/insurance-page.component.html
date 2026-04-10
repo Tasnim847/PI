@@ -1,1 +1,304 @@
-<p>insurance-page works!</p>
+<!-- insurance-page.component.html -->
+<div class="container mt-5 pt-4">
+  <!-- Header -->
+  <div class="row mb-4">
+    <div class="col-12 text-center">
+      <h1 class="display-4 fw-bold text-primary">Mes Contrats d'Assurance</h1>
+      <p class="lead text-muted">Gérez tous vos contrats d'assurance en un seul endroit</p>
+      <button class="btn btn-primary btn-lg px-4 py-2" (click)="toggleAddContractForm()">
+        <i class="bi bi-plus-circle me-2"></i>Nouveau contrat
+      </button>
+    </div>
+  </div>
+
+  <!-- Formulaire d'ajout de contrat -->
+  <div class="row justify-content-center mb-4" *ngIf="showAddContractForm">
+    <div class="col-md-8">
+      <app-add-contract (contractAdded)="onContractAdded()" (cancel)="onCancelAddContract()"></app-add-contract>
+    </div>
+  </div>
+
+  <!-- Message si non connecté -->
+  <div class="row" *ngIf="!isLoggedIn">
+    <div class="col-12 text-center py-5">
+      <div class="alert alert-warning">
+        <i class="bi bi-exclamation-triangle fs-1"></i>
+        <h4 class="mt-2">Veuillez vous connecter</h4>
+        <p>Vous devez être connecté pour voir et gérer vos contrats d'assurance.</p>
+        <a routerLink="/public/login" class="btn btn-primary">Se connecter</a>
+        <a routerLink="/public/register" class="btn btn-outline-primary ms-2">S'inscrire</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Contenu pour utilisateur connecté -->
+  <div *ngIf="isLoggedIn">
+    <!-- Filtres -->
+    <div class="row mb-4">
+      <div class="col-md-6">
+        <div class="card shadow-sm">
+          <div class="card-body">
+            <label class="form-label fw-bold">
+              <i class="bi bi-funnel me-1"></i>Filtrer par statut
+            </label>
+            <select class="form-select" [(ngModel)]="selectedStatus" (change)="onStatusChange()">
+              <option value="ALL">📋 Tous les contrats ({{ contracts.length }})</option>
+              <option value="ACTIVE">✅ Actifs</option>
+              <option value="INACTIVE">⏳ En attente</option>
+              <option value="COMPLETED">🎉 Terminés</option>
+              <option value="CANCELLED">❌ Annulés</option>
+              <option value="EXPIRED">📅 Expirés</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6 d-flex align-items-center justify-content-end">
+        <div class="text-muted">
+          <i class="bi bi-file-text me-1"></i>
+          <strong>{{ filteredContracts.length }}</strong> contrat(s) affiché(s)
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading -->
+    <div *ngIf="isLoading" class="text-center py-5">
+      <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
+        <span class="visually-hidden">Chargement...</span>
+      </div>
+      <p class="mt-3 text-muted">Chargement de vos contrats...</p>
+    </div>
+
+    <!-- Liste des contrats -->
+    <div *ngIf="!isLoading">
+      <!-- Aucun contrat -->
+      <div *ngIf="filteredContracts.length === 0" class="text-center py-5">
+        <div class="card shadow-sm">
+          <div class="card-body py-5">
+            <i class="bi bi-inbox" style="font-size: 4rem; color: #ccc;"></i>
+            <h4 class="mt-3 text-muted">Aucun contrat trouvé</h4>
+            <p class="text-muted">Vous n'avez pas encore de contrat d'assurance.</p>
+            <button class="btn btn-primary" (click)="toggleAddContractForm()">
+              <i class="bi bi-plus-circle"></i> Créer mon premier contrat
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Grille des contrats -->
+      <div class="row" *ngIf="filteredContracts.length > 0">
+        <div class="col-md-6 col-lg-4 mb-4" *ngFor="let contract of filteredContracts">
+          <div class="card h-100 shadow-sm hover-card">
+            <!-- En-tête -->
+            <div class="card-header bg-white border-bottom-0 pt-3">
+              <div class="d-flex justify-content-between align-items-start">
+                <div>
+                  <span class="badge bg-primary mb-2">#{{ contract.contractId }}</span>
+                  <h5 class="card-title mb-0">{{ contract.product?.name || 'Contrat' }}</h5>
+                </div>
+                <span class="badge" [class]="getStatusBadgeClass(contract.status)">
+                  <i class="bi" 
+                     [class.bi-check-circle]="contract.status === 'ACTIVE'"
+                     [class.bi-clock]="contract.status === 'INACTIVE'"
+                     [class.bi-check2-circle]="contract.status === 'COMPLETED'"
+                     [class.bi-x-circle]="contract.status === 'CANCELLED'"
+                     [class.bi-calendar-x]="contract.status === 'EXPIRED'"></i>
+                  {{ getStatusLabel(contract.status) }}
+                </span>
+              </div>
+            </div>
+
+            <!-- Corps -->
+            <div class="card-body">
+              <!-- Montants -->
+              <div class="mb-3">
+                <div class="row g-0">
+                  <div class="col-6">
+                    <small class="text-muted">Prime totale</small>
+                    <p class="mb-0 fw-bold fs-5 text-primary">{{ contract.premium | number }} DT</p>
+                  </div>
+                  <div class="col-6">
+                    <small class="text-muted">Montant payé</small>
+                    <p class="mb-0 fw-bold text-success">{{ contract.totalPaid | number }} DT</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Barre de progression -->
+              <div class="mb-3">
+                <div class="progress" style="height: 10px;">
+                  <div class="progress-bar bg-success" 
+                       [style.width.%]="(contract.totalPaid / contract.premium) * 100"
+                       role="progressbar">
+                  </div>
+                </div>
+                <small class="text-muted">
+                  Restant: {{ contract.remainingAmount | number }} DT
+                </small>
+              </div>
+
+              <!-- Informations -->
+              <div class="mb-2">
+                <small class="text-muted">Fréquence</small>
+                <p class="mb-1">
+                  <span class="badge bg-secondary">
+                    <i class="bi" 
+                       [class.bi-calendar-month]="contract.paymentFrequency === 'MONTHLY'"
+                       [class.bi-calendar-week]="contract.paymentFrequency === 'SEMI_ANNUAL'"
+                       [class.bi-calendar-year]="contract.paymentFrequency === 'ANNUAL'"></i>
+                    {{ contract.paymentFrequency === 'MONTHLY' ? 'Mensuel' : 
+                       contract.paymentFrequency === 'SEMI_ANNUAL' ? 'Semestriel' : 'Annuel' }}
+                  </span>
+                </p>
+              </div>
+
+              <div class="mb-2">
+                <small class="text-muted">Période</small>
+                <p class="mb-0 small">
+                  <i class="bi bi-calendar3"></i>
+                  {{ formatDate(contract.startDate) }} → {{ formatDate(contract.endDate) }}
+                </p>
+              </div>
+
+              <!-- Score de risque -->
+              <div *ngIf="contract.riskClaim" class="mt-3 p-2 rounded" 
+                   [class.bg-danger]="contract.riskClaim.riskLevel === 'HIGH'"
+                   [class.bg-warning]="contract.riskClaim.riskLevel === 'MEDIUM'"
+                   [class.bg-success]="contract.riskClaim.riskLevel === 'LOW'">
+                <div class="d-flex justify-content-between align-items-center">
+                  <small class="text-white">
+                    <i class="bi bi-shield-check"></i> Risque {{ contract.riskClaim.riskLevel }}
+                  </small>
+                  <small class="text-white fw-bold">
+                    Score: {{ contract.riskClaim.riskScore }}/100
+                  </small>
+                </div>
+              </div>
+
+              <div *ngIf="!contract.riskClaim" class="mt-3 p-2 rounded bg-secondary bg-opacity-25">
+                <small class="text-muted">
+                  <i class="bi bi-hourglass-split"></i> Évaluation du risque en cours...
+                </small>
+              </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="card-footer bg-white border-top-0 pb-3">
+              <div class="d-grid gap-2">
+                <div class="btn-group" role="group">
+                  <button class="btn btn-sm btn-outline-primary" (click)="viewRisk(contract)">
+                    <i class="bi bi-shield-check"></i> Détails risque
+                  </button>
+                  <button class="btn btn-sm btn-outline-secondary" (click)="downloadPdf(contract.contractId)">
+                    <i class="bi bi-file-pdf"></i> PDF
+                  </button>
+                  <button *ngIf="contract.status === 'INACTIVE'" 
+                          class="btn btn-sm btn-outline-danger" 
+                          (click)="cancelContract(contract)">
+                    <i class="bi bi-x-circle"></i> Annuler
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Évaluation du Risque -->
+<div class="modal fade" [class.show]="showRiskModal" [style.display]="showRiskModal ? 'block' : 'none'" tabindex="-1" *ngIf="showRiskModal">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title">
+          <i class="bi bi-shield-check me-2"></i>
+          Évaluation du Risque - Contrat #{{ selectedContract?.contractId }}
+        </h5>
+        <button type="button" class="btn-close btn-close-white" (click)="closeModal()"></button>
+      </div>
+      <div class="modal-body">
+        <div *ngIf="selectedContract?.riskClaim">
+          <!-- Score et niveau -->
+          <div class="text-center mb-4">
+            <div class="display-1 fw-bold" 
+                 [class.text-danger]="selectedContract?.riskClaim?.riskLevel === 'HIGH'"
+                 [class.text-warning]="selectedContract?.riskClaim?.riskLevel === 'MEDIUM'"
+                 [class.text-success]="selectedContract?.riskClaim?.riskLevel === 'LOW'">
+              {{ selectedContract?.riskClaim?.riskScore }}/100
+            </div>
+            <div class="mt-2">
+              <span class="badge fs-6 px-3 py-2" 
+                    [class.bg-danger]="selectedContract?.riskClaim?.riskLevel === 'HIGH'"
+                    [class.bg-warning]="selectedContract?.riskClaim?.riskLevel === 'MEDIUM'"
+                    [class.bg-success]="selectedContract?.riskClaim?.riskLevel === 'LOW'">
+                Niveau: {{ selectedContract?.riskClaim?.riskLevel }}
+              </span>
+            </div>
+          </div>
+
+          <!-- Détails -->
+          <div class="mt-4">
+            <h6 class="fw-bold mb-3">
+              <i class="bi bi-file-text me-1"></i> Rapport détaillé
+            </h6>
+            <div class="bg-light p-3 rounded" style="max-height: 400px; overflow-y: auto;">
+              <pre class="mb-0" style="white-space: pre-wrap; font-family: inherit;">{{ selectedContract?.riskClaim?.evaluationNote }}</pre>
+            </div>
+          </div>
+        </div>
+        <div *ngIf="!selectedContract?.riskClaim" class="text-center py-4">
+          <i class="bi bi-hourglass-split fs-1 text-muted"></i>
+          <p class="mt-3 text-muted">Chargement de l'évaluation du risque...</p>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="closeModal()">
+          <i class="bi bi-x-circle me-1"></i> Fermer
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Overlay modal -->
+<div class="modal-backdrop fade show" *ngIf="showRiskModal" (click)="closeModal()"></div>
+
+<!-- Styles personnalisés -->
+<style>
+  .hover-card {
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+  }
+  
+  .hover-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+  }
+  
+  .progress {
+    background-color: #e9ecef;
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  
+  .progress-bar {
+    transition: width 0.3s ease;
+  }
+  
+  .card-header {
+    border-bottom: 2px solid #f8f9fa;
+  }
+  
+  .btn-group .btn {
+    transition: all 0.2s;
+  }
+  
+  .btn-group .btn:hover {
+    transform: scale(1.02);
+  }
+  
+  .modal pre {
+    font-size: 0.9rem;
+    line-height: 1.5;
+  }
+</style>

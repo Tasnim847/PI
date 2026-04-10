@@ -1,0 +1,759 @@
+/* admin-product-list.component.css */
+
+/* Container principal */
+.admin-products-container {
+  padding: 2rem;
+  background: #f8f9fa;
+  min-height: 100vh;
+}
+
+/* Header */
+.admin-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid #e9ecef;
+}
+
+.admin-header h1 {
+  font-size: 1.8rem;
+  color: #2c3e50;
+  margin: 0;
+  font-weight: 600;
+}
+
+/* Bouton ajouter - neutre */
+.btn-add {
+  background: #2c3e50;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.3s ease;
+  font-weight: 500;
+}
+
+.btn-add:hover {
+  background: #34495e;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.btn-add i {
+  font-size: 1.1rem;
+}
+
+/* Table Styles */
+.products-table-container {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  overflow-x: auto;
+  position: relative;
+  animation: fadeIn 0.5s ease;
+}
+
+/* Table avec largeur fixe pour éviter les problèmes */
+.products-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 1000px;
+}
+
+.products-table thead {
+  background: #34495e;
+}
+
+.products-table th,
+.products-table td {
+  padding: 0.75rem 1rem;
+  vertical-align: middle;
+  white-space: normal;
+  word-wrap: break-word;
+}
+
+.products-table th {
+  font-weight: 600;
+  color: white;
+  border-bottom: none;
+  font-size: 0.9rem;
+}
+
+.products-table td {
+  border-bottom: 1px solid #e9ecef;
+}
+
+.products-table tbody tr:hover {
+  background: #f8f9fa;
+  transition: background 0.3s ease;
+}
+
+/* Colonne image */
+.product-image-cell {
+  width: 80px;
+  min-width: 80px;
+}
+
+.product-thumbnail {
+  width: 60px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  background-color: #f8f9fa;
+}
+
+.product-thumbnail.image-error {
+  object-fit: contain;
+  padding: 10px;
+  background-color: #f8f9fa;
+}
+
+/* Colonne nom */
+.product-name {
+  min-width: 150px;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+/* Colonne description */
+.product-description {
+  min-width: 250px;
+  max-width: 300px;
+  color: #6c757d;
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+
+/* Colonne type */
+td:nth-child(4),
+th:nth-child(4) {
+  min-width: 100px;
+}
+
+/* Colonne prix */
+.price {
+  min-width: 100px;
+  font-weight: 500;
+  color: #28a745;
+  white-space: nowrap;
+}
+
+/* Colonne statut */
+td:nth-child(6),
+th:nth-child(6) {
+  min-width: 100px;
+}
+
+/* Colonne actions */
+td:last-child,
+th:last-child {
+  min-width: 160px;
+  position: sticky;
+  right: 0;
+  background: white;
+  box-shadow: -2px 0 5px rgba(0, 0, 0, 0.05);
+}
+
+/* Pour le header des actions */
+th:last-child {
+  background: #34495e;
+  position: sticky;
+  right: 0;
+  z-index: 1;
+}
+
+/* Actions buttons container */
+.actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: nowrap;
+  justify-content: flex-start;
+  align-items: center;
+  min-width: 140px;
+}
+
+.action-btn {
+  width: 34px;
+  height: 34px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  flex-shrink: 0;
+  position: relative;
+  background: #f8f9fa;
+  color: #6c757d;
+  border: 1px solid #e9ecef;
+}
+
+.action-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.action-btn:active {
+  transform: scale(0.95);
+}
+
+/* Couleurs des boutons d'action - neutres */
+.action-activate {
+  background: #f8f9fa;
+  color: #28a745;
+  border: 1px solid #e9ecef;
+}
+
+.action-activate:hover {
+  background: #28a745;
+  color: white;
+  border-color: #28a745;
+}
+
+.action-deactivate {
+  background: #f8f9fa;
+  color: #ffc107;
+  border: 1px solid #e9ecef;
+}
+
+.action-deactivate:hover {
+  background: #ffc107;
+  color: #856404;
+  border-color: #ffc107;
+}
+
+.action-edit {
+  background: #f8f9fa;
+  color: #17a2b8;
+  border: 1px solid #e9ecef;
+}
+
+.action-edit:hover {
+  background: #17a2b8;
+  color: white;
+  border-color: #17a2b8;
+}
+
+.action-delete {
+  background: #f8f9fa;
+  color: #dc3545;
+  border: 1px solid #e9ecef;
+}
+
+.action-delete:hover {
+  background: #dc3545;
+  color: white;
+  border-color: #dc3545;
+}
+
+/* Style pour les icônes dans les actions */
+.actions .action-btn i {
+  font-size: 0.9rem;
+}
+
+/* Tooltips - neutres */
+.action-btn:hover::after {
+  content: attr(title);
+  position: absolute;
+  bottom: -35px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #2c3e50;
+  color: white;
+  padding: 5px 10px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  z-index: 1000;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.action-btn:hover::before {
+  content: '';
+  position: absolute;
+  bottom: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 5px;
+  border-style: solid;
+  border-color: transparent transparent #2c3e50 transparent;
+}
+
+/* Status Badges - neutres */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 0.35rem 0.85rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+
+.status-badge i {
+  margin-right: 5px;
+  font-size: 0.75rem;
+}
+
+.status-active {
+  background: #e8f5e9;
+  color: #2e7d32;
+  border: 1px solid #c8e6c9;
+}
+
+.status-inactive {
+  background: #fff3e0;
+  color: #e65100;
+  border: 1px solid #ffe0b2;
+}
+
+.status-refused {
+  background: #ffebee;
+  color: #c62828;
+  border: 1px solid #ffcdd2;
+}
+
+/* Badges (pour compatibilité) */
+.badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  background: #f8f9fa;
+  color: #6c757d;
+}
+
+.badge-new {
+  background: #e3f2fd;
+  color: #1565c0;
+  border: 1px solid #bbdefb;
+}
+
+.badge-promo {
+  background: #fce4ec;
+  color: #c2185b;
+  border: 1px solid #f8bbd0;
+}
+
+/* Modal Styles */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.modal-content {
+  background: white;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 600px;
+  max-height: 90vh;
+  overflow-y: auto;
+  animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateY(-50px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.modal-delete {
+  max-width: 450px;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  border-bottom: 1px solid #e9ecef;
+  background: #34495e;
+  border-radius: 12px 12px 0 0;
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  color: white;
+  font-weight: 600;
+}
+
+.close-btn {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: white;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.close-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: rotate(90deg);
+}
+
+.modal-body {
+  padding: 1.5rem;
+}
+
+/* Form Styles */
+.form-group {
+  margin-bottom: 1.25rem;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  color: #2c3e50;
+  font-size: 0.9rem;
+}
+
+.form-control {
+  width: 100%;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid #dee2e6;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: #34495e;
+  box-shadow: 0 0 0 3px rgba(52, 73, 94, 0.1);
+}
+
+.form-control-file {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px dashed #dee2e6;
+  border-radius: 6px;
+  cursor: pointer;
+  background: #f8f9fa;
+}
+
+textarea.form-control {
+  resize: vertical;
+  font-family: inherit;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.checkbox-group {
+  display: flex;
+  align-items: center;
+  margin-top: 0.5rem;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  font-weight: normal;
+  margin-bottom: 0;
+}
+
+.checkbox-label input {
+  width: auto;
+  cursor: pointer;
+}
+
+.checkbox-label span {
+  margin-bottom: 0;
+}
+
+/* Image Preview */
+.image-preview {
+  margin-top: 1rem;
+  position: relative;
+  display: inline-block;
+}
+
+.image-preview img {
+  max-width: 200px;
+  max-height: 150px;
+  border-radius: 8px;
+  border: 2px solid #e9ecef;
+  object-fit: cover;
+}
+
+.remove-image {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+}
+
+.remove-image:hover {
+  background: #c82333;
+  transform: scale(1.1);
+}
+
+/* Form Actions */
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e9ecef;
+}
+
+.btn-cancel,
+.btn-submit,
+.btn-delete-confirm {
+  padding: 0.6rem 1.2rem;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.btn-cancel {
+  background: #6c757d;
+  color: white;
+}
+
+.btn-cancel:hover {
+  background: #5a6268;
+  transform: translateY(-1px);
+}
+
+.btn-submit {
+  background: #2c3e50;
+  color: white;
+}
+
+.btn-submit:hover {
+  background: #34495e;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.btn-delete-confirm {
+  background: #dc3545;
+  color: white;
+}
+
+.btn-delete-confirm:hover {
+  background: #c82333;
+  transform: translateY(-1px);
+}
+
+/* Delete Modal Specific */
+.delete-warning {
+  text-align: center;
+  padding: 1rem;
+}
+
+.delete-warning i {
+  font-size: 3rem;
+  color: #dc3545;
+  margin-bottom: 1rem;
+}
+
+.delete-warning p {
+  margin: 0.5rem 0;
+  color: #6c757d;
+}
+
+.product-name-highlight {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #dc3545;
+  text-align: center;
+  margin: 1rem 0;
+  padding: 0.5rem;
+  background: #ffebee;
+  border-radius: 6px;
+}
+
+.warning-text {
+  font-size: 0.9rem;
+  color: #adb5bd;
+  margin-top: 1rem;
+}
+
+/* Loading State */
+.loading-state {
+  text-align: center;
+  padding: 3rem;
+  background: white;
+  border-radius: 12px;
+}
+
+.spinner {
+  border: 3px solid #f3f3f3;
+  border-top: 3px solid #34495e;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 1rem;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Empty State */
+.empty-state {
+  text-align: center;
+  padding: 3rem;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.empty-state i {
+  font-size: 4rem;
+  color: #dee2e6;
+  margin-bottom: 1rem;
+}
+
+.empty-state h3 {
+  color: #6c757d;
+  margin-bottom: 0.5rem;
+}
+
+.empty-state p {
+  color: #adb5bd;
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+  .products-table {
+    min-width: 1100px;
+  }
+
+  .product-description {
+    min-width: 200px;
+    max-width: 250px;
+  }
+}
+
+@media (max-width: 768px) {
+  .admin-products-container {
+    padding: 1rem;
+  }
+
+  .admin-header {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: stretch;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .modal-content {
+    width: 95%;
+    margin: 1rem;
+  }
+
+  /* Sur mobile, les actions restent visibles */
+  .actions {
+    min-width: 130px;
+  }
+
+  .action-btn {
+    width: 32px;
+    height: 32px;
+  }
+
+  .product-description {
+    max-width: 150px;
+  }
+
+  .products-table th,
+  .products-table td {
+    padding: 0.75rem 0.5rem;
+  }
+}
+
+/* Scrollbar personnalisée */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}

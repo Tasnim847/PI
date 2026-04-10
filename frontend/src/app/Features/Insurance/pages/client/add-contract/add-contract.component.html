@@ -1,0 +1,84 @@
+<!-- add-contract.component.html -->
+<div class="card shadow">
+  <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+    <h5 class="mb-0">Nouveau Contrat d'Assurance</h5>
+    <button type="button" class="btn-close btn-close-white" (click)="onCancel()"></button>
+  </div>
+  <div class="card-body">
+    <form [formGroup]="contractForm" (ngSubmit)="onSubmit()">
+      <!-- Sélection du produit -->
+      <div class="mb-3">
+        <label class="form-label">Produit d'assurance *</label>
+        <select class="form-select" formControlName="productId">
+          <option value="">Sélectionnez un produit</option>
+          <option *ngFor="let product of products" [value]="getProductId(product)">
+            {{ getProductName(product) }} - {{ getProductBasePrice(product) }} DT
+          </option>
+        </select>
+      </div>
+
+      <!-- Dates -->
+      <div class="row">
+        <div class="col-md-6 mb-3">
+          <label class="form-label">Date de début *</label>
+          <input type="date" class="form-control" formControlName="startDate">
+        </div>
+        <div class="col-md-6 mb-3">
+          <label class="form-label">Date de fin *</label>
+          <input type="date" class="form-control" formControlName="endDate">
+        </div>
+      </div>
+
+      <!-- Fréquence de paiement -->
+      <div class="mb-3">
+        <label class="form-label">Fréquence de paiement *</label>
+        <select class="form-select" formControlName="paymentFrequency">
+          <option *ngFor="let freq of paymentFrequencies" [value]="freq">
+            {{ freq === 'MONTHLY' ? 'Mensuel' : freq === 'SEMI_ANNUAL' ? 'Semestriel' : 'Annuel' }}
+          </option>
+        </select>
+      </div>
+
+      <!-- Informations financières -->
+      <div class="alert alert-info">
+        <h6>Informations financières estimées</h6>
+        <div class="row">
+          <div class="col-md-4">
+            <label>Prime (DT)</label>
+            <input type="number" class="form-control" formControlName="premium" readonly>
+          </div>
+          <div class="col-md-4">
+            <label>Franchise (DT)</label>
+            <input type="number" class="form-control" formControlName="deductible" readonly>
+          </div>
+          <div class="col-md-4">
+            <label>Plafond (DT)</label>
+            <input type="number" class="form-control" formControlName="coverageLimit" readonly>
+          </div>
+        </div>
+      </div>
+
+      <!-- Avertissement risque -->
+      <div *ngIf="riskEvaluation" class="alert" 
+           [class.alert-danger]="!riskEvaluation.canBeActivated"
+           [class.alert-warning]="riskEvaluation.canBeActivated && riskEvaluation.riskEvaluation?.riskLevel === 'MEDIUM'"
+           [class.alert-success]="riskEvaluation.canBeActivated && riskEvaluation.riskEvaluation?.riskLevel === 'LOW'">
+        <h6>Évaluation du risque</h6>
+        <p>{{ riskEvaluation.recommendation }}</p>
+        <small>Score: {{ riskEvaluation.riskEvaluation?.riskScore }}/100 - 
+               Niveau: {{ riskEvaluation.riskEvaluation?.riskLevel }}</small>
+      </div>
+
+      <!-- Boutons -->
+      <div class="d-flex justify-content-end gap-2 mt-3">
+        <button type="button" class="btn btn-secondary" (click)="onCancel()">
+          Annuler
+        </button>
+        <button type="submit" class="btn btn-primary" [disabled]="contractForm.invalid || isLoading">
+          <span *ngIf="isLoading" class="spinner-border spinner-border-sm me-2"></span>
+          Créer le contrat
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

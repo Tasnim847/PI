@@ -15,11 +15,11 @@ export class SidebarComponent {
   menuItems = [
     { label: 'Home', icon: '🏠', link: '/dashboard' },
     { label: 'Credit', icon: '💳', link: '/dashboard/credit' },
-    { label: 'Insurance', icon: '🛡️', link: '/dashboard/insurance' },
+    { label: 'Insurance', icon: '🛡️', link: '/backoffice/insurance' },
     { label: 'Account', icon: '👤', link: '/dashboard/account' },
     { label: 'Complaint', icon: '📄', link: '/dashboard/complaint' },
     { label: 'News', icon: '📰', link: '/dashboard/news' },
-    { label: 'Products', icon: '📦', link: '/dashboard/products' }
+    { label: 'Products', icon: '📦', link: '/backoffice/products' }
   ];
 
   isCollapsed = false;

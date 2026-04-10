@@ -3,11 +3,11 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
-import { ContractService } from '../../services/contract.service';
-import { AddContractComponent } from '../client/add-contract/add-contract.component';
 import { ToastrService } from 'ngx-toastr';
 import { saveAs } from 'file-saver';
-import { AuthService } from '../../../../services/auth.service';
+import { AddContractComponent } from '../add-contract/add-contract.component';
+import { ContractService } from '../../../services/contract.service';
+import { AuthService } from '../../../../../services/auth.service';
 
 @Component({
   selector: 'app-insurance-page',
@@ -45,7 +45,7 @@ export class InsurancePageComponent implements OnInit {
       this.loadContracts();
     } else {
       // Afficher un message invitant à se connecter
-      console.log('Utilisateur non connecté');
+      this.toastr.info('Veuillez vous connecter pour voir vos contrats');
     }
   }
 

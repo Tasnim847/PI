@@ -1,0 +1,49 @@
+/* insurance-page.component.css */
+.hover-card {
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.hover-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+}
+
+.progress {
+  background-color: #e9ecef;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.progress-bar {
+  transition: width 0.3s ease;
+}
+
+.card-header {
+  border-bottom: 2px solid #f8f9fa;
+}
+
+.btn-group .btn {
+  transition: all 0.2s;
+}
+
+.btn-group .btn:hover {
+  transform: scale(1.02);
+}
+
+.modal pre {
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+/* Animation pour le modal */
+.modal {
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+.modal.show {
+  display: block;
+}
+
+.modal-backdrop {
+  z-index: 1040;
+}

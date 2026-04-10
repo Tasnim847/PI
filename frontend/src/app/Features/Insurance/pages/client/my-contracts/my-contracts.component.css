@@ -1,0 +1,586 @@
+/* my-contracts.component.css */
+
+/* ============================================
+   ANIMATIONS GLOBALES
+   ============================================ */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+@keyframes glow {
+  0% {
+    box-shadow: 0 0 5px rgba(102, 126, 234, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(102, 126, 234, 0.5);
+  }
+  100% {
+    box-shadow: 0 0 5px rgba(102, 126, 234, 0.2);
+  }
+}
+
+/* ============================================
+   CARD PRINCIPALE
+   ============================================ */
+.card {
+  border: none;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 50px rgba(0, 0, 0, 0.15);
+}
+
+.card-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 1.5rem 2rem;
+  border: none;
+}
+
+.card-header h4 {
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+
+.card-header .btn-light {
+  border-radius: 12px;
+  padding: 0.5rem 1.25rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  background: white;
+  color: #667eea;
+  border: none;
+}
+
+.card-header .btn-light:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+  background: white;
+}
+
+.card-body {
+  padding: 2rem;
+  background: #f8f9fa;
+}
+
+/* ============================================
+   CARTES DES CONTRATS
+   ============================================ */
+.card.h-100 {
+  background: white;
+  border-radius: 16px;
+  transition: all 0.3s ease;
+  animation: fadeInUp 0.5s ease-out;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.card.h-100:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+}
+
+.card.h-100 .card-body {
+  padding: 1.5rem;
+  background: white;
+}
+
+.card-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #2c3e50;
+  margin: 0;
+}
+
+/* ============================================
+   BADGES
+   ============================================ */
+.badge {
+  padding: 0.5rem 1rem;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 0.75rem;
+  letter-spacing: 0.3px;
+  transition: all 0.3s ease;
+}
+
+.badge.bg-success {
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%) !important;
+  box-shadow: 0 2px 10px rgba(40, 167, 69, 0.3);
+}
+
+.badge.bg-warning {
+  background: linear-gradient(135deg, #ffc107 0%, #ff9f43 100%) !important;
+  color: #212529;
+  box-shadow: 0 2px 10px rgba(255, 193, 7, 0.3);
+}
+
+.badge.bg-danger {
+  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%) !important;
+  box-shadow: 0 2px 10px rgba(220, 53, 69, 0.3);
+}
+
+.badge.bg-info {
+  background: linear-gradient(135deg, #17a2b8 0%, #138496 100%) !important;
+  box-shadow: 0 2px 10px rgba(23, 162, 184, 0.3);
+}
+
+.badge.bg-secondary {
+  background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%) !important;
+}
+
+/* ============================================
+   PROGRESS BAR
+   ============================================ */
+.progress {
+  background-color: #e9ecef;
+  border-radius: 10px;
+  overflow: hidden;
+  height: 8px;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.progress-bar {
+  background: linear-gradient(90deg, #28a745 0%, #20c997 100%);
+  transition: width 0.6s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.progress-bar::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.3) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  animation: shimmer 2s infinite;
+}
+
+/* ============================================
+   BOUTONS
+   ============================================ */
+.btn-group .btn {
+  border-radius: 8px;
+  margin: 0 4px;
+  padding: 0.4rem 0.8rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-group .btn::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.5);
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s;
+}
+
+.btn-group .btn:hover::before {
+  width: 200px;
+  height: 200px;
+}
+
+.btn-outline-primary {
+  border: 2px solid #667eea;
+  color: #667eea;
+  background: transparent;
+}
+
+.btn-outline-primary:hover {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-color: transparent;
+  color: white;
+  transform: translateY(-2px);
+}
+
+.btn-outline-secondary {
+  border: 2px solid #6c757d;
+  color: #6c757d;
+}
+
+.btn-outline-secondary:hover {
+  background: #6c757d;
+  border-color: transparent;
+  color: white;
+  transform: translateY(-2px);
+}
+
+.btn-outline-danger {
+  border: 2px solid #dc3545;
+  color: #dc3545;
+}
+
+.btn-outline-danger:hover {
+  background: #dc3545;
+  border-color: transparent;
+  color: white;
+  transform: translateY(-2px);
+}
+
+/* ============================================
+   FORMULAIRES
+   ============================================ */
+.form-label {
+  font-weight: 600;
+  color: #495057;
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.form-select {
+  border-radius: 12px;
+  border: 2px solid #e9ecef;
+  padding: 0.75rem 1rem;
+  transition: all 0.3s ease;
+  background: white;
+  cursor: pointer;
+}
+
+.form-select:focus {
+  border-color: #667eea;
+  box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+  outline: none;
+}
+
+.form-select:hover {
+  border-color: #667eea;
+}
+
+/* ============================================
+   MODAL
+   ============================================ */
+.modal {
+  background-color: rgba(0, 0, 0, 0.6);
+  animation: fadeInUp 0.3s ease-out;
+}
+
+.modal-content {
+  border: none;
+  border-radius: 20px;
+  overflow: hidden;
+  animation: slideInRight 0.3s ease-out;
+}
+
+.modal-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 1.5rem;
+}
+
+.modal-header .btn-close {
+  background-color: white;
+  border-radius: 50%;
+  opacity: 1;
+  transition: all 0.3s ease;
+}
+
+.modal-header .btn-close:hover {
+  transform: rotate(90deg);
+}
+
+.modal-title {
+  font-weight: 700;
+  font-size: 1.25rem;
+}
+
+.modal-body {
+  padding: 2rem;
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+.modal-body pre {
+  background: #f8f9fa;
+  padding: 1.5rem;
+  border-radius: 12px;
+  font-family: 'Courier New', monospace;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: #495057;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  border-left: 4px solid #667eea;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.modal-footer {
+  border-top: 1px solid #e9ecef;
+  padding: 1.5rem;
+}
+
+.modal-footer .btn-secondary {
+  border-radius: 10px;
+  padding: 0.5rem 1.5rem;
+}
+
+.modal-backdrop {
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+/* ============================================
+   ALERTES
+   ============================================ */
+.alert {
+  border: none;
+  border-radius: 16px;
+  padding: 1.5rem;
+  font-weight: 500;
+  animation: pulse 0.5s ease-out;
+}
+
+.alert-info {
+  background: linear-gradient(135deg, #d1ecf1 0%, #bee5eb 100%);
+  color: #0c5460;
+  border-left: 4px solid #17a2b8;
+}
+
+.alert-warning {
+  background: linear-gradient(135deg, #fff3cd 0%, #ffeeba 100%);
+  color: #856404;
+  border-left: 4px solid #ffc107;
+}
+
+.alert-success {
+  background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+  color: #155724;
+  border-left: 4px solid #28a745;
+}
+
+.alert-danger {
+  background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+  color: #721c24;
+  border-left: 4px solid #dc3545;
+}
+
+/* ============================================
+   LOADING SPINNER
+   ============================================ */
+.spinner-border {
+  width: 3rem;
+  height: 3rem;
+  border-width: 0.25rem;
+  color: #667eea;
+  animation: pulse 1s ease-in-out infinite;
+}
+
+/* ============================================
+   TEXTE ET TYPOGRAPHIE
+   ============================================ */
+.card-text {
+  color: #495057;
+  line-height: 1.6;
+}
+
+.card-text strong {
+  color: #2c3e50;
+  font-weight: 600;
+}
+
+small.text-muted {
+  font-size: 0.75rem;
+  color: #6c757d !important;
+}
+
+/* ============================================
+   ANIMATIONS DES CARTES
+   ============================================ */
+.col-md-6 {
+  animation: fadeInUp 0.5s ease-out;
+  animation-fill-mode: backwards;
+}
+
+.col-md-6:nth-child(1) { animation-delay: 0.05s; }
+.col-md-6:nth-child(2) { animation-delay: 0.1s; }
+.col-md-6:nth-child(3) { animation-delay: 0.15s; }
+.col-md-6:nth-child(4) { animation-delay: 0.2s; }
+.col-md-6:nth-child(5) { animation-delay: 0.25s; }
+.col-md-6:nth-child(6) { animation-delay: 0.3s; }
+.col-md-6:nth-child(7) { animation-delay: 0.35s; }
+.col-md-6:nth-child(8) { animation-delay: 0.4s; }
+.col-md-6:nth-child(9) { animation-delay: 0.45s; }
+.col-md-6:nth-child(10) { animation-delay: 0.5s; }
+
+/* ============================================
+   SCROLLBAR PERSONNALISÉE
+   ============================================ */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #5a67d8 0%, #6b46a0 100%);
+}
+
+/* ============================================
+   RESPONSIVE DESIGN
+   ============================================ */
+@media (max-width: 768px) {
+  .card-header {
+    padding: 1rem;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .card-header .btn-light {
+    width: 100%;
+  }
+  
+  .card-body {
+    padding: 1rem;
+  }
+  
+  .card.h-100 .card-body {
+    padding: 1rem;
+  }
+  
+  .btn-group {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .btn-group .btn {
+    width: 100%;
+    margin: 0;
+  }
+  
+  .modal-dialog {
+    margin: 1rem;
+  }
+  
+  .modal-body {
+    padding: 1rem;
+  }
+  
+  .badge {
+    padding: 0.3rem 0.8rem;
+    font-size: 0.7rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .container {
+    padding: 0.5rem;
+  }
+  
+  .card-title {
+    font-size: 1rem;
+  }
+  
+  .card-text {
+    font-size: 0.875rem;
+  }
+  
+  .progress {
+    height: 6px;
+  }
+}
+
+/* ============================================
+   EFFETS SPÉCIAUX
+   ============================================ */
+.hover-glow {
+  transition: all 0.3s ease;
+}
+
+.hover-glow:hover {
+  animation: glow 1.5s ease-in-out infinite;
+}
+
+.text-gradient {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ============================================
+   STATISTIQUES (optionnel)
+   ============================================ */
+.stats-badge {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  display: inline-block;
+  margin-bottom: 1rem;
+}
+
+/* ============================================
+   SÉPARATEURS
+   ============================================ */
+.divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #e9ecef, transparent);
+  margin: 1rem 0;
+}
