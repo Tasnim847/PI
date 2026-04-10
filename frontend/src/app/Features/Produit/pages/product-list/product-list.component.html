@@ -1,11 +1,31 @@
-<h2>Liste des produits</h2>
+<!-- product-list.component.html -->
+<div class="products-container">
+  <!-- Hero Section -->
+  <div class="hero-section">
+    <div class="hero-content">
+      <h1>Nos Produits d'Assurance</h1>
+      <p>Découvrez notre sélection exclusive de produits de qualité</p>
+    </div>
+  </div>
 
-<div *ngIf="products.length === 0">
-  Aucun produit disponible.
-</div>
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="loading-state">
+    <div class="spinner"></div>
+    <p>Chargement des produits...</p>
+  </div>
 
-<div *ngFor="let product of products" class="product-card">
-  <h3>{{ product.name }}</h3>
-  <p>{{ product.description }}</p>
-  <p>Prix : {{ product.price }} TND</p>
+  <!-- Products Grid - UTILISATION DU COMPOSANT PRODUCT-CARD -->
+  <div *ngIf="!isLoading && products.length > 0" class="products-grid">
+    <app-product-card 
+      *ngFor="let product of products" 
+      [product]="product">
+    </app-product-card>
+  </div>
+
+  <!-- Empty State -->
+  <div *ngIf="!isLoading && products.length === 0" class="empty-state">
+    <i class="fas fa-box-open"></i>
+    <h3>Aucun produit disponible</h3>
+    <p>Revenez plus tard pour découvrir nos nouveaux produits</p>
+  </div>
 </div>

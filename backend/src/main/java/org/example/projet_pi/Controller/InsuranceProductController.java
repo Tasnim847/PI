@@ -1,6 +1,8 @@
 package org.example.projet_pi.Controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import lombok.AllArgsConstructor;
 import org.example.projet_pi.Dto.InsuranceProductDTO;
 import org.example.projet_pi.Service.IInsuranceProductService;
@@ -10,12 +12,17 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 
 @RestController
 @AllArgsConstructor
 @RequestMapping("/products")
 public class InsuranceProductController {
+
+    private static final Logger logger = LoggerFactory.getLogger(InsuranceProductController.class);
 
     private final IInsuranceProductService insuranceProductService;
     private final ObjectMapper objectMapper = new ObjectMapper();
@@ -97,6 +104,29 @@ public class InsuranceProductController {
             return ResponseEntity.ok(products);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    // Dans InsuranceProductController.java
+    @GetMapping("/images/{filename:.+}")
+    public ResponseEntity<byte[]> getImage(@PathVariable String filename) {
+        try {
+            // Le chemin complet vers le fichier
+            Path imagePath = Paths.get("uploads/produits/", filename);
+            byte[] imageBytes = Files.readAllBytes(imagePath);
+
+            // Déterminer le type MIME
+            String contentType = Files.probeContentType(imagePath);
+            if (contentType == null) {
+                contentType = "image/jpeg";
+            }
+
+            return ResponseEntity.ok()
+                    .contentType(MediaType.parseMediaType(contentType))
+                    .body(imageBytes);
+        } catch (Exception e) {
+            logger.error("Image non trouvée: {}", filename, e);
+            return ResponseEntity.notFound().build();
         }
     }
 

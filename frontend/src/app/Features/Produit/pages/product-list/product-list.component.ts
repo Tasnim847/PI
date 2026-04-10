@@ -1,32 +1,40 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ProductService } from '../../services/product.service';
+import { ProductApiService } from '../../services/product-api.service'; // Importer le composant
+import { ProductCardComponent } from '../../components/product-card/product-card.component';
 
 @Component({
   selector: 'app-product-list',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, ProductCardComponent], // Ajouter ProductCardComponent aux imports
   templateUrl: './product-list.component.html',
   styleUrls: ['./product-list.component.css']
 })
 export class ProductListComponent implements OnInit {
-
   products: any[] = [];
+  isLoading = true;
 
-  constructor(private productService: ProductService) {}
+  constructor(private productApiService: ProductApiService) {}
 
-  ngOnInit(): void {
+  ngOnInit() {
     this.loadProducts();
   }
 
-  loadProducts(): void {
-    this.productService.getActiveProducts().subscribe({
+  loadProducts() {
+    this.isLoading = true;
+    this.productApiService.getActiveProducts().subscribe({
       next: (data) => {
         this.products = data;
+        this.isLoading = false;
+        console.log('Produits chargés:', this.products);
       },
-      error: (err) => {
-        console.error(err);
+      error: (error) => {
+        console.error('Erreur chargement produits:', error);
+        this.isLoading = false;
       }
     });
   }
+
+  // Pas besoin des méthodes getProductImageUrl, onImageError, addToCart ici
+  // Car elles sont déjà gérées par ProductCardComponent
 }

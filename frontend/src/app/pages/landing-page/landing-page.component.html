@@ -1,218 +1,364 @@
-<!-- Navbar -->
-<nav class="navbar" [class.scrolled]="isScrolled">
-  <div class="container">
-    <a class="logo" href="#">
-      <img src="assets/images/logo.png" alt="SurFinity" />
-      <span class="logo-text">SurFinity</span>
+<!-- Navbar existante -->
+<nav class="navbar navbar-expand-lg bg-body-tertiary fixed-top">
+  <div class="container-fluid">
+    <a class="navbar-brand p-0" routerLink="/">
+      <img
+        src="assets/images/logo.png"
+        alt="SurFinity"
+        width="160"
+        height="53"
+        class="d-inline-block align-middle"
+        style="object-fit: contain;"
+      >
     </a>
-    <ul class="nav-links">
-      <li><a href="#home" class="nav-link">Home</a></li>
-      <li><a href="#services" class="nav-link">Services</a></li>
-      <li><a href="#about" class="nav-link">About Us</a></li>
-      <li><a href="#contact" class="nav-link">Contact</a></li>
-    </ul>
-    <div class="auth-buttons">
-      <a routerLink="/public/login" class="login-btn">
-        <i class="fas fa-user"></i> Login
-      </a>
-
-      <a routerLink="/public/register" class="signup-btn">
-        <i class="fas fa-user-plus"></i> Sign Up
-      </a>
-    </div>
-    <div class="mobile-menu-btn" (click)="toggleMobileMenu()">
-      <span></span>
-      <span></span>
-      <span></span>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+        <li class="nav-item">
+          <a class="nav-link" routerLink="/public/home" routerLinkActive="active">Home</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" routerLink="/public/credit" routerLinkActive="active">Credit</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" routerLink="/public/insurance" routerLinkActive="active">Insurance</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" routerLink="/public/account" routerLinkActive="active">Account</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" routerLink="/public/complaint" routerLinkActive="active">Complaint</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" routerLink="/public/news" routerLinkActive="active">News</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" routerLink="/public/products" routerLinkActive="active">Products</a>
+        </li>
+      </ul>
+      <div class="d-flex align-items-center gap-3">
+        <div class="dropdown">
+          <button class="btn btn-link dropdown-toggle text-dark text-decoration-none" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="fas fa-user-circle me-1"></i>
+            <span>{{ firstName }} {{ lastName }}</span>
+          </button>
+          <ul class="dropdown-menu dropdown-menu-end">
+            <li><a class="dropdown-item" routerLink="/public/profile" routerLinkActive="active"><i class="fas fa-user me-2"></i>Mon profil</a></li>
+            <li><a class="dropdown-item" href="#"><i class="fas fa-cog me-2"></i>Paramètres</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item text-danger" href="#" style="cursor: pointer;"><i class="fas fa-sign-out-alt me-2"></i>Déconnexion</a></li>
+          </ul>
+        </div>
+      </div>
     </div>
   </div>
 </nav>
 
-<!-- Hero section avec image de fond -->
-<section class="hero" id="home">
-  <img src="assets/images/hero-background.jpg" alt="Background" class="hero-bg-image">
-  <div class="hero-overlay"></div>
-  <div class="hero-content">
-    <div class="container">
-      <div class="hero-text">
-        <h1 class="animate-text">Welcome to <span class="highlight">SurFinity</span></h1>
-        <p class="animate-text-delay">Your intelligent platform for finance and insurance.</p>
-        <div class="hero-buttons">
-          <button class="btn-primary" (click)="navigateToLogin()">
-            Get Started <i class="fas fa-arrow-right"></i>
-          </button>
-          <button class="btn-secondary" (click)="scrollToServices()">
-            Discover <i class="fas fa-chevron-down"></i>
-          </button>
+<!-- Main Content -->
+<div class="bank-dashboard" style="margin-top: 76px;">
+  <div class="container-fluid px-4 py-4">
+    <!-- Welcome Banner -->
+    <div class="welcome-banner mb-4">
+      <div class="row align-items-center">
+        <div class="col-md-8">
+          <h1 class="display-6 fw-bold mb-2">
+            Bonjour, {{ firstName }} {{ lastName }} !
+          </h1>
+          <p class="lead mb-0">Bienvenue sur votre espace bancaire SurFinity</p>
         </div>
-      </div>
-      <div class="hero-stats">
-        <div class="stat">
-          <h3>1000+</h3>
-          <p>Happy Clients</p>
-        </div>
-        <div class="stat">
-          <h3>50M+</h3>
-          <p>Transactions</p>
-        </div>
-        <div class="stat">
-          <h3>99.9%</h3>
-          <p>Satisfaction</p>
+        <div class="col-md-4 text-md-end">
+          <div class="date-badge">
+            <i class="fas fa-calendar-alt me-2"></i>
+            jeudi 10 avril 2026
+          </div>
         </div>
       </div>
     </div>
-  </div>
-</section>
 
-<!-- Services Section -->
-<section class="services" id="services">
-  <div class="container">
-    <div class="section-header">
-      <h2>Our Services</h2>
-      <p>Innovative solutions for your financial needs</p>
-    </div>
-    <div class="service-cards">
-      <div class="card" *ngFor="let service of services">
-        <div class="card-icon">
-          <i [class]="service.icon"></i>
+    <!-- Balance Card -->
+    <div class="row mb-4">
+      <div class="col-lg-4 col-md-6 mb-3">
+        <div class="balance-card">
+          <div class="card-body p-4">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+              <div>
+                <p class="text-muted mb-1">💰 Solde du compte</p>
+                <h2 class="display-5 fw-bold mb-0">20,680.50 €</h2>
+              </div>
+              <button class="btn btn-link text-dark" onclick="alert('Fonctionnalité: Masquer/Afficher le solde')">
+                <i class="fas fa-eye-slash"></i>
+              </button>
+            </div>
+            <div class="row mt-3">
+              <div class="col-6">
+                <small class="text-muted">Compte courant</small>
+                <p class="fw-bold mb-0">12,450.00 €</p>
+              </div>
+              <div class="col-6">
+                <small class="text-muted">Compte épargne</small>
+                <p class="fw-bold mb-0">8,230.50 €</p>
+              </div>
+            </div>
+          </div>
         </div>
-        <h3>{{ service.title }}</h3>
-        <p>{{ service.description }}</p>
-        <a href="#" class="card-link">Learn more <i class="fas fa-arrow-right"></i></a>
       </div>
-    </div>
-  </div>
-</section>
 
-<!-- Features Section -->
-<section class="features">
-  <div class="container">
-    <div class="features-grid">
-      <div class="features-content">
-        <h2>Why Choose SurFinity?</h2>
-        <p>We're revolutionizing the way you manage your finances</p>
-        <div class="feature-item" *ngFor="let feature of features">
-          <div class="feature-icon">
-            <i [class]="feature.icon"></i>
+      <!-- Quick Stats -->
+      <div class="col-lg-8 col-md-6">
+        <div class="row g-3">
+          <div class="col-md-4">
+            <div class="stat-card">
+              <div class="stat-icon bg-primary bg-opacity-10">
+                <i class="fas fa-exchange-alt text-primary"></i>
+              </div>
+              <div class="stat-info">
+                <h3 class="mb-0">12</h3>
+                <p class="text-muted mb-0">Transactions ce mois</p>
+              </div>
+            </div>
           </div>
-          <div class="feature-text">
-            <h4>{{ feature.title }}</h4>
-            <p>{{ feature.description }}</p>
+          <div class="col-md-4">
+            <div class="stat-card">
+              <div class="stat-icon bg-success bg-opacity-10">
+                <i class="fas fa-chart-line text-success"></i>
+              </div>
+              <div class="stat-info">
+                <h3 class="mb-0">+15.5%</h3>
+                <p class="text-muted mb-0">Croissance épargne</p>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="stat-card">
+              <div class="stat-icon bg-info bg-opacity-10">
+                <i class="fas fa-piggy-bank text-info"></i>
+              </div>
+              <div class="stat-info">
+                <h3 class="mb-0">3</h3>
+                <p class="text-muted mb-0">Objectifs d'épargne</p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
-      <div class="features-image">
-        <img src="assets/images/dashboard-preview.png" alt="Dashboard Preview">
-      </div>
     </div>
-  </div>
-</section>
 
-<!-- About Us Section -->
-<section class="about" id="about">
-  <div class="container">
-    <div class="about-content">
-      <div class="about-text">
-        <h2>About Us</h2>
-        <p>We are a team dedicated to simplifying your financial operations.</p>
-        <p>SurFinity was born from the desire to make financial services accessible to everyone. With a team of passionate experts, we develop innovative solutions to manage credits, insurance, and accounts with ease.</p>
-        <div class="about-stats">
-          <div class="about-stat">
-            <h3>2019</h3>
-            <p>Year Founded</p>
-          </div>
-          <div class="about-stat">
-            <h3>15+</h3>
-            <p>Experts</p>
-          </div>
-          <div class="about-stat">
-            <h3>4.8</h3>
-            <p>Average Rating</p>
+    <!-- Actions Rapides -->
+    <div class="row mb-4">
+      <div class="col-12">
+        <div class="actions-card">
+          <div class="card-body p-4">
+            <h5 class="mb-3">Actions rapides</h5>
+            <div class="row g-3">
+              <div class="col-md-3 col-6">
+                <button class="action-btn w-100" onclick="alert('📤 Fonctionnalité: Envoyer de l\'argent')">
+                  <i class="fas fa-paper-plane fa-2x mb-2"></i>
+                  <span>📤 Envoyer</span>
+                </button>
+              </div>
+              <div class="col-md-3 col-6">
+                <button class="action-btn w-100" onclick="alert('📥 Fonctionnalité: Recharger le compte')">
+                  <i class="fas fa-plus-circle fa-2x mb-2"></i>
+                  <span>📥 Recharger</span>
+                </button>
+              </div>
+              <div class="col-md-3 col-6">
+                <button class="action-btn w-100" onclick="alert('📑 Fonctionnalité: Relevé bancaire')">
+                  <i class="fas fa-file-invoice fa-2x mb-2"></i>
+                  <span>📑 Relevé</span>
+                </button>
+              </div>
+              <div class="col-md-3 col-6">
+                <button class="action-btn w-100" onclick="document.getElementById('savingsGoals').scrollIntoView({ behavior: 'smooth' })">
+                  <i class="fas fa-bullseye fa-2x mb-2"></i>
+                  <span>🎯 Objectifs</span>
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
-      <div class="about-image">
-        <img src="assets/images/about-us.png" alt="About Us">
-      </div>
     </div>
-  </div>
-</section>
 
-<!-- Contact Section -->
-<section class="contact" id="contact">
-  <div class="container">
-    <div class="contact-content">
-      <div class="contact-info">
-        <h2>Contact Us</h2>
-        <p>Our team is here to answer your questions</p>
-        <div class="contact-details">
-          <div class="contact-item">
-            <i class="fas fa-map-marker-alt"></i>
-            <span>Tunis, Tunisia</span>
-          </div>
-          <div class="contact-item">
-            <i class="fas fa-phone"></i>
-            <span>+216 12 345 678</span>
-          </div>
-          <div class="contact-item">
-            <i class="fas fa-envelope"></i>
-            <span>info&#64;surfinity.com</span>
+    <!-- Transactions Récentes -->
+    <div class="row mb-4">
+      <div class="col-12">
+        <div class="transactions-card">
+          <div class="card-body p-0">
+            <div class="d-flex justify-content-between align-items-center p-4 border-bottom">
+              <h5 class="mb-0">📊 Historique des transactions</h5>
+              <a href="#" class="text-decoration-none" data-bs-toggle="collapse" data-bs-target="#transactionsList">
+                Voir tout <i class="fas fa-chevron-down ms-1"></i>
+              </a>
+            </div>
+            <div id="transactionsList" class="collapse show">
+              <div class="transaction-item">
+                <div class="d-flex justify-content-between align-items-center p-3 border-bottom">
+                  <div class="d-flex align-items-center">
+                    <div class="transaction-icon debit me-3">
+                      <i class="fas fa-tv"></i>
+                    </div>
+                    <div>
+                      <h6 class="mb-0">Netflix</h6>
+                      <small class="text-muted">Aujourd'hui, 14:30</small>
+                    </div>
+                  </div>
+                  <div class="fw-bold text-danger">
+                    -15.99 €
+                  </div>
+                </div>
+              </div>
+              <div class="transaction-item">
+                <div class="d-flex justify-content-between align-items-center p-3 border-bottom">
+                  <div class="d-flex align-items-center">
+                    <div class="transaction-icon credit me-3">
+                      <i class="fas fa-exchange-alt"></i>
+                    </div>
+                    <div>
+                      <h6 class="mb-0">Virement de Jean Dupont</h6>
+                      <small class="text-muted">Hier, 09:15</small>
+                    </div>
+                  </div>
+                  <div class="fw-bold text-success">
+                    +250.00 €
+                  </div>
+                </div>
+              </div>
+              <div class="transaction-item">
+                <div class="d-flex justify-content-between align-items-center p-3 border-bottom">
+                  <div class="d-flex align-items-center">
+                    <div class="transaction-icon debit me-3">
+                      <i class="fas fa-shopping-cart"></i>
+                    </div>
+                    <div>
+                      <h6 class="mb-0">Carrefour Market</h6>
+                      <small class="text-muted">25/12/2024</small>
+                    </div>
+                  </div>
+                  <div class="fw-bold text-danger">
+                    -85.40 €
+                  </div>
+                </div>
+              </div>
+              <div class="transaction-item">
+                <div class="d-flex justify-content-between align-items-center p-3 border-bottom">
+                  <div class="d-flex align-items-center">
+                    <div class="transaction-icon credit me-3">
+                      <i class="fas fa-briefcase"></i>
+                    </div>
+                    <div>
+                      <h6 class="mb-0">Salaire</h6>
+                      <small class="text-muted">20/12/2024</small>
+                    </div>
+                  </div>
+                  <div class="fw-bold text-success">
+                    +2,450.00 €
+                  </div>
+                </div>
+              </div>
+              <div class="transaction-item">
+                <div class="d-flex justify-content-between align-items-center p-3 border-bottom">
+                  <div class="d-flex align-items-center">
+                    <div class="transaction-icon debit me-3">
+                      <i class="fas fa-mobile-alt"></i>
+                    </div>
+                    <div>
+                      <h6 class="mb-0">Free Mobile</h6>
+                      <small class="text-muted">15/12/2024</small>
+                    </div>
+                  </div>
+                  <div class="fw-bold text-danger">
+                    -19.99 €
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
-      <form class="contact-form" (ngSubmit)="submitContactForm()">
-        <input type="text" placeholder="Your name" [(ngModel)]="contactData.name" name="name" required>
-        <input type="email" placeholder="Your email" [(ngModel)]="contactData.email" name="email" required>
-        <textarea placeholder="Your message" [(ngModel)]="contactData.message" name="message" rows="4" required></textarea>
-        <button type="submit" class="btn-primary">Send <i class="fas fa-paper-plane"></i></button>
-      </form>
     </div>
-  </div>
-</section>
 
-<!-- Footer -->
-<footer class="footer">
-  <div class="container">
-    <div class="footer-content">
-      <div class="footer-section">
-        <h3>SurFinity</h3>
-        <p>Your trusted financial partner</p>
-        <div class="social-links">
-          <a href="#"><i class="fab fa-facebook-f"></i></a>
-          <a href="#"><i class="fab fa-twitter"></i></a>
-          <a href="#"><i class="fab fa-linkedin-in"></i></a>
-          <a href="#"><i class="fab fa-instagram"></i></a>
+    <!-- Objectifs d'épargne -->
+    <div class="row" id="savingsGoals">
+      <div class="col-12">
+        <div class="savings-card">
+          <div class="card-body p-4">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+              <h5 class="mb-0">🎯 Objectifs d'épargne</h5>
+              <button class="btn btn-sm btn-outline-primary" onclick="alert('🎯 Fonctionnalité: Nouvel objectif d\'épargne')">
+                <i class="fas fa-plus me-1"></i> Nouvel objectif
+              </button>
+            </div>
+            <div class="row g-3">
+              <div class="col-md-4">
+                <div class="goal-card">
+                  <div class="d-flex justify-content-between align-items-start mb-2">
+                    <div>
+                      <i class="fas fa-plane fa-2x text-primary mb-2"></i>
+                      <h6 class="mb-1">Voyage au Japon</h6>
+                    </div>
+                    <span class="badge bg-light text-dark">41.67%</span>
+                  </div>
+                  <div class="mb-2">
+                    <div class="d-flex justify-content-between small mb-1">
+                      <span>1,250 €</span>
+                      <span>3,000 €</span>
+                    </div>
+                    <div class="progress" style="height: 8px;">
+                      <div class="progress-bar bg-primary" style="width: 41.67%"></div>
+                    </div>
+                  </div>
+                  <small class="text-muted">Objectif: Juin 2025</small>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="goal-card">
+                  <div class="d-flex justify-content-between align-items-start mb-2">
+                    <div>
+                      <i class="fas fa-car fa-2x text-primary mb-2"></i>
+                      <h6 class="mb-1">Nouvelle voiture</h6>
+                    </div>
+                    <span class="badge bg-light text-dark">25%</span>
+                  </div>
+                  <div class="mb-2">
+                    <div class="d-flex justify-content-between small mb-1">
+                      <span>5,000 €</span>
+                      <span>20,000 €</span>
+                    </div>
+                    <div class="progress" style="height: 8px;">
+                      <div class="progress-bar bg-primary" style="width: 25%"></div>
+                    </div>
+                  </div>
+                  <small class="text-muted">Objectif: Décembre 2025</small>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="goal-card">
+                  <div class="d-flex justify-content-between align-items-start mb-2">
+                    <div>
+                      <i class="fas fa-shield-alt fa-2x text-primary mb-2"></i>
+                      <h6 class="mb-1">Fond d'urgence</h6>
+                    </div>
+                    <span class="badge bg-light text-dark">35%</span>
+                  </div>
+                  <div class="mb-2">
+                    <div class="d-flex justify-content-between small mb-1">
+                      <span>3,500 €</span>
+                      <span>10,000 €</span>
+                    </div>
+                    <div class="progress" style="height: 8px;">
+                      <div class="progress-bar bg-primary" style="width: 35%"></div>
+                    </div>
+                  </div>
+                  <small class="text-muted">Objectif: Mars 2026</small>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
-      <div class="footer-section">
-        <h4>Quick Links</h4>
-        <ul>
-          <li><a href="#home">Home</a></li>
-          <li><a href="#services">Services</a></li>
-          <li><a href="#about">About Us</a></li>
-          <li><a href="#contact">Contact</a></li>
-        </ul>
-      </div>
-      <div class="footer-section">
-        <h4>Our Services</h4>
-        <ul>
-          <li><a href="#">Credits</a></li>
-          <li><a href="#">Insurance</a></li>
-          <li><a href="#">Accounts</a></li>
-          <li><a href="#">Support</a></li>
-        </ul>
-      </div>
-      <div class="footer-section">
-        <h4>Newsletter</h4>
-        <p>Receive our news</p>
-        <div class="newsletter">
-          <input type="email" placeholder="Your email" [(ngModel)]="newsletterEmail">
-          <button (click)="subscribeNewsletter()">Subscribe</button>
-        </div>
-      </div>
-    </div>
-    <div class="footer-bottom">
-      <p>&copy; 2026 SurFinity. All rights reserved.</p>
     </div>
   </div>
-</footer>
+</div>

@@ -28,23 +28,41 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                     FilterChain filterChain)
             throws ServletException, IOException {
 
+        // Permettre les requêtes OPTIONS (preflight)
+        if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
+            response.setStatus(HttpServletResponse.SC_OK);
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         final String authHeader = request.getHeader("Authorization");
         final String jwt;
         final String email;
 
+        System.out.println("=== JWT Filter Debug ===");
+        System.out.println("Request URI: " + request.getRequestURI());
+        System.out.println("Auth Header: " + (authHeader != null ? authHeader.substring(0, Math.min(50, authHeader.length())) : "null"));
+
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            System.out.println("No Bearer token found");
             filterChain.doFilter(request, response);
             return;
         }
 
         jwt = authHeader.substring(7);
         email = jwtUtils.extractUsername(jwt);
+        String role = jwtUtils.extractRole(jwt);
+
+        System.out.println("Extracted email: " + email);
+        System.out.println("Extracted role: " + role);
 
         if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
 
             UserDetails userDetails = userDetailsService.loadUserByUsername(email);
+            System.out.println("UserDetails authorities: " + userDetails.getAuthorities());
 
-            if (jwtUtils.validateToken(jwt)) {
+            if (jwtUtils.validateToken(jwt, userDetails)) {
+                System.out.println("✅ Token validated successfully");
 
                 UsernamePasswordAuthenticationToken authToken =
                         new UsernamePasswordAuthenticationToken(
@@ -58,9 +76,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 );
 
                 SecurityContextHolder.getContext().setAuthentication(authToken);
+                System.out.println("✅ Authentication set in SecurityContext");
+            } else {
+                System.out.println("❌ Token validation failed");
             }
         }
 
         filterChain.doFilter(request, response);
     }
+
 }
