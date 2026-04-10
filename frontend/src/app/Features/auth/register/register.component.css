@@ -1,0 +1,391 @@
+/* register.component.css */
+
+/* =========================
+   GLOBAL PAGE
+========================= */
+:host {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: linear-gradient(145deg, #f5f7fc 0%, #eef2f8 100%);
+  padding: 20px 0;
+}
+
+/* =========================
+   CARD
+========================= */
+.container {
+  width: 100%;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.container > div {
+  background: #ffffff;
+  border-radius: 32px;
+  padding: 2rem 3rem;
+  box-shadow: 0 20px 40px rgba(14, 61, 92, 0.1);
+  animation: fadeInUp 0.5s ease-out;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* =========================
+   LOGO (TOP)
+========================= */
+.logo-wrapper {
+  width: 100%;
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+.logo {
+  max-width: 180px;
+  height: auto;
+}
+
+/* =========================
+   TITLE
+========================= */
+h2 {
+  text-align: center;
+  font-size: 2rem;
+  font-weight: 700;
+  color: #0e3d5c;
+  margin: 0.5rem 0 0.25rem 0;
+}
+
+/* =========================
+   WELCOME MESSAGE
+========================= */
+.welcome-message {
+  text-align: center;
+  margin-bottom: 1.5rem;
+  width: 100%;
+}
+
+.welcome-message p:first-child {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #0e3d5c;
+  margin-bottom: 0.25rem;
+}
+
+.welcome-message p:last-child {
+  font-size: 0.9rem;
+  color: #3a7ca5;
+  font-weight: 500;
+}
+
+/* =========================
+   AVATAR (UNDER WELCOME MESSAGE)
+========================= */
+.avatar-upload {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  margin-bottom: 1.5rem;
+}
+
+.avatar-circle {
+  width: 105px;
+  height: 105px;
+  border-radius: 50%;
+  border: 3px solid #0e3d5c;
+  background: #f5f7fc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.avatar-circle:hover {
+  transform: scale(1.05);
+  box-shadow: 0 10px 25px rgba(14, 61, 92, 0.2);
+}
+
+.avatar-circle:hover::after {
+  content: "📷";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(14, 61, 92, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  color: white;
+  border-radius: 50%;
+}
+
+.avatar-circle i {
+  font-size: 3.5rem;
+  color: #0e3d5c;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.avatar-circle .fa-user-circle {
+  font-size: 3.8rem;
+  color: #0e3d5c;
+}
+
+.avatar-circle img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.avatar-circle input {
+  display: none;
+}
+
+/* Texte indicateur sous l'avatar */
+.avatar-hint {
+  text-align: center;
+  margin-top: 0.75rem;
+  font-size: 0.75rem;
+  color: #0e3d5c;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+}
+
+.avatar-hint i {
+  font-size: 0.75rem;
+  color: #0e3d5c;
+}
+
+/* =========================
+   FORM
+========================= */
+form {
+  width: 100%;
+  margin-top: 0.5rem;
+}
+
+.form-row {
+  display: flex;
+  gap: 1.5rem;
+  width: 100%;
+  margin-bottom: 1.5rem;
+}
+
+.form-row .form-group {
+  flex: 1;
+  margin-bottom: 0;
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+  width: 100%;
+}
+
+label {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #0e3d5c;
+  margin-bottom: 0.5rem;
+}
+
+.form-control {
+  width: 100%;
+  padding: 1rem 1.2rem;
+  border-radius: 20px;
+  border: 2px solid #c5d9e8;
+  background: #fafcff;
+  font-size: 1rem;
+  color: #1a4a6e;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: #0e3d5c;
+  background: #fff;
+  box-shadow: 0 0 0 4px rgba(14, 61, 92, 0.12);
+}
+
+.form-control::placeholder {
+  color: #8baec9;
+  font-size: 0.95rem;
+  font-weight: 400;
+}
+
+/* =========================
+   BUTTON REGISTER
+========================= */
+.btn-register {
+  width: 100%;
+  padding: 1rem;
+  background: #0e3d5c;
+  color: white;
+  border: none;
+  border-radius: 20px;
+  font-weight: 700;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(14, 61, 92, 0.25);
+  letter-spacing: 0.5px;
+  margin-top: 0.5rem;
+}
+
+.btn-register:hover {
+  background: #0a2d45;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(14, 61, 92, 0.3);
+}
+
+.btn-register:active {
+  transform: translateY(0);
+}
+
+/* =========================
+   LOGIN LINK
+========================= */
+.login-link {
+  text-align: center;
+  margin-top: 1.5rem;
+  width: 100%;
+  font-size: 0.85rem;
+  color: #3a7ca5;
+}
+
+.login-link a {
+  color: #0e3d5c;
+  text-decoration: none;
+  font-weight: 700;
+  transition: all 0.2s;
+}
+
+.login-link a:hover {
+  text-decoration: underline;
+  color: #0a2d45;
+}
+
+/* =========================
+   ERROR MESSAGE
+========================= */
+.alert {
+  width: 100%;
+  background: #fee2e2;
+  color: #dc2626;
+  padding: 0.8rem 1rem;
+  border-radius: 15px;
+  font-size: 0.85rem;
+  margin-bottom: 1rem;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.alert i {
+  font-size: 1rem;
+}
+
+/* =========================
+   ANIMATION
+========================= */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* =========================
+   RESPONSIVE
+========================= */
+@media (max-width: 768px) {
+  .container {
+    max-width: 90%;
+    padding: 1rem;
+  }
+
+  .container > div {
+    padding: 1.5rem;
+  }
+
+  .logo {
+    max-width: 140px;
+  }
+
+  .avatar-circle {
+    width: 90px;
+    height: 90px;
+  }
+
+  .avatar-circle i {
+    font-size: 2.8rem;
+  }
+
+  .avatar-hint {
+    font-size: 0.65rem;
+  }
+
+  h2 {
+    font-size: 1.6rem;
+  }
+
+  .form-row {
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .form-row .form-group {
+    margin-bottom: 1.3rem;
+  }
+
+  .form-control {
+    padding: 0.8rem 1rem;
+    font-size: 0.9rem;
+  }
+
+  .btn-register {
+    padding: 0.8rem;
+    font-size: 0.9rem;
+  }
+}
+
+/* Pour très grands écrans */
+@media (min-width: 1200px) {
+  .container {
+    max-width: 800px;
+  }
+
+  .container > div {
+    padding: 2.5rem 3.5rem;
+  }
+
+  .form-control {
+    padding: 1.2rem 1.5rem;
+    font-size: 1.05rem;
+  }
+
+  .btn-register {
+    padding: 1.2rem;
+    font-size: 1.1rem;
+  }
+}

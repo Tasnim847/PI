@@ -11,9 +11,15 @@
       <li><a href="#about" class="nav-link">About Us</a></li>
       <li><a href="#contact" class="nav-link">Contact</a></li>
     </ul>
-    <button class="login-btn" (click)="navigateToLogin()">
-      <i class="fas fa-user"></i> Login
-    </button>
+    <div class="auth-buttons">
+      <a routerLink="/public/login" class="login-btn">
+        <i class="fas fa-user"></i> Login
+      </a>
+
+      <a routerLink="/public/register" class="signup-btn">
+        <i class="fas fa-user-plus"></i> Sign Up
+      </a>
+    </div>
     <div class="mobile-menu-btn" (click)="toggleMobileMenu()">
       <span></span>
       <span></span>

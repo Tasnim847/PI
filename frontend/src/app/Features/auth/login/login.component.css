@@ -1,0 +1,260 @@
+/* login.component.css */
+
+/* =========================
+   GLOBAL PAGE
+========================= */
+:host {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: linear-gradient(145deg, #f5f7fc 0%, #eef2f8 100%);
+  padding: 20px 0;
+}
+
+/* =========================
+   CARD
+========================= */
+.container {
+  width: 100%;
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.container > div {
+  background: #ffffff;
+  border-radius: 32px;
+  padding: 2rem 2.5rem;
+  box-shadow: 0 20px 40px rgba(14, 61, 92, 0.1);
+  animation: fadeInUp 0.5s ease-out;
+
+  /* Centrage du contenu */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* =========================
+   LOGO (TOP)
+========================= */
+.logo-wrapper {
+  width: 100%;
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+.logo {
+  max-width: 180px;
+  height: auto;
+}
+
+/* =========================
+   TITLE
+========================= */
+h2 {
+  text-align: center;
+  font-size: 2rem;
+  font-weight: 700;
+  color: #0e3d5c;
+  margin: 0.5rem 0 0.5rem 0;
+  font-family: 'Inter', 'Segoe UI', sans-serif;
+  letter-spacing: -0.3px;
+}
+
+/* =========================
+   WELCOME MESSAGE
+========================= */
+.welcome-message {
+  text-align: center;
+  margin-bottom: 1.5rem;
+  width: 100%;
+}
+
+.welcome-message p:first-child {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #0e3d5c;
+  margin-bottom: 0.25rem;
+}
+
+.welcome-message p:last-child {
+  font-size: 0.9rem;
+  color: #3a7ca5;
+  font-weight: 500;
+}
+
+/* =========================
+   FORM
+========================= */
+form {
+  width: 100%;
+  margin-top: 0.5rem;
+}
+
+.form-group {
+  margin-bottom: 1.3rem;
+  width: 100%;
+}
+
+label {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #0e3d5c;
+  margin-bottom: 0.5rem;
+}
+
+.form-control {
+  width: 100%;
+  padding: 1rem 1.2rem;
+  border-radius: 20px;
+  border: 2px solid #c5d9e8;
+  background: #fafcff;
+  font-size: 1rem;
+  color: #1a4a6e;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: #0e3d5c;
+  background: #fff;
+  box-shadow: 0 0 0 4px rgba(14, 61, 92, 0.12);
+}
+
+.form-control::placeholder {
+  color: #8baec9;
+  font-size: 0.95rem;
+  font-weight: 400;
+}
+
+/* =========================
+   FORGOT PASSWORD LINK
+========================= */
+.forgot-link {
+  text-align: right;
+  margin-bottom: 1.5rem;
+  width: 100%;
+}
+
+.forgot-link a {
+  color: #0e3d5c;
+  font-size: 0.85rem;
+  text-decoration: none;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.forgot-link a:hover {
+  color: #0a2d45;
+  text-decoration: underline;
+}
+
+/* =========================
+   BUTTON
+========================= */
+.btn-login {
+  width: 100%;
+  padding: 1rem;
+  background: #0e3d5c;
+  color: white;
+  border: none;
+  border-radius: 20px;
+  font-weight: 700;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(14, 61, 92, 0.25);
+  letter-spacing: 0.5px;
+}
+
+.btn-login:hover {
+  background: #0a2d45;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(14, 61, 92, 0.3);
+}
+
+.btn-login:active {
+  transform: translateY(0);
+}
+
+/* =========================
+   ERROR MESSAGE
+========================= */
+.alert {
+  width: 100%;
+  background: #fee2e2;
+  color: #dc2626;
+  padding: 0.8rem 1rem;
+  border-radius: 15px;
+  font-size: 0.85rem;
+  margin-bottom: 1rem;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.alert i {
+  font-size: 1rem;
+}
+
+/* =========================
+   ANIMATION
+========================= */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* =========================
+   RESPONSIVE
+========================= */
+@media (max-width: 600px) {
+  .container {
+    padding: 1rem;
+  }
+
+  .container > div {
+    padding: 1.5rem;
+  }
+
+  .logo {
+    max-width: 140px;
+  }
+
+  h2 {
+    font-size: 1.6rem;
+  }
+
+  .form-control {
+    padding: 0.8rem 1rem;
+    font-size: 0.9rem;
+  }
+
+  .btn-login {
+    padding: 0.8rem;
+    font-size: 0.9rem;
+  }
+
+  .form-group {
+    margin-bottom: 1rem;
+  }
+
+  .welcome-message p:first-child {
+    font-size: 0.9rem;
+  }
+
+  .welcome-message p:last-child {
+    font-size: 0.8rem;
+  }
+}

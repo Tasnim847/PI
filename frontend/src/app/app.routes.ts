@@ -11,7 +11,10 @@ import { InsurancePageComponent } from './Features/Insurance/pages/insurance-pag
 import { AccountPageComponent } from './Features/Account/pages/account-page/account-page.component';
 import { ComplaintPageComponent } from './Features/Complaint/pages/complaint-page/complaint-page.component';
 import { NewsPageComponent } from './Features/News/pages/news-page/news-page.component';
-
+import { LoginComponent } from './Features/auth/login/login.component';
+import { RegisterComponent } from './Features/auth/register/register.component';
+import {authGuard} from './guards/auth.guard';
+import { roleGuard } from './guards/role.guard';
 export const routes: Routes = [
   // Landing page ouverte par défaut
   { path: '', component: LandingPageComponent },
@@ -28,14 +31,18 @@ export const routes: Routes = [
       { path: 'account', component: AccountPageComponent },
       { path: 'complaint', component: ComplaintPageComponent },
       { path: 'news', component: NewsPageComponent },
-      { path: 'products', component: ProductListComponent }
+      { path: 'products', component: ProductListComponent },
+      { path: 'login', component: LoginComponent },
+      { path: 'register', component: RegisterComponent }
     ]
   },
 
   // Pages protégées sous SidebarLayout (dashboard)
   {
-    path: 'dashboard',
+    path: 'backoffice',
     component: SidebarLayoutComponent,
+    canActivate: [roleGuard],
+    data: { roles: ['ADMIN'] },
     children: [
       { path: '', component: DashboardComponent },
       { path: 'products', component: ProductListComponent },
