@@ -118,56 +118,50 @@ public class InsuranceProductService implements IInsuranceProductService {
      */
     private String saveOriginalImagePath(MultipartFile file) {
         try {
-            // Récupérer le nom original du fichier
             String originalFilename = file.getOriginalFilename();
 
-            // Option 1: Utiliser un chemin temporaire ou un dossier spécifique
-            // String UPLOAD_DIR = "C:/uploads/produits/"; // Dossier spécifique sur votre disque
-
-            // Option 2: Pour l'instant, on va créer un dossier local
             String UPLOAD_DIR = "uploads/produits/";
             Path uploadPath = Paths.get(UPLOAD_DIR).toAbsolutePath().normalize();
 
             // Créer le dossier s'il n'existe pas
             if (!Files.exists(uploadPath)) {
                 Files.createDirectories(uploadPath);
-                logger.info("Dossier créé: {}", uploadPath.toString());
+                logger.info("Dossier créé: {}", uploadPath);
             }
 
-            // Vérifier que le fichier est une image
+            // Vérifier type image
             String contentType = file.getContentType();
             if (contentType == null || !contentType.startsWith("image/")) {
                 throw new IllegalArgumentException("Le fichier doit être une image");
             }
 
-            // Vérifier la taille (max 5MB)
+            // Vérifier taille max 5MB
             if (file.getSize() > 5 * 1024 * 1024) {
                 throw new IllegalArgumentException("L'image ne doit pas dépasser 5MB");
             }
 
-            // Générer un nom unique avec UUID pour éviter les conflits
+            // Générer nom unique
             String extension = "";
             if (originalFilename != null && originalFilename.contains(".")) {
                 extension = originalFilename.substring(originalFilename.lastIndexOf("."));
             }
-            String filename = UUID.randomUUID().toString() + extension;
 
-            // Sauvegarder physiquement le fichier (obligatoire car le frontend ne peut pas accéder au chemin original)
+            String filename = UUID.randomUUID() + extension;
+
+            // Chemin complet du fichier
             Path filePath = uploadPath.resolve(filename);
+
+            // Sauvegarde physique
             Files.copy(file.getInputStream(), filePath);
 
-            logger.info("Image sauvegardée: {} -> {}", filename, filePath.toString());
+            logger.info("Image sauvegardée: {}", filePath);
 
-            // Retourner le chemin ou le nom du fichier
-            // Option A: Retourner seulement le nom (recommandé)
-            return filename;
-
-            // Option B: Retourner le chemin complet (si vous voulez)
-            // return filePath.toString();
+            // IMPORTANT : retourner chemin absolu complet
+            return filePath.toString();
 
         } catch (IOException e) {
-            logger.error("Erreur lors de l'upload de l'image", e);
-            throw new RuntimeException("Erreur lors de l'enregistrement de l'image: " + e.getMessage());
+            logger.error("Erreur lors de l'enregistrement de l'image", e);
+            throw new RuntimeException("Erreur upload image : " + e.getMessage());
         }
     }
 

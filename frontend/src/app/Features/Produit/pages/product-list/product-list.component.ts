@@ -1,11 +1,12 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ProductApiService } from '../../services/product-api.service';
+import { ProductApiService } from '../../services/product-api.service'; // Importer le composant
+import { ProductCardComponent } from '../../components/product-card/product-card.component';
 
 @Component({
   selector: 'app-product-list',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, ProductCardComponent], // Ajouter ProductCardComponent aux imports
   templateUrl: './product-list.component.html',
   styleUrls: ['./product-list.component.css']
 })
@@ -26,10 +27,6 @@ export class ProductListComponent implements OnInit {
         this.products = data;
         this.isLoading = false;
         console.log('Produits chargés:', this.products);
-        // Vérifier les URLs des images
-        if (this.products.length > 0) {
-          console.log('URL de la première image:', this.products[0].displayImageUrl);
-        }
       },
       error: (error) => {
         console.error('Erreur chargement produits:', error);
@@ -38,17 +35,6 @@ export class ProductListComponent implements OnInit {
     });
   }
 
-  getProductImageUrl(product: any): string {
-    // Utiliser displayImageUrl qui est déjà formatée par le service
-    return product.displayImageUrl || product.imageUrl || 'assets/images/produits-assurance.jpg';
-  }
-
-  onImageError(event: any) {
-    event.target.src = 'assets/images/produits-assurance.jpg';
-  }
-
-  addToCart(product: any) {
-    console.log('Ajout au panier:', product);
-    // Implémentez votre logique de panier ici
-  }
+  // Pas besoin des méthodes getProductImageUrl, onImageError, addToCart ici
+  // Car elles sont déjà gérées par ProductCardComponent
 }

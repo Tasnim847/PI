@@ -14,47 +14,12 @@
     <p>Chargement des produits...</p>
   </div>
 
-  <!-- Products Grid -->
+  <!-- Products Grid - UTILISATION DU COMPOSANT PRODUCT-CARD -->
   <div *ngIf="!isLoading && products.length > 0" class="products-grid">
-    <div *ngFor="let product of products" class="product-card">
-      <!-- Product Image -->
-      <div class="product-image">
-        <img [src]="getProductImageUrl(product)" 
-             [alt]="product.name"
-             (error)="onImageError($event)">
-        <div class="product-badge" *ngIf="product.status === 'ACTIVE'">Disponible</div>
-        <div class="product-actions">
-          <button class="action-btn" title="Ajouter aux favoris">
-            <i class="fas fa-heart"></i>
-          </button>
-          <button class="action-btn" title="Voir détails">
-            <i class="fas fa-eye"></i>
-          </button>
-        </div>
-      </div>
-
-      <!-- Product Info -->
-      <div class="product-info">
-        <h3 class="product-title">{{ product.name }}</h3>
-        <p class="product-description">{{ product.description | slice:0:80 }}{{ product.description?.length > 80 ? '...' : '' }}</p>
-        
-        <div class="product-type">
-          <span class="type-badge">{{ product.productType }}</span>
-          <span *ngIf="product.otherProductType" class="other-type">{{ product.otherProductType }}</span>
-        </div>
-
-        <div class="product-footer">
-          <div class="price">
-            <span class="current-price">{{ product.basePrice }} TND</span>
-            <span class="price-period">/ an</span>
-          </div>
-          <button class="add-to-cart-btn" (click)="addToCart(product)">
-            <i class="fas fa-shopping-cart"></i>
-            Souscrire
-          </button>
-        </div>
-      </div>
-    </div>
+    <app-product-card 
+      *ngFor="let product of products" 
+      [product]="product">
+    </app-product-card>
   </div>
 
   <!-- Empty State -->

@@ -1,14 +1,18 @@
+<!-- product-card.component.html -->
 <div class="product-card">
   <div class="card-badge" *ngIf="product.isNew">Nouveau</div>
   <div class="card-badge promotion" *ngIf="product.promotion">Promo</div>
   
   <div class="card-image">
-    <img [src]="getImageUrl()" [alt]="product.name">
+    <img 
+      [src]="getImageUrl()" 
+      [alt]="product.name"
+      (error)="onImageError($event)">
     <div class="card-actions">
-      <button class="action-btn" title="Ajouter aux favoris">
+      <button class="action-btn" title="Ajouter aux favoris" (click)="addToFavorites()">
         <i class="fas fa-heart"></i>
       </button>
-      <button class="action-btn" title="Comparer">
+      <button class="action-btn" title="Comparer" (click)="compare()">
         <i class="fas fa-chart-line"></i>
       </button>
     </div>
@@ -16,21 +20,11 @@
   
   <div class="card-content">
     <h3 class="product-title">{{ product.name }}</h3>
-    <p class="product-description">{{ product.description | slice:0:100 }}{{ product.description.length > 100 ? '...' : '' }}</p>
-    
-    <div class="product-rating" *ngIf="product.rating">
-      <span class="stars">
-        <i *ngFor="let star of [1,2,3,4,5]" 
-           class="fas fa-star" 
-           [class.filled]="star <= product.rating"></i>
-      </span>
-      <span class="rating-count">({{ product.reviewsCount || 0 }} avis)</span>
-    </div>
+    <p class="product-description">{{ product.description | slice:0:100 }}{{ product.description?.length > 100 ? '...' : '' }}</p>
     
     <div class="product-footer">
       <div class="price-section">
-        <span class="current-price">{{ formatPrice(product.price) }}</span>
-        <span class="old-price" *ngIf="product.oldPrice">{{ formatPrice(product.oldPrice) }}</span>
+        <span class="current-price">{{ formatPrice(product.basePrice || product.price) }}</span>
       </div>
       
       <button class="btn-add-to-cart" (click)="addToCart()">
