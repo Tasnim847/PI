@@ -1,0 +1,70 @@
+<!-- register.component.html -->
+<div class="container mt-5">
+  <div>
+    <!-- 1. LOGO en TOP -->
+    <div class="logo-wrapper">
+      <img src="assets/images/logo.png" alt="SurFinity" class="logo">
+    </div>
+
+    <!-- 2. TITRE Register -->
+    <h2>Register</h2>
+
+    <!-- 3. MESSAGE DE BIENVENUE -->
+    <div class="welcome-message">
+      <p>Create your account</p>
+      <p>Join SurFinity today</p>
+    </div>
+
+    <!-- 4. AVATAR avec photo -->
+    <div class="avatar-upload">
+      <div class="avatar-circle" (click)="triggerFileInput()">
+        <img *ngIf="imagePreview" [src]="imagePreview" alt="user photo">
+        <i *ngIf="!imagePreview" class="fas fa-user-circle"></i>
+        <input type="file" #fileInput (change)="onFileChange($event)" accept="image/*" style="display: none;">
+      </div>
+      <div class="avatar-hint">
+        <i class="fas fa-camera"></i>
+        <span>Click to add your photo</span>
+      </div>
+    </div>
+
+    <!-- Message d'erreur -->
+    <div *ngIf="errorMessage" class="alert">
+      <i class="fas fa-exclamation-circle"></i>
+      {{ errorMessage }}
+    </div>
+
+    <!-- 5. FORMULAIRE -->
+    <form (ngSubmit)="onRegister()">
+      <div class="form-row">
+        <div class="form-group">
+          <label for="firstName">First name</label>
+          <input id="firstName" class="form-control" type="text" [(ngModel)]="firstName" name="firstName" placeholder="John" required>
+        </div>
+        <div class="form-group">
+          <label for="lastName">Last name</label>
+          <input id="lastName" class="form-control" type="text" [(ngModel)]="lastName" name="lastName" placeholder="Doe" required>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="email">Email address</label>
+        <input id="email" class="form-control" type="email" [(ngModel)]="email" name="email" placeholder="john.doe@example.com" required>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input id="password" class="form-control" type="password" [(ngModel)]="password" name="password" placeholder="••••••••" required>
+        </div>
+        <div class="form-group">
+          <label for="telephone">Telephone</label>
+          <input id="telephone" class="form-control" type="tel" [(ngModel)]="telephone" name="telephone" placeholder="+216XXXXXXXX" required>
+        </div>
+      </div>
+
+      <button type="submit" class="btn-register">Sign up</button>
+      <div class="login-link">Already have an account? <a routerLink="/login">Login</a></div>
+    </form>
+  </div>
+</div>

@@ -1,1 +1,38 @@
-<p>home works!</p>
+<div class="home-container">
+  <nav class="navbar">
+    <div class="container">
+      <div class="logo">
+        <h2>SurFinity</h2>
+      </div>
+      <div class="user-info">
+        <span>Bienvenue, {{ userName || 'Client' }}</span>
+        <button (click)="logout()" class="btn-logout">
+          <i class="fas fa-sign-out-alt"></i> Déconnexion
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <div class="home-content">
+    <div class="container">
+      <h1>Tableau de bord</h1>
+      <p>Bienvenue sur votre espace client SurFinity</p>
+
+      <!-- Votre contenu ici -->
+      <div class="dashboard-cards">
+        <div class="card">
+          <h3>Vos comptes</h3>
+          <p>Consultez vos soldes et transactions</p>
+        </div>
+        <div class="card">
+          <h3>Vos crédits</h3>
+          <p>Gérez vos demandes de crédit</p>
+        </div>
+        <div class="card">
+          <h3>Vos assurances</h3>
+          <p>Suivez vos contrats d'assurance</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

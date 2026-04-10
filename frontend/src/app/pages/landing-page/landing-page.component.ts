@@ -2,11 +2,12 @@ import { Component, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { RouterModule } from '@angular/router';
 
 @Component({
   selector: 'app-landing-page',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterModule],
   templateUrl: './landing-page.component.html',
   styleUrls: ['./landing-page.component.css']
 })
@@ -70,9 +71,9 @@ export class LandingPageComponent {
   }
 
   navigateToLogin() {
-    this.router.navigate(['/login']);
+    console.log('Login clicked');
+    this.router.navigate(['/public/login']);
   }
-
   scrollToServices() {
     document.getElementById('services')?.scrollIntoView({ behavior: 'smooth' });
   }
