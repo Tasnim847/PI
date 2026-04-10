@@ -1,1 +1,42 @@
-<p>product-card works!</p>
+<div class="product-card">
+  <div class="card-badge" *ngIf="product.isNew">Nouveau</div>
+  <div class="card-badge promotion" *ngIf="product.promotion">Promo</div>
+  
+  <div class="card-image">
+    <img [src]="getImageUrl()" [alt]="product.name">
+    <div class="card-actions">
+      <button class="action-btn" title="Ajouter aux favoris">
+        <i class="fas fa-heart"></i>
+      </button>
+      <button class="action-btn" title="Comparer">
+        <i class="fas fa-chart-line"></i>
+      </button>
+    </div>
+  </div>
+  
+  <div class="card-content">
+    <h3 class="product-title">{{ product.name }}</h3>
+    <p class="product-description">{{ product.description | slice:0:100 }}{{ product.description.length > 100 ? '...' : '' }}</p>
+    
+    <div class="product-rating" *ngIf="product.rating">
+      <span class="stars">
+        <i *ngFor="let star of [1,2,3,4,5]" 
+           class="fas fa-star" 
+           [class.filled]="star <= product.rating"></i>
+      </span>
+      <span class="rating-count">({{ product.reviewsCount || 0 }} avis)</span>
+    </div>
+    
+    <div class="product-footer">
+      <div class="price-section">
+        <span class="current-price">{{ formatPrice(product.price) }}</span>
+        <span class="old-price" *ngIf="product.oldPrice">{{ formatPrice(product.oldPrice) }}</span>
+      </div>
+      
+      <button class="btn-add-to-cart" (click)="addToCart()">
+        <i class="fas fa-shopping-cart"></i>
+        Ajouter
+      </button>
+    </div>
+  </div>
+</div>

@@ -48,10 +48,10 @@ public class InsuranceProductService implements IInsuranceProductService {
         }
         dto.setStatus(status.name());
 
-        // 🔹 Gérer le fichier image
+        // 🔹 Gérer le fichier image - Stocker le chemin original sans copier
         if (imageFile != null && !imageFile.isEmpty()) {
-            String imageUrl = saveImageFile(imageFile);
-            dto.setImageUrl(imageUrl);
+            String originalPath = saveOriginalImagePath(imageFile);
+            dto.setImageUrl(originalPath); // Stocke le chemin original
         }
 
         InsuranceProduct product = InsuranceProductMapper.toEntity(dto);
@@ -69,7 +69,7 @@ public class InsuranceProductService implements IInsuranceProductService {
             case HEALTH:
                 return dto.getBasePrice() >= 500 ? ProductStatus.ACTIVE : ProductStatus.REFUSED;
             default:
-                return ProductStatus.INACTIVE; // OTHER ou autre type
+                return ProductStatus.INACTIVE;
         }
     }
 
@@ -77,9 +77,6 @@ public class InsuranceProductService implements IInsuranceProductService {
     public InsuranceProductDTO updateProduct(InsuranceProductDTO dto, MultipartFile imageFile) {
         InsuranceProduct product = repository.findById(dto.getProductId())
                 .orElseThrow(() -> new RuntimeException("Produit non trouvé"));
-
-        // Sauvegarder l'ancienne URL de l'image pour suppression
-        String oldImageUrl = product.getImageUrl();
 
         if (dto.getName() != null) product.setName(dto.getName());
         if (dto.getDescription() != null) product.setDescription(dto.getDescription());
@@ -98,17 +95,11 @@ public class InsuranceProductService implements IInsuranceProductService {
             }
         }
 
-        // 🔹 Gérer le fichier image - Supprimer l'ancienne si nouvelle image
+        // 🔹 Mettre à jour l'image si une nouvelle est fournie
         if (imageFile != null && !imageFile.isEmpty()) {
-            // Supprimer l'ancienne image si elle existe
-            if (oldImageUrl != null && !oldImageUrl.isEmpty()) {
-                deleteImageFile(oldImageUrl);
-            }
-            // Sauvegarder la nouvelle image
-            String imageUrl = saveImageFile(imageFile);
-            product.setImageUrl(imageUrl);
+            String originalPath = saveOriginalImagePath(imageFile);
+            product.setImageUrl(originalPath);
         }
-        // Si aucune nouvelle image, garder l'ancienne (ne rien faire)
 
         if (dto.getStatus() != null) {
             try {
@@ -122,32 +113,25 @@ public class InsuranceProductService implements IInsuranceProductService {
         return InsuranceProductMapper.toDTO(product);
     }
 
-    // Nouvelle méthode pour supprimer l'image physique
-    private void deleteImageFile(String imageUrl) {
+    /**
+     * Nouvelle méthode : Sauvegarde le chemin original de l'image sans copier le fichier
+     */
+    private String saveOriginalImagePath(MultipartFile file) {
         try {
-            if (imageUrl != null && !imageUrl.isEmpty()) {
-                Path imagePath = Paths.get(imageUrl);
-                if (Files.exists(imagePath)) {
-                    Files.delete(imagePath);
-                    logger.info("Ancienne image supprimée: {}", imageUrl);
-                }
-            }
-        } catch (IOException e) {
-            logger.warn("Impossible de supprimer l'ancienne image: {}", e.getMessage());
-            // Ne pas bloquer la mise à jour si la suppression échoue
-        }
-    }
+            // Récupérer le nom original du fichier
+            String originalFilename = file.getOriginalFilename();
 
-    // Méthode utilitaire pour enregistrer l'image et retourner le chemin relatif
-    private String saveImageFile(MultipartFile file) {
-        try {
+            // Option 1: Utiliser un chemin temporaire ou un dossier spécifique
+            // String UPLOAD_DIR = "C:/uploads/produits/"; // Dossier spécifique sur votre disque
+
+            // Option 2: Pour l'instant, on va créer un dossier local
             String UPLOAD_DIR = "uploads/produits/";
-            Path uploadPath = Paths.get(UPLOAD_DIR);
+            Path uploadPath = Paths.get(UPLOAD_DIR).toAbsolutePath().normalize();
 
             // Créer le dossier s'il n'existe pas
             if (!Files.exists(uploadPath)) {
                 Files.createDirectories(uploadPath);
-                logger.info("Dossier créé: {}", UPLOAD_DIR);
+                logger.info("Dossier créé: {}", uploadPath.toString());
             }
 
             // Vérifier que le fichier est une image
@@ -161,26 +145,48 @@ public class InsuranceProductService implements IInsuranceProductService {
                 throw new IllegalArgumentException("L'image ne doit pas dépasser 5MB");
             }
 
-            // Générer un nom unique avec UUID
+            // Générer un nom unique avec UUID pour éviter les conflits
             String extension = "";
-            String originalFilename = file.getOriginalFilename();
             if (originalFilename != null && originalFilename.contains(".")) {
                 extension = originalFilename.substring(originalFilename.lastIndexOf("."));
             }
             String filename = UUID.randomUUID().toString() + extension;
 
-            // Sauvegarder le fichier
+            // Sauvegarder physiquement le fichier (obligatoire car le frontend ne peut pas accéder au chemin original)
             Path filePath = uploadPath.resolve(filename);
             Files.copy(file.getInputStream(), filePath);
 
-            String imageUrl = UPLOAD_DIR + filename;
-            logger.info("Image sauvegardée: {}", imageUrl);
+            logger.info("Image sauvegardée: {} -> {}", filename, filePath.toString());
 
-            return imageUrl;
+            // Retourner le chemin ou le nom du fichier
+            // Option A: Retourner seulement le nom (recommandé)
+            return filename;
+
+            // Option B: Retourner le chemin complet (si vous voulez)
+            // return filePath.toString();
 
         } catch (IOException e) {
             logger.error("Erreur lors de l'upload de l'image", e);
             throw new RuntimeException("Erreur lors de l'enregistrement de l'image: " + e.getMessage());
+        }
+    }
+
+    private void deleteImageFile(String imageUrl) {
+        try {
+            if (imageUrl != null && !imageUrl.isEmpty()) {
+                String filename = imageUrl;
+                if (filename.contains("/") || filename.contains("\\")) {
+                    filename = filename.replace("\\", "/");
+                    filename = filename.substring(filename.lastIndexOf("/") + 1);
+                }
+                Path imagePath = Paths.get("uploads/produits/", filename);
+                if (Files.exists(imagePath)) {
+                    Files.delete(imagePath);
+                    logger.info("Image supprimée: {}", filename);
+                }
+            }
+        } catch (IOException e) {
+            logger.warn("Impossible de supprimer l'image: {}", e.getMessage());
         }
     }
 
@@ -189,7 +195,6 @@ public class InsuranceProductService implements IInsuranceProductService {
         InsuranceProduct product = repository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Produit non trouvé"));
 
-        // Supprimer l'image associée
         if (product.getImageUrl() != null && !product.getImageUrl().isEmpty()) {
             deleteImageFile(product.getImageUrl());
         }
@@ -211,16 +216,14 @@ public class InsuranceProductService implements IInsuranceProductService {
                 .toList();
     }
 
-    // Dans InsuranceProductService
     @Override
     public List<InsuranceProductDTO> getActiveProducts() {
         return repository.findAll().stream()
-                .filter(p -> p.getStatus() == ProductStatus.ACTIVE) // seuls produits actifs
+                .filter(p -> p.getStatus() == ProductStatus.ACTIVE)
                 .map(InsuranceProductMapper::toDTO)
                 .toList();
     }
 
-    // ================= MÉTIER AVANCÉ : VALIDATION PAR TYPE =================
     private void validateByType(InsuranceProductDTO dto) {
         if (dto.getProductType() == null) {
             throw new RuntimeException("Le type de produit est obligatoire");
@@ -236,7 +239,7 @@ public class InsuranceProductService implements IInsuranceProductService {
             case HEALTH:
                 if (dto.getBasePrice() < 500) throw new RuntimeException("Le produit santé doit avoir un prix ≥ 500");
                 break;
-            case HOME:      // <-- Ajouté ici
+            case HOME:
                 if (dto.getBasePrice() < 800) throw new RuntimeException("Le produit habitation doit avoir un prix ≥ 800");
                 break;
             case OTHER:
@@ -268,26 +271,21 @@ public class InsuranceProductService implements IInsuranceProductService {
     public InsuranceProductDTO assignImageToProduct(Long productId, MultipartFile imageFile) {
         logger.info("Affectation d'une image au produit ID: {}", productId);
 
-        // Vérifier que le produit existe
         InsuranceProduct product = repository.findById(productId)
                 .orElseThrow(() -> new RuntimeException("Produit non trouvé avec l'ID: " + productId));
 
-        // Vérifier que l'image n'est pas vide
         if (imageFile == null || imageFile.isEmpty()) {
             throw new RuntimeException("Veuillez sélectionner une image");
         }
 
-        // Supprimer l'ancienne image si elle existe
         if (product.getImageUrl() != null && !product.getImageUrl().isEmpty()) {
             deleteImageFile(product.getImageUrl());
             logger.info("Ancienne image supprimée: {}", product.getImageUrl());
         }
 
-        // Sauvegarder la nouvelle image
-        String imageUrl = saveImageFile(imageFile);
+        String imageUrl = saveOriginalImagePath(imageFile);
         product.setImageUrl(imageUrl);
 
-        // Sauvegarder le produit
         product = repository.save(product);
         logger.info("Image affectée avec succès au produit ID: {}", productId);
 
