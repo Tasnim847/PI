@@ -1,6 +1,5 @@
 <!-- Navbar existante - ajouter *ngIf="isVisible" en haut -->
 <nav *ngIf="isVisible" class="navbar navbar-expand-lg bg-body-tertiary fixed-top">
-  <!-- Le reste du contenu reste identique -->
   <div class="container-fluid">
     <a class="navbar-brand p-0" routerLink="/">
       <img
@@ -27,37 +26,37 @@
           <a class="nav-link" routerLink="/public/credit" routerLinkActive="active">Credit</a>
         </li>
         
-        <!-- Insurance - visible pour tous sauf AGENT_FINANCE -->
+        <!-- Insurance - visible pour CLIENT et AGENT_ASSURANCE seulement -->
         <li class="nav-item" *ngIf="isInsuranceVisible()">
           <a class="nav-link" routerLink="/public/insurance" routerLinkActive="active">Insurance</a>
         </li>
         
-        <!-- Account - visible pour tous -->
-        <li class="nav-item">
+        <!-- Account - visible pour CLIENT et AGENT_ASSURANCE seulement (PAS pour AGENT_FINANCE) -->
+        <li class="nav-item" *ngIf="isAccountVisible()">
           <a class="nav-link" routerLink="/public/account" routerLinkActive="active">Account</a>
         </li>
         
-        <!-- Complaint (Réclamation) - visible pour CLIENT et AGENT_FINANCE -->
+        <!-- Complaint - visible pour CLIENT et AGENT_FINANCE seulement -->
         <li class="nav-item" *ngIf="isComplaintVisible()">
           <a class="nav-link" routerLink="/public/complaint" routerLinkActive="active">Complaint</a>
         </li>
         
-        <!-- News - visible pour tous -->
-        <li class="nav-item">
+        <!-- News - visible pour CLIENT et AGENT_ASSURANCE seulement -->
+        <li class="nav-item" *ngIf="isNewsVisible()">
           <a class="nav-link" routerLink="/public/news" routerLinkActive="active">News</a>
         </li>
         
-        <!-- Products - visible pour tous sauf AGENT_FINANCE -->
+        <!-- Products - visible pour CLIENT et AGENT_ASSURANCE seulement -->
         <li class="nav-item" *ngIf="isProductsVisible()">
           <a class="nav-link" routerLink="/public/products" routerLinkActive="active">Products</a>
         </li>
         
-        <!-- Claims - visible pour tous sauf AGENT_FINANCE -->
+        <!-- Claims - visible pour CLIENT et AGENT_ASSURANCE seulement -->
         <li class="nav-item" *ngIf="isClaimsVisible()">
           <a class="nav-link" routerLink="/public/claims" routerLinkActive="active">Claims</a>
         </li>
         
-        <!-- Compensation - visible pour tous sauf AGENT_FINANCE -->
+        <!-- Compensation - visible pour CLIENT et AGENT_ASSURANCE seulement -->
         <li class="nav-item" *ngIf="isCompensationVisible()">
           <a class="nav-link" routerLink="/public/compensations" routerLinkActive="active">Compensation</a>
         </li>
