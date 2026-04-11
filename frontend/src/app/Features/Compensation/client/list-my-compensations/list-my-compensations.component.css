@@ -1,0 +1,22 @@
+.card {
+  transition: transform 0.2s;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+}
+
+.progress {
+  height: 25px;
+}
+
+.progress-bar {
+  line-height: 25px;
+  color: white;
+  font-weight: bold;
+}
+
+.modal.show {
+  background-color: rgba(0, 0, 0, 0.5);
+  display: block;
+}

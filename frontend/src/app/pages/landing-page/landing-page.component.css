@@ -950,3 +950,347 @@
   display: flex;
   gap: 10px;
 }
+
+
+
+/* Popup Styles - Version améliorée */
+.popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(8px);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.3s ease;
+}
+
+.popup-container {
+  position: relative;
+  background: white;
+  border-radius: 20px;
+  max-width: 500px;
+  width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+  animation: slideUp 0.3s ease;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+}
+
+.register-popup {
+  max-width: 600px;
+}
+
+.popup-close {
+  position: absolute;
+  top: 15px;
+  right: 20px;
+  background: #f0f0f0;
+  border: none;
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  font-size: 24px;
+  cursor: pointer;
+  color: #666;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s;
+  z-index: 10;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.popup-close:hover {
+  background: #e74c3c;
+  color: white;
+  transform: rotate(90deg);
+}
+
+/* Style pour le contenu du composant Login/Register dans le popup */
+.popup-container ::ng-deep app-login,
+.popup-container ::ng-deep app-register {
+  display: block;
+}
+
+.popup-container ::ng-deep .container {
+  padding: 2rem !important;
+  background: white !important;
+  border-radius: 20px !important;
+  margin: 0 !important;
+  max-width: 100% !important;
+  box-shadow: none !important;
+}
+
+.popup-container ::ng-deep .container.mt-5 {
+  margin-top: 0 !important;
+}
+
+/* Style spécifique pour le formulaire de login */
+.popup-container ::ng-deep .logo-wrapper {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.popup-container ::ng-deep .logo {
+  height: 60px;
+  width: auto;
+}
+
+.popup-container ::ng-deep h2 {
+  text-align: center;
+  font-size: 1.8rem;
+  margin-bottom: 0.5rem;
+  background: linear-gradient(135deg, #1a5ac3 0%, #36c165 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.popup-container ::ng-deep .welcome-message {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.popup-container ::ng-deep .welcome-message p:first-child {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 0.25rem;
+}
+
+.popup-container ::ng-deep .welcome-message p:last-child {
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.popup-container ::ng-deep .form-group {
+  margin-bottom: 1.25rem;
+}
+
+.popup-container ::ng-deep .form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  color: #333;
+  font-size: 0.9rem;
+}
+
+.popup-container ::ng-deep .form-control {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 2px solid #e0e0e0;
+  border-radius: 10px;
+  font-size: 1rem;
+  transition: all 0.3s;
+  background: white;
+}
+
+.popup-container ::ng-deep .form-control:focus {
+  outline: none;
+  border-color: #1a5ac3;
+  box-shadow: 0 0 0 3px rgba(26, 90, 195, 0.1);
+}
+
+.popup-container ::ng-deep .forgot-link {
+  text-align: right;
+  margin-bottom: 1.5rem;
+}
+
+.popup-container ::ng-deep .forgot-link a {
+  color: #1a5ac3;
+  text-decoration: none;
+  font-size: 0.85rem;
+}
+
+.popup-container ::ng-deep .forgot-link a:hover {
+  text-decoration: underline;
+}
+
+.popup-container ::ng-deep .btn-login {
+  width: 100%;
+  padding: 0.875rem;
+  background: linear-gradient(135deg, #1a5ac3 0%, #36c165 100%);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.popup-container ::ng-deep .btn-login:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(26, 90, 195, 0.3);
+}
+
+.popup-container ::ng-deep .btn-login:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Style pour le formulaire de register */
+.popup-container ::ng-deep .avatar-upload {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.popup-container ::ng-deep .avatar-circle {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 0.5rem;
+  background: linear-gradient(135deg, #1a5ac3 0%, #36c165 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  overflow: hidden;
+  transition: all 0.3s;
+}
+
+.popup-container ::ng-deep .avatar-circle:hover {
+  transform: scale(1.05);
+  box-shadow: 0 5px 15px rgba(26, 90, 195, 0.3);
+}
+
+.popup-container ::ng-deep .avatar-circle img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.popup-container ::ng-deep .avatar-circle i {
+  font-size: 3rem;
+  color: white;
+}
+
+.popup-container ::ng-deep .avatar-hint {
+  font-size: 0.8rem;
+  color: #666;
+  cursor: pointer;
+}
+
+.popup-container ::ng-deep .form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.popup-container ::ng-deep .btn-register {
+  width: 100%;
+  padding: 0.875rem;
+  background: linear-gradient(135deg, #1a5ac3 0%, #36c165 100%);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  margin-top: 0.5rem;
+}
+
+.popup-container ::ng-deep .btn-register:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(26, 90, 195, 0.3);
+}
+
+.popup-container ::ng-deep .login-link {
+  text-align: center;
+  margin-top: 1rem;
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.popup-container ::ng-deep .login-link a {
+  color: #1a5ac3;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.popup-container ::ng-deep .login-link a:hover {
+  text-decoration: underline;
+}
+
+.popup-container ::ng-deep .alert {
+  background: #fee;
+  border: 1px solid #fcc;
+  color: #c33;
+  padding: 0.75rem;
+  border-radius: 10px;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Scrollbar personnalisée pour le popup */
+.popup-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.popup-container::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+.popup-container::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 10px;
+}
+
+.popup-container::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(50px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .popup-container {
+    width: 95%;
+    max-height: 95vh;
+  }
+  
+  .popup-close {
+    top: 10px;
+    right: 15px;
+    width: 30px;
+    height: 30px;
+    font-size: 20px;
+  }
+  
+  .popup-container ::ng-deep .form-row {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+  
+  .popup-container ::ng-deep .container {
+    padding: 1.5rem !important;
+  }
+}

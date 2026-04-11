@@ -1,0 +1,204 @@
+<div class="container py-4">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <!-- Header -->
+      <div class="mb-4">
+        <button class="btn btn-link text-decoration-none mb-2" routerLink="/public/claims">
+          <i class="bi bi-arrow-left me-1"></i>Retour à mes réclamations
+        </button>
+        <h1 class="display-6">
+          <i class="bi bi-plus-circle me-2 text-primary"></i>Nouvelle Réclamation
+        </h1>
+        <p class="text-muted">Remplissez le formulaire ci-dessous pour déclarer un sinistre</p>
+      </div>
+
+      <!-- Loading -->
+      <div *ngIf="loading" class="text-center py-5">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Chargement...</span>
+        </div>
+        <p class="mt-3">Chargement de vos contrats...</p>
+      </div>
+
+      <!-- Error -->
+      <div *ngIf="error" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ error }}
+        <button type="button" class="btn-close" (click)="error = ''"></button>
+      </div>
+
+      <!-- Form -->
+      <form [formGroup]="claimForm" (ngSubmit)="onSubmit()" *ngIf="!loading" class="card shadow-sm">
+        <div class="card-body p-4">
+          <!-- Sélection du contrat -->
+          <div class="mb-4">
+            <label for="contractId" class="form-label fw-bold">
+              <i class="bi bi-file-earmark-text me-1"></i>Contrat d'assurance *
+            </label>
+            <select id="contractId" formControlName="contractId" 
+                    class="form-select form-select-lg" 
+                    [class.is-invalid]="claimForm.get('contractId')?.invalid && claimForm.get('contractId')?.touched">
+              <option value="">Sélectionnez un contrat</option>
+              <option *ngFor="let contract of contracts" [value]="contract.contractId">
+                {{ contract.product?.name }} - {{ contract.product?.productType }} 
+                (Plafond: {{ contract.coverageLimit | number:'1.2-2' }} DT)
+              </option>
+            </select>
+            <div class="invalid-feedback" *ngIf="claimForm.get('contractId')?.invalid && claimForm.get('contractId')?.touched">
+              Veuillez sélectionner un contrat actif
+            </div>
+          </div>
+
+          <!-- Montant et description -->
+          <div class="row mb-4">
+            <div class="col-md-6">
+              <label for="claimedAmount" class="form-label fw-bold">
+                <i class="bi bi-cash-stack me-1"></i>Montant réclamé (DT) *
+              </label>
+              <input type="number" id="claimedAmount" formControlName="claimedAmount" 
+                     class="form-control form-control-lg" 
+                     placeholder="Ex: 1500.00"
+                     [class.is-invalid]="claimForm.get('claimedAmount')?.invalid && claimForm.get('claimedAmount')?.touched">
+              <div class="invalid-feedback" *ngIf="claimForm.get('claimedAmount')?.invalid && claimForm.get('claimedAmount')?.touched">
+                Le montant doit être supérieur à 0
+              </div>
+            </div>
+            
+            <div class="col-md-6">
+              <label for="description" class="form-label fw-bold">
+                <i class="bi bi-chat-text me-1"></i>Description *
+              </label>
+              <textarea id="description" formControlName="description" rows="1" 
+                        class="form-control" 
+                        placeholder="Décrivez brièvement le sinistre..."
+                        [class.is-invalid]="claimForm.get('description')?.invalid && claimForm.get('description')?.touched"></textarea>
+              <div class="invalid-feedback" *ngIf="claimForm.get('description')?.invalid && claimForm.get('description')?.touched">
+                Minimum 10 caractères requis
+              </div>
+            </div>
+          </div>
+
+          <!-- Auto Details -->
+          <div *ngIf="selectedProductType === ProductType.AUTO" class="border rounded p-3 mb-4 bg-light">
+            <h5 class="mb-3">
+              <i class="bi bi-car-front me-2 text-primary"></i>Détails de l'accident automobile
+            </h5>
+            <div class="row">
+              <div class="col-md-6 mb-2">
+                <label class="form-label">Conducteur A *</label>
+                <input type="text" formControlName="driverA" class="form-control" placeholder="Nom complet">
+              </div>
+              <div class="col-md-6 mb-2">
+                <label class="form-label">Conducteur B</label>
+                <input type="text" formControlName="driverB" class="form-control" placeholder="Nom complet">
+              </div>
+              <div class="col-md-6 mb-2">
+                <label class="form-label">Véhicule A *</label>
+                <input type="text" formControlName="vehicleA" class="form-control" placeholder="Marque, modèle, immatriculation">
+              </div>
+              <div class="col-md-6 mb-2">
+                <label class="form-label">Véhicule B</label>
+                <input type="text" formControlName="vehicleB" class="form-control" placeholder="Marque, modèle, immatriculation">
+              </div>
+              <div class="col-md-6 mb-2">
+                <label class="form-label">Lieu de l'accident *</label>
+                <input type="text" formControlName="accidentLocation" class="form-control" placeholder="Adresse, ville">
+              </div>
+              <div class="col-md-6 mb-2">
+                <label class="form-label">Date de l'accident *</label>
+                <input type="date" formControlName="accidentDate" class="form-control">
+              </div>
+            </div>
+          </div>
+
+          <!-- Health Details -->
+          <div *ngIf="selectedProductType === ProductType.HEALTH" class="border rounded p-3 mb-4 bg-light">
+            <h5 class="mb-3">
+              <i class="bi bi-heart-pulse me-2 text-primary"></i>Détails des soins médicaux
+            </h5>
+            <div class="row">
+              <div class="col-md-6 mb-2">
+                <label class="form-label">Nom du patient *</label>
+                <input type="text" formControlName="patientName" class="form-control" placeholder="Nom complet">
+              </div>
+              <div class="col-md-6 mb-2">
+                <label class="form-label">Hôpital / Clinique *</label>
+                <input type="text" formControlName="hospitalName" class="form-control" placeholder="Nom de l'établissement">
+              </div>
+              <div class="col-md-6 mb-2">
+                <label class="form-label">Médecin traitant</label>
+                <input type="text" formControlName="doctorName" class="form-control" placeholder="Nom du médecin">
+              </div>
+              <div class="col-md-6 mb-2">
+                <label class="form-label">Coût des soins (DT) *</label>
+                <input type="number" formControlName="medicalCost" class="form-control" placeholder="Montant">
+              </div>
+              <div class="col-md-12 mb-2">
+                <label class="form-label">Type de maladie *</label>
+                <input type="text" formControlName="illnessType" class="form-control" placeholder="Diagnostic">
+              </div>
+            </div>
+          </div>
+
+          <!-- Home Details -->
+          <div *ngIf="selectedProductType === ProductType.HOME" class="border rounded p-3 mb-4 bg-light">
+            <h5 class="mb-3">
+              <i class="bi bi-house-heart me-2 text-primary"></i>Détails du sinistre habitation
+            </h5>
+            <div class="row">
+              <div class="col-md-12 mb-2">
+                <label class="form-label">Type de dégât *</label>
+                <select formControlName="damageType" class="form-select">
+                  <option value="">Sélectionnez</option>
+                  <option value="INCENDIE">Incendie</option>
+                  <option value="DEGAT_EAU">Dégât des eaux</option>
+                  <option value="VOL">Vol</option>
+                  <option value="TEMPETE">Tempête</option>
+                  <option value="AUTRE">Autre</option>
+                </select>
+              </div>
+              <div class="col-md-12 mb-2">
+                <label class="form-label">Adresse du sinistre *</label>
+                <input type="text" formControlName="address" class="form-control" placeholder="Adresse complète">
+              </div>
+              <div class="col-md-12 mb-2">
+                <label class="form-label">Estimation des pertes (DT) *</label>
+                <input type="number" formControlName="estimatedLoss" class="form-control" placeholder="Montant estimé">
+              </div>
+            </div>
+          </div>
+
+          <!-- Documents -->
+          <div class="mb-4">
+            <label class="form-label fw-bold">
+              <i class="bi bi-paperclip me-1"></i>Documents justificatifs *
+            </label>
+            <input type="file" (change)="onFileSelected($event)" multiple class="form-control" accept=".pdf,.jpg,.jpeg,.png">
+            <small class="text-muted">Formats acceptés: PDF, JPG, PNG (max 5Mo par fichier)</small>
+            
+            <div *ngIf="fileNames.length > 0" class="mt-3">
+              <div *ngFor="let fileName of fileNames; let i = index" class="alert alert-secondary d-flex justify-content-between align-items-center">
+                <div>
+                  <i class="bi bi-file-earmark-text me-2"></i>
+                  <span>{{ fileName }}</span>
+                </div>
+                <button type="button" class="btn-close" (click)="removeFile(i)"></button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Actions -->
+          <div class="d-flex justify-content-between pt-3 border-top">
+            <button type="button" class="btn btn-outline-secondary btn-lg" routerLink="/public/claims">
+              <i class="bi bi-x-circle me-2"></i>Annuler
+            </button>
+            <button type="submit" class="btn btn-primary btn-lg" [disabled]="submitting">
+              <span *ngIf="submitting" class="spinner-border spinner-border-sm me-2"></span>
+              <i class="bi bi-send me-2" *ngIf="!submitting"></i>
+              Soumettre la réclamation
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

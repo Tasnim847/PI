@@ -1,18 +1,32 @@
-import { Component, HostListener } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, HostListener, OnDestroy, Inject, PLATFORM_ID } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, NavigationEnd } from '@angular/router';
 import { RouterModule } from '@angular/router';
+import { filter } from 'rxjs/operators';
+import { Subscription } from 'rxjs';
+import { RegisterComponent } from '../../Features/auth/register/register.component';
+import { LoginComponent } from '../../Features/auth/login/login.component';
 
 @Component({
   selector: 'app-landing-page',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule],
+  imports: [
+    CommonModule, 
+    FormsModule, 
+    RouterModule,
+    LoginComponent,
+    RegisterComponent
+  ],
   templateUrl: './landing-page.component.html',
   styleUrls: ['./landing-page.component.css']
 })
-export class LandingPageComponent {
+export class LandingPageComponent implements OnDestroy {
   isScrolled = false;
+  showLoginPopup = false;
+  showRegisterPopup = false;
+  private routerSubscription: Subscription | null = null; // Initialisé à null
+  private isBrowser: boolean;
 
   services = [
     {
@@ -63,36 +77,98 @@ export class LandingPageComponent {
 
   newsletterEmail = '';
 
-  constructor(private router: Router) {}
+  constructor(
+    private router: Router,
+    @Inject(PLATFORM_ID) private platformId: Object
+  ) {
+    this.isBrowser = isPlatformBrowser(this.platformId);
+    
+    // S'abonner aux changements de route uniquement dans le navigateur
+    if (this.isBrowser) {
+      this.routerSubscription = this.router.events.pipe(
+        filter(event => event instanceof NavigationEnd)
+      ).subscribe((event: NavigationEnd) => {
+        // Afficher le popup selon la route
+        if (event.url === '/login') {
+          this.showLoginPopup = true;
+          this.showRegisterPopup = false;
+          // Empêcher le scroll du body
+          document.body.style.overflow = 'hidden';
+        } else if (event.url === '/register') {
+          this.showRegisterPopup = true;
+          this.showLoginPopup = false;
+          document.body.style.overflow = 'hidden';
+        } else {
+          this.showLoginPopup = false;
+          this.showRegisterPopup = false;
+          document.body.style.overflow = '';
+        }
+      });
+    }
+  }
+
+  ngOnDestroy() {
+    if (this.routerSubscription) {
+      this.routerSubscription.unsubscribe();
+    }
+    // Restaurer le scroll uniquement dans le navigateur
+    if (this.isBrowser) {
+      document.body.style.overflow = '';
+    }
+  }
 
   @HostListener('window:scroll', [])
   onWindowScroll() {
-    this.isScrolled = window.scrollY > 50;
+    if (this.isBrowser) {
+      this.isScrolled = window.scrollY > 50;
+    }
   }
 
   navigateToLogin() {
-    console.log('Login clicked');
-    this.router.navigate(['/public/login']);
+    if (this.isBrowser) {
+      this.router.navigate(['/login']);
+    }
   }
+
+  navigateToRegister() {
+    if (this.isBrowser) {
+      this.router.navigate(['/register']);
+    }
+  }
+
+  closePopup() {
+    if (this.isBrowser) {
+      this.router.navigate(['/']);
+    }
+  }
+
   scrollToServices() {
-    document.getElementById('services')?.scrollIntoView({ behavior: 'smooth' });
+    if (this.isBrowser) {
+      document.getElementById('services')?.scrollIntoView({ behavior: 'smooth' });
+    }
   }
 
   toggleMobileMenu() {
-    const navLinks = document.querySelector('.nav-links');
-    navLinks?.classList.toggle('active');
+    if (this.isBrowser) {
+      const navLinks = document.querySelector('.nav-links');
+      navLinks?.classList.toggle('active');
+    }
   }
 
   submitContactForm() {
     console.log('Contact form submitted:', this.contactData);
-    alert('Message sent successfully!');
+    if (this.isBrowser) {
+      alert('Message sent successfully!');
+    }
     this.contactData = { name: '', email: '', message: '' };
   }
 
   subscribeNewsletter() {
     if (this.newsletterEmail) {
       console.log('Newsletter subscription:', this.newsletterEmail);
-      alert('Subscription successful!');
+      if (this.isBrowser) {
+        alert('Subscription successful!');
+      }
       this.newsletterEmail = '';
     }
   }

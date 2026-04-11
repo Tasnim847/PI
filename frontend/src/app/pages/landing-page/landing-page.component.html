@@ -12,11 +12,11 @@
       <li><a href="#contact" class="nav-link">Contact</a></li>
     </ul>
     <div class="auth-buttons">
-      <a routerLink="/public/login" class="login-btn">
+      <a (click)="navigateToLogin()" class="login-btn" style="cursor: pointer;">
         <i class="fas fa-user"></i> Login
       </a>
 
-      <a routerLink="/public/register" class="signup-btn">
+      <a (click)="navigateToRegister()" class="signup-btn" style="cursor: pointer;">
         <i class="fas fa-user-plus"></i> Sign Up
       </a>
     </div>
@@ -216,3 +216,19 @@
     </div>
   </div>
 </footer>
+
+<!-- Popup Login -->
+<div class="popup-overlay" *ngIf="showLoginPopup" (click)="closePopup()">
+  <div class="popup-container" (click)="$event.stopPropagation()">
+    <button class="popup-close" (click)="closePopup()">&times;</button>
+    <app-login></app-login>
+  </div>
+</div>
+
+<!-- Popup Register -->
+<div class="popup-overlay" *ngIf="showRegisterPopup" (click)="closePopup()">
+  <div class="popup-container register-popup" (click)="$event.stopPropagation()">
+    <button class="popup-close" (click)="closePopup()">&times;</button>
+    <app-register></app-register>
+  </div>
+</div>

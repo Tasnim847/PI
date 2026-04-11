@@ -10,8 +10,6 @@ import { CreditPageComponent } from './Features/Credit/pages/credit-page/credit-
 import { AccountPageComponent } from './Features/Account/pages/account-page/account-page.component';
 import { ComplaintPageComponent } from './Features/Complaint/pages/complaint-page/complaint-page.component';
 import { NewsPageComponent } from './Features/News/pages/news-page/news-page.component';
-import { LoginComponent } from './Features/auth/login/login.component';
-import { RegisterComponent } from './Features/auth/register/register.component';
 import {authGuard} from './guards/auth.guard';
 import { roleGuard } from './guards/role.guard';
 import {ProfileComponent} from './pages/profile/profile.component';
@@ -23,9 +21,20 @@ import { ListAllClaimsComponent } from './Features/Claims/admin/list-all-claims/
 import { ListAllCompensationsComponent } from './Features/Compensation/admin/list-all-compensations/list-all-compensations.component';
 import { ListMyClaimsComponent } from './Features/Claims/client/list-my-claims/list-my-claims.component';
 import { ListMyCompensationsComponent } from './Features/Compensation/client/list-my-compensations/list-my-compensations.component';
+import { AddClaimComponent } from './Features/Claims/client/add-claim/add-claim.component';
 export const routes: Routes = [
   // Landing page ouverte par défaut
   { path: '', component: LandingPageComponent },
+
+  // Routes pour login et register (DOIVENT ÊTRE DÉCOMMENTÉES)
+  { 
+    path: 'login', 
+    component: LandingPageComponent
+  },
+  { 
+    path: 'register', 
+    component: LandingPageComponent
+  },
 
   // Pages publiques sous NavbarFooterLayout
   {
@@ -40,16 +49,6 @@ export const routes: Routes = [
       { path: 'complaint', component: ComplaintPageComponent },
       { path: 'news', component: NewsPageComponent },
       { path: 'products', component: ProductListComponent },
-      { path: 'login', component: LoginComponent },
-      { 
-        path: 'claims', 
-        component: ListMyClaimsComponent // 🔐 client connecté
-      },
-      { 
-        path: 'compensation', 
-        component: ListMyCompensationsComponent
-      },
-      { path: 'register', component: RegisterComponent },
       {path: 'profile', component: ProfileComponent},
       { 
         path: 'insurance/add-contract', 
@@ -61,10 +60,38 @@ export const routes: Routes = [
         component: MyContractsComponent,
         canActivate: [authGuard]
       },
-      
-      
+      {
+        path: 'claims',
+        component: ListMyClaimsComponent,
+        canActivate: [authGuard]
+      },
+      { 
+        path: 'claims/new', 
+        component: AddClaimComponent,
+        canActivate: [authGuard]
+      },
+      { 
+        path: 'compensations', 
+        component: ListMyCompensationsComponent,
+        canActivate: [authGuard]
+      },
+ 
     ]
   },
+
+  /*     
+  { 
+    path: 'login', 
+    component: LandingPageComponent,
+    children: []
+  },
+  { 
+    path: 'register', 
+    component: LandingPageComponent, 
+    children: []
+  },
+  */
+      
 
   // Pages protégées sous SidebarLayout (dashboard)
   {

@@ -1,5 +1,6 @@
-<!-- Navbar existante -->
-<nav class="navbar navbar-expand-lg bg-body-tertiary fixed-top">
+<!-- Navbar existante - ajouter *ngIf="isVisible" en haut -->
+<nav *ngIf="isVisible" class="navbar navbar-expand-lg bg-body-tertiary fixed-top">
+  <!-- Le reste du contenu reste identique -->
   <div class="container-fluid">
     <a class="navbar-brand p-0" routerLink="/">
       <img
@@ -16,32 +17,49 @@
     </button>
     <div class="collapse navbar-collapse" id="navbarSupportedContent">
       <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+        <!-- Home - visible pour tous -->
         <li class="nav-item">
           <a class="nav-link" routerLink="/public/home" routerLinkActive="active">Home</a>
         </li>
-        <li class="nav-item">
+        
+        <!-- Credit - visible pour CLIENT et AGENT_FINANCE seulement -->
+        <li class="nav-item" *ngIf="isCreditVisible()">
           <a class="nav-link" routerLink="/public/credit" routerLinkActive="active">Credit</a>
         </li>
-        <li class="nav-item">
+        
+        <!-- Insurance - visible pour tous sauf AGENT_FINANCE -->
+        <li class="nav-item" *ngIf="isInsuranceVisible()">
           <a class="nav-link" routerLink="/public/insurance" routerLinkActive="active">Insurance</a>
         </li>
+        
+        <!-- Account - visible pour tous -->
         <li class="nav-item">
           <a class="nav-link" routerLink="/public/account" routerLinkActive="active">Account</a>
         </li>
-        <li class="nav-item">
+        
+        <!-- Complaint (Réclamation) - visible pour CLIENT et AGENT_FINANCE -->
+        <li class="nav-item" *ngIf="isComplaintVisible()">
           <a class="nav-link" routerLink="/public/complaint" routerLinkActive="active">Complaint</a>
         </li>
+        
+        <!-- News - visible pour tous -->
         <li class="nav-item">
           <a class="nav-link" routerLink="/public/news" routerLinkActive="active">News</a>
         </li>
-        <li class="nav-item">
+        
+        <!-- Products - visible pour tous sauf AGENT_FINANCE -->
+        <li class="nav-item" *ngIf="isProductsVisible()">
           <a class="nav-link" routerLink="/public/products" routerLinkActive="active">Products</a>
         </li>
-        <li class="nav-item">
+        
+        <!-- Claims - visible pour tous sauf AGENT_FINANCE -->
+        <li class="nav-item" *ngIf="isClaimsVisible()">
           <a class="nav-link" routerLink="/public/claims" routerLinkActive="active">Claims</a>
         </li>
-        <li class="nav-item">
-          <a class="nav-link" routerLink="/public/compensation" routerLinkActive="active">Compensation</a>
+        
+        <!-- Compensation - visible pour tous sauf AGENT_FINANCE -->
+        <li class="nav-item" *ngIf="isCompensationVisible()">
+          <a class="nav-link" routerLink="/public/compensations" routerLinkActive="active">Compensation</a>
         </li>
       </ul>
       <div class="d-flex align-items-center gap-3">
@@ -54,7 +72,7 @@
             <li><a class="dropdown-item" routerLink="/public/profile" routerLinkActive="active"><i class="fas fa-user me-2"></i>Mon profil</a></li>
             <li><a class="dropdown-item" href="#"><i class="fas fa-cog me-2"></i>Paramètres</a></li>
             <li><hr class="dropdown-divider"></li>
-            <li><a class="dropdown-item text-danger" href="#" style="cursor: pointer;"><i class="fas fa-sign-out-alt me-2"></i>Déconnexion</a></li>
+            <li><a class="dropdown-item text-danger" (click)="logout($event)" style="cursor: pointer;"><i class="fas fa-sign-out-alt me-2"></i>Déconnexion</a></li>
           </ul>
         </div>
       </div>
