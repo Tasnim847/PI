@@ -19,6 +19,10 @@ import { AddContractComponent } from './Features/Insurance/pages/client/add-cont
 import { MyContractsComponent } from './Features/Insurance/pages/client/my-contracts/my-contracts.component';
 import { AdminProductListComponent } from './Features/Produit/pages/admin-product-list/admin-product-list/admin-product-list.component';
 import { ContractListComponent } from './Features/Insurance/pages/admin/contract-list/contract-list.component';
+import { ListAllClaimsComponent } from './Features/Claims/admin/list-all-claims/list-all-claims.component';
+import { ListAllCompensationsComponent } from './Features/Compensation/admin/list-all-compensations/list-all-compensations.component';
+import { ListMyClaimsComponent } from './Features/Claims/client/list-my-claims/list-my-claims.component';
+import { ListMyCompensationsComponent } from './Features/Compensation/client/list-my-compensations/list-my-compensations.component';
 export const routes: Routes = [
   // Landing page ouverte par défaut
   { path: '', component: LandingPageComponent },
@@ -37,6 +41,14 @@ export const routes: Routes = [
       { path: 'news', component: NewsPageComponent },
       { path: 'products', component: ProductListComponent },
       { path: 'login', component: LoginComponent },
+      { 
+        path: 'claims', 
+        component: ListMyClaimsComponent // 🔐 client connecté
+      },
+      { 
+        path: 'compensation', 
+        component: ListMyCompensationsComponent
+      },
       { path: 'register', component: RegisterComponent },
       {path: 'profile', component: ProfileComponent},
       { 
@@ -48,7 +60,9 @@ export const routes: Routes = [
         path: 'insurance/my-contracts', 
         component: MyContractsComponent,
         canActivate: [authGuard]
-      }
+      },
+      
+      
     ]
   },
 
@@ -65,7 +79,10 @@ export const routes: Routes = [
       { path: 'insurance', component: ContractListComponent },
       { path: 'account', component: AccountPageComponent },
       { path: 'complaint', component: ComplaintPageComponent },
-      { path: 'news', component: NewsPageComponent }
+      { path: 'news', component: NewsPageComponent },
+      { path: 'claims', component: ListAllClaimsComponent },
+      { path: 'compensation', component: ListAllCompensationsComponent }
+
     ]
   },
 

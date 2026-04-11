@@ -19,7 +19,10 @@ export class SidebarComponent {
     { label: 'Account', icon: '👤', link: '/dashboard/account' },
     { label: 'Complaint', icon: '📄', link: '/dashboard/complaint' },
     { label: 'News', icon: '📰', link: '/dashboard/news' },
-    { label: 'Products', icon: '📦', link: '/backoffice/products' }
+    { label: 'Products', icon: '📦', link: '/backoffice/products' },
+    { label: 'Claims', icon: '📋', link: '/backoffice/claims' },
+    { label: 'Compensation', icon: '💰', link: '/backoffice/compensation' }
+
   ];
 
   isCollapsed = false;
