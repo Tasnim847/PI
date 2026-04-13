@@ -1,0 +1,79 @@
+<!-- agent-claims.component.html -->
+<div class="container">
+  <!-- Claims List -->
+  <div class="claims-list">
+    <div *ngFor="let claim of claims" 
+         class="claim-card" 
+         [class.approved]="claim.status === 'APPROVED'" 
+         [class.rejected]="claim.status === 'REJECTED'">
+      
+      <div class="claim-header">
+        <h3>Claim #{{ claim.claimId }}</h3>
+        <span class="status-badge" [class]="claim.status">
+          {{ getStatusLabel(claim.status) }}
+        </span>
+      </div>
+      
+      <div class="claim-body">
+        <p><strong>📅 Date:</strong> {{ claim.claimDate | date }}</p>
+        <p><strong>💰 Claimed Amount:</strong> {{ claim.claimedAmount }} DT</p>
+        <p *ngIf="claim.approvedAmount > 0">
+          <strong>✅ Approved Amount:</strong> {{ claim.approvedAmount }} DT
+        </p>
+        <p><strong>📝 Description:</strong> {{ claim.description }}</p>
+        <p *ngIf="claim.message" class="message">{{ claim.message }}</p>
+      </div>
+      
+      <!-- Actions for claims in review -->
+      <div class="claim-actions" *ngIf="claim.status === 'IN_REVIEW'">
+        <!-- Approval Form -->
+        <div class="approve-form">
+          <label>Amount to Approve:</label>
+          <input type="number" 
+                 [(ngModel)]="approvedAmounts[claim.claimId]" 
+                 [placeholder]="'Max ' + claim.claimedAmount + ' DT'">
+          <button class="btn-approve" (click)="approveClaim(claim.claimId)">
+            ✅ Approve
+          </button>
+        </div>
+        
+        <!-- Rejection Form -->
+        <div class="reject-form">
+          <label>Rejection Reason:</label>
+          <input type="text" 
+                 [(ngModel)]="rejectionReasons[claim.claimId]" 
+                 placeholder="Enter rejection reason">
+          <button class="btn-reject" (click)="rejectClaim(claim.claimId)">
+            ❌ Reject
+          </button>
+        </div>
+      </div>
+      
+      <!-- Compensation Section for approved claims -->
+      <div class="compensation-section" *ngIf="claim.status === 'APPROVED'">
+        <button class="btn-compensation" (click)="viewCompensation(claim.claimId)">
+          💰 View Compensation Details
+        </button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Loading Message -->
+  <div *ngIf="loading" class="loading">
+    Loading claims...
+  </div>
+  
+  <!-- Error Message -->
+  <div *ngIf="error" class="error">
+    {{ error }}
+  </div>
+  
+  <!-- Compensation Modal -->
+  <div class="modal" *ngIf="selectedCompensation">
+    <div class="modal-content">
+      <span class="close" (click)="closeModal()">&times;</span>
+      <h3>📊 Compensation Details</h3>
+      <pre>{{ selectedCompensation }}</pre>
+    </div>
+  </div>
+</div>

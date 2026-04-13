@@ -8,7 +8,7 @@ import { map } from 'rxjs/operators';
 })
 export class OtpService {
 
-  private API = 'http://localhost:8083/api/otp';
+  private API = 'http://localhost:8081/api/otp';
 
   constructor(private http: HttpClient) {}
 

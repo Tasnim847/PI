@@ -7,7 +7,7 @@ import { Observable } from 'rxjs';
 })
 export class AuthService {
 
-  private API = 'http://localhost:8083/api/auth';
+  private API = 'http://localhost:8081/api/auth';
 
   constructor(private http: HttpClient) { }
 
@@ -26,7 +26,7 @@ export class AuthService {
 
   updateMe(data: any) {
     return this.http.put(
-      'http://localhost:8083/api/auth/update-me',
+      'http://localhost:8081/api/auth/update-me',
       data,
       { responseType: 'text' }
     );
@@ -62,19 +62,19 @@ export class AuthService {
 
     switch (role) {
       case 'ADMIN':
-        url = 'http://localhost:8083/admin/change-password';
+        url = 'http://localhost:8081/admin/change-password';
         break;
 
       case 'CLIENT':
-        url = 'http://localhost:8083/client/change-password';
+        url = 'http://localhost:8081/client/change-password';
         break;
 
       case 'AGENT_FINANCE':
-        url = 'http://localhost:8083/agents/finance/change-password'
+        url = 'http://localhost:8081/agents/finance/change-password'
         break;
 
       case 'AGENT_ASSURANCE':
-        url = 'http://localhost:8083/agent-assurance/change-password';
+        url = 'http://localhost:8081/agent-assurance/change-password';
         break;
 
       default:

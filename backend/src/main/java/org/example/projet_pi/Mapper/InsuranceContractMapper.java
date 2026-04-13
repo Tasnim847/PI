@@ -1,5 +1,6 @@
 package org.example.projet_pi.Mapper;
 
+import org.example.projet_pi.Dto.ClientDTO;
 import org.example.projet_pi.Dto.InsuranceContractDTO;
 import org.example.projet_pi.entity.InsuranceContract;
 
@@ -12,31 +13,50 @@ public class InsuranceContractMapper {
         if (contract == null) return null;
 
         InsuranceContractDTO dto = new InsuranceContractDTO();
+
         dto.setContractId(contract.getContractId());
         dto.setStartDate(contract.getStartDate());
         dto.setEndDate(contract.getEndDate());
         dto.setPremium(contract.getPremium());
         dto.setDeductible(contract.getDeductible());
         dto.setCoverageLimit(contract.getCoverageLimit());
+
         dto.setTotalPaid(contract.getTotalPaid());
         dto.setRemainingAmount(contract.getRemainingAmount());
-        dto.setStatus(contract.getStatus() != null ? contract.getStatus().name() : null);
-        dto.setPaymentFrequency(contract.getPaymentFrequency() != null ? contract.getPaymentFrequency().name() : null);
 
-        if (contract.getClient() != null) dto.setClientId(contract.getClient().getId());
-        if (contract.getProduct() != null) dto.setProductId(contract.getProduct().getProductId());
-        if (contract.getAgentAssurance() != null) dto.setAgentAssuranceId(contract.getAgentAssurance().getId());
+        dto.setStatus(
+                contract.getStatus() != null ? contract.getStatus().name() : null
+        );
+
+        dto.setPaymentFrequency(
+                contract.getPaymentFrequency() != null ? contract.getPaymentFrequency().name() : null
+        );
+
+        // ✅ CORRECTION ICI
+        dto.setClient(
+                ClientMapper.toDTO(contract.getClient())
+        );
+
+        if (contract.getProduct() != null)
+            dto.setProductId(contract.getProduct().getProductId());
+
+        if (contract.getAgentAssurance() != null)
+            dto.setAgentAssuranceId(contract.getAgentAssurance().getId());
 
         if (contract.getClaims() != null) {
-            dto.setClaimIds(contract.getClaims().stream()
-                    .map(c -> c.getClaimId())
-                    .collect(Collectors.toList()));
+            dto.setClaimIds(
+                    contract.getClaims().stream()
+                            .map(c -> c.getClaimId())
+                            .collect(Collectors.toList())
+            );
         }
 
         if (contract.getPayments() != null) {
-            dto.setPaymentIds(contract.getPayments().stream()
-                    .map(p -> p.getPaymentId())
-                    .collect(Collectors.toList()));
+            dto.setPaymentIds(
+                    contract.getPayments().stream()
+                            .map(p -> p.getPaymentId())
+                            .collect(Collectors.toList())
+            );
         }
 
         return dto;
@@ -47,6 +67,7 @@ public class InsuranceContractMapper {
         if (dto == null) return null;
 
         InsuranceContract contract = new InsuranceContract();
+
         contract.setContractId(dto.getContractId());
         contract.setStartDate(dto.getStartDate());
         contract.setEndDate(dto.getEndDate());
@@ -54,7 +75,6 @@ public class InsuranceContractMapper {
         contract.setDeductible(dto.getDeductible());
         contract.setCoverageLimit(dto.getCoverageLimit());
 
-        // ✅ PROTECTION CONTRE NULL
         contract.setTotalPaid(
                 dto.getTotalPaid() != null ? dto.getTotalPaid() : 0.0
         );
@@ -75,6 +95,13 @@ public class InsuranceContractMapper {
             contract.setPaymentFrequency(
                     org.example.projet_pi.entity.PaymentFrequency.valueOf(dto.getPaymentFrequency())
             );
+        }
+
+        // (optionnel mais recommandé)
+        if (dto.getClient() != null) {
+            org.example.projet_pi.entity.Client client = new org.example.projet_pi.entity.Client();
+            client.setId(dto.getClient().getId());
+            contract.setClient(client);
         }
 
         return contract;

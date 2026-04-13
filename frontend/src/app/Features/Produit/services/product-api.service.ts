@@ -34,6 +34,14 @@ export class ProductApiService {
     ).pipe(map(products => this.transformProducts(products)));
   }
 
+  // ================= GET PRODUCT BY ID =================
+  getProductById(id: number): Observable<InsuranceProduct> {
+    return this.http.get<any>(
+      `${this.baseUrl}/products/getProduct/${id}`,
+      { headers: this.getAuthHeaders() }
+    ).pipe(map(product => this.transformProduct(product)));
+  }
+
   // ================= ADD PRODUCT =================
   addProduct(formData: FormData): Observable<InsuranceProduct> {
     return this.http.post<InsuranceProduct>(

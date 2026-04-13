@@ -1,16 +1,18 @@
-import { Component, OnInit } from '@angular/core';
+// list-my-claims.component.ts
+import { Component, OnInit, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { ClaimsService } from '../../services/claims.service';
 import { ClaimDTO } from '../../../../shared/dto/claim-dto.model';
+import { AddClaimComponent } from '../add-claim/add-claim.component';
 
 @Component({
   selector: 'app-list-my-claims',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule],
+  imports: [CommonModule, RouterModule, FormsModule, AddClaimComponent],
   templateUrl: './list-my-claims.component.html',
-  styleUrl: './list-my-claims.component.css'
+  styleUrls: ['./list-my-claims.component.css']
 })
 export class ListMyClaimsComponent implements OnInit {
   claims: ClaimDTO[] = [];
@@ -22,7 +24,13 @@ export class ListMyClaimsComponent implements OnInit {
   showCompensationDetails = false;
   compensationDetails: any = null;
   
-  // Filtres
+  // Modal Add Claim
+  showAddClaimModal = false;
+  
+  // Dropdown tracking
+  activeDropdownClaimId: number | null = null;
+  
+  // Filters
   filterStatus: string = '';
   statusOptions = ['ALL', 'DECLARED', 'IN_REVIEW', 'APPROVED', 'REJECTED', 'COMPENSATED'];
 
@@ -31,7 +39,7 @@ export class ListMyClaimsComponent implements OnInit {
   itemsPerPage = 6;
   totalPages = 1;
 
-  // Couleurs pour les statuts
+  // Status configurations
   statusColors: { [key: string]: string } = {
     'DECLARED': 'badge bg-secondary',
     'IN_REVIEW': 'badge bg-warning text-dark',
@@ -54,13 +62,21 @@ export class ListMyClaimsComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    // Récupérer le message de succès depuis la navigation
     const navigation = this.router.getCurrentNavigation();
     if (navigation?.extras.state?.['success']) {
       this.successMessage = navigation.extras.state['success'];
       setTimeout(() => this.successMessage = '', 5000);
     }
     this.loadClaims();
+  }
+
+  // Fermer le dropdown quand on clique ailleurs
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: Event): void {
+    const target = event.target as HTMLElement;
+    if (!target.closest('.dropdown')) {
+      this.activeDropdownClaimId = null;
+    }
   }
 
   loadClaims(): void {
@@ -73,8 +89,8 @@ export class ListMyClaimsComponent implements OnInit {
         this.loading = false;
       },
       error: (err) => {
-        console.error('Erreur détaillée:', err);
-        this.error = err.error?.message || err.message || 'Erreur lors du chargement des réclamations';
+        console.error('Error:', err);
+        this.error = err.error?.message || err.message || 'Error loading claims';
         this.loading = false;
       }
     });
@@ -87,7 +103,6 @@ export class ListMyClaimsComponent implements OnInit {
       this.filteredClaims = this.claims.filter(claim => claim.status === this.filterStatus);
     }
     
-    // Recalculer la pagination
     this.totalPages = Math.ceil(this.filteredClaims.length / this.itemsPerPage);
     this.currentPage = 1;
   }
@@ -119,7 +134,6 @@ export class ListMyClaimsComponent implements OnInit {
   viewCompensation(claimId: number): void {
     this.claimsService.getCompensationDetails(claimId).subscribe({
       next: (data) => {
-        // Si les données sont du texte, les afficher correctement
         if (typeof data === 'string') {
           this.compensationDetails = data;
         } else {
@@ -128,7 +142,7 @@ export class ListMyClaimsComponent implements OnInit {
         this.showCompensationDetails = true;
       },
       error: (err) => {
-        this.error = 'Erreur lors du chargement des détails de compensation: ' + (err.error?.message || err.message);
+        this.error = 'Error loading compensation details: ' + (err.error?.message || err.message);
       }
     });
   }
@@ -137,6 +151,60 @@ export class ListMyClaimsComponent implements OnInit {
     this.selectedClaim = null;
     this.showCompensationDetails = false;
     this.compensationDetails = null;
+  }
+
+  // Add Claim Modal methods
+  openAddClaimModal(): void {
+    this.showAddClaimModal = true;
+  }
+
+  closeAddClaimModal(): void {
+    this.showAddClaimModal = false;
+  }
+
+  onClaimCreated(): void {
+    this.closeAddClaimModal();
+    this.loadClaims();
+    this.successMessage = 'Claim created successfully!';
+    setTimeout(() => this.successMessage = '', 5000);
+  }
+
+  // Dropdown methods
+  toggleDropdown(claimId: number | undefined, event: Event): void {
+    event.stopPropagation();
+    if (this.activeDropdownClaimId === claimId) {
+      this.activeDropdownClaimId = null;
+    } else {
+      this.activeDropdownClaimId = claimId || null;
+    }
+  }
+
+  closeDropdown(): void {
+    this.activeDropdownClaimId = null;
+  }
+
+  // Statistics methods
+  getApprovedCount(): number {
+    return this.claims.filter(c => c.status === 'APPROVED').length;
+  }
+
+  getPendingCount(): number {
+    return this.claims.filter(c => c.status === 'IN_REVIEW' || c.status === 'DECLARED').length;
+  }
+
+  getCompensatedCount(): number {
+    return this.claims.filter(c => c.status === 'COMPENSATED').length;
+  }
+
+  getStatusClass(status: string): string {
+    const statusMap: { [key: string]: string } = {
+      'DECLARED': 'declared',
+      'IN_REVIEW': 'in_review',
+      'APPROVED': 'approved',
+      'REJECTED': 'rejected',
+      'COMPENSATED': 'compensated'
+    };
+    return `claim-status ${statusMap[status] || ''}`;
   }
 
   getStatusColor(status: string): string {
@@ -180,20 +248,24 @@ export class ListMyClaimsComponent implements OnInit {
     return claim.status === 'IN_REVIEW' || claim.status === 'DECLARED';
   }
 
-  editClaim(claimId: number): void {
+  editClaim(claimId: number | undefined, event: Event): void {
+    event.stopPropagation();
     this.router.navigate(['/public/claims/edit', claimId]);
+    this.closeDropdown();
   }
 
-  deleteClaim(claimId: number): void {
-    if (confirm('Êtes-vous sûr de vouloir supprimer cette réclamation ? Cette action est irréversible.')) {
-      this.claimsService.deleteClaim(claimId).subscribe({
+  deleteClaim(claimId: number | undefined, event: Event): void {
+    event.stopPropagation();
+    if (confirm('Are you sure you want to delete this claim? This action is irreversible.')) {
+      this.claimsService.deleteClaim(claimId!).subscribe({
         next: () => {
-          this.successMessage = 'Réclamation supprimée avec succès';
+          this.successMessage = 'Claim deleted successfully';
           this.loadClaims();
           setTimeout(() => this.successMessage = '', 3000);
+          this.closeDropdown();
         },
         error: (err) => {
-          this.error = err.error?.message || 'Erreur lors de la suppression';
+          this.error = err.error?.message || 'Error deleting claim';
         }
       });
     }

@@ -1,0 +1,569 @@
+/* add-claim.component.css */
+
+/* ========================================
+   VARIABLES CSS
+   ======================================== */
+:host {
+  --primary-color: #0d6efd;
+  --primary-dark: #0b5ed7;
+  --primary-light: #e7f1ff;
+  --success-color: #198754;
+  --success-light: #d1e7dd;
+  --warning-color: #ffc107;
+  --warning-light: #fff3cd;
+  --danger-color: #dc3545;
+  --danger-light: #f8d7da;
+  --info-color: #0dcaf0;
+  --info-light: #cff4fc;
+  --gray-100: #f8f9fa;
+  --gray-200: #e9ecef;
+  --gray-300: #dee2e6;
+  --gray-400: #ced4da;
+  --gray-500: #adb5bd;
+  --gray-600: #6c757d;
+  --gray-700: #495057;
+  --gray-800: #343a40;
+  --gray-900: #212529;
+  --border-radius: 1rem;
+  --border-radius-sm: 0.5rem;
+  --box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.08);
+  --box-shadow-hover: 0 1rem 2rem rgba(0, 0, 0, 0.12);
+  --transition: all 0.3s ease;
+}
+
+/* ========================================
+   CONTAINER PRINCIPAL
+   ======================================== */
+.container {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+@media (min-width: 768px) {
+  .container {
+    padding: 2rem;
+  }
+}
+
+/* ========================================
+   HEADER
+   ======================================== */
+.btn-link {
+  color: var(--gray-600);
+  font-weight: 500;
+  transition: var(--transition);
+  padding: 0.5rem 0;
+}
+
+.btn-link:hover {
+  color: var(--primary-color);
+  transform: translateX(-4px);
+}
+
+.btn-link i {
+  transition: var(--transition);
+}
+
+.btn-link:hover i {
+  transform: translateX(-2px);
+}
+
+.display-6 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--gray-800);
+  margin-bottom: 0.5rem;
+}
+
+.display-6 i {
+  background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.text-muted {
+  color: var(--gray-600) !important;
+  font-size: 1rem;
+}
+
+/* ========================================
+   CARTE PRINCIPALE
+   ======================================== */
+.card {
+  border: none;
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+  overflow: hidden;
+  transition: var(--transition);
+}
+
+.card:hover {
+  box-shadow: var(--box-shadow-hover);
+}
+
+.card-body {
+  padding: 2rem;
+}
+
+@media (max-width: 768px) {
+  .card-body {
+    padding: 1.5rem;
+  }
+}
+
+/* ========================================
+   FORMULAIRES
+   ======================================== */
+.form-label {
+  font-weight: 600;
+  color: var(--gray-700);
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+  letter-spacing: 0.3px;
+}
+
+.form-label i {
+  margin-right: 0.5rem;
+  color: var(--primary-color);
+}
+
+.form-control,
+.form-select {
+  border: 2px solid var(--gray-300);
+  border-radius: var(--border-radius-sm);
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  transition: var(--transition);
+  background-color: white;
+}
+
+.form-control:focus,
+.form-select:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.15);
+  outline: none;
+}
+
+.form-control-lg,
+.form-select-lg {
+  padding: 0.875rem 1.25rem;
+  font-size: 1.1rem;
+}
+
+.form-control.is-invalid,
+.form-select.is-invalid {
+  border-color: var(--danger-color);
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' width='12' height='12' fill='none' stroke='%23dc3545'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath stroke-linejoin='round' d='M5.8 3.6h.4L6 6.5z'/%3e%3ccircle cx='6' cy='8.2' r='.6' fill='%23dc3545' stroke='none'/%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right calc(0.375em + 0.1875rem) center;
+  background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
+}
+
+.form-control.is-invalid:focus,
+.form-select.is-invalid:focus {
+  border-color: var(--danger-color);
+  box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+}
+
+.invalid-feedback {
+  font-size: 0.8rem;
+  color: var(--danger-color);
+  margin-top: 0.375rem;
+}
+
+/* ========================================
+   SECTIONS SPÉCIFIQUES (AUTO, HEALTH, HOME)
+   ======================================== */
+.border {
+  border: 1px solid var(--gray-300) !important;
+  border-radius: var(--border-radius-sm) !important;
+  background: linear-gradient(135deg, var(--gray-100), white);
+  transition: var(--transition);
+}
+
+.border:hover {
+  border-color: var(--primary-color) !important;
+  box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.05);
+}
+
+.border h5 {
+  color: var(--gray-800);
+  font-weight: 700;
+  font-size: 1.1rem;
+  margin-bottom: 1.25rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid var(--gray-300);
+}
+
+.border h5 i {
+  font-size: 1.3rem;
+}
+
+/* ========================================
+   ALERTES
+   ======================================== */
+.alert {
+  border: none;
+  border-radius: var(--border-radius-sm);
+  padding: 1rem 1.25rem;
+  font-size: 0.9rem;
+}
+
+.alert-info {
+  background: linear-gradient(135deg, var(--info-light), #e0f7ff);
+  color: #055160;
+  border-left: 4px solid var(--info-color);
+}
+
+.alert-warning {
+  background: linear-gradient(135deg, var(--warning-light), #fff8e7);
+  color: #664d03;
+  border-left: 4px solid var(--warning-color);
+}
+
+.alert-danger {
+  background: linear-gradient(135deg, var(--danger-light), #ffe5e5);
+  color: #842029;
+  border-left: 4px solid var(--danger-color);
+}
+
+.alert-success {
+  background: linear-gradient(135deg, var(--success-light), #d4f0e0);
+  color: #0a3622;
+  border-left: 4px solid var(--success-color);
+}
+
+.alert i {
+  margin-right: 0.5rem;
+  font-size: 1.1rem;
+}
+
+.alert strong {
+  font-weight: 700;
+}
+
+.alert small {
+  display: block;
+  margin-top: 0.5rem;
+  opacity: 0.9;
+}
+
+/* ========================================
+   CHAMPS REQUIS
+   ======================================== */
+.text-danger {
+  color: var(--danger-color) !important;
+  font-weight: 600;
+  font-size: 0.8rem;
+}
+
+/* ========================================
+   SECTION DOCUMENTS
+   ======================================== */
+input[type="file"] {
+  padding: 0.5rem;
+  cursor: pointer;
+}
+
+input[type="file"]::file-selector-button {
+  background-color: var(--gray-200);
+  border: 1px solid var(--gray-300);
+  border-radius: var(--border-radius-sm);
+  padding: 0.5rem 1rem;
+  margin-right: 1rem;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+input[type="file"]::file-selector-button:hover {
+  background-color: var(--gray-300);
+}
+
+.text-muted {
+  display: block;
+  margin-top: 0.5rem;
+  font-size: 0.75rem;
+}
+
+.alert-secondary {
+  background-color: var(--gray-100);
+  border: 1px solid var(--gray-300);
+  border-radius: var(--border-radius-sm);
+  padding: 0.75rem 1rem;
+  margin-bottom: 0.5rem;
+  transition: var(--transition);
+}
+
+.alert-secondary:hover {
+  background-color: var(--gray-200);
+  transform: translateX(4px);
+}
+
+.alert-secondary i {
+  color: var(--primary-color);
+}
+
+/* ========================================
+   BOUTONS
+   ======================================== */
+.btn {
+  padding: 0.75rem 1.5rem;
+  font-weight: 600;
+  border-radius: var(--border-radius-sm);
+  transition: var(--transition);
+  letter-spacing: 0.3px;
+}
+
+.btn-lg {
+  padding: 1rem 2rem;
+  font-size: 1.1rem;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+  border: none;
+  color: white;
+  box-shadow: 0 2px 4px rgba(13, 110, 253, 0.2);
+}
+
+.btn-primary:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(13, 110, 253, 0.3);
+  background: linear-gradient(135deg, var(--primary-dark), #0a58ca);
+}
+
+.btn-primary:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-outline-secondary {
+  border: 2px solid var(--gray-400);
+  color: var(--gray-700);
+  background: white;
+}
+
+.btn-outline-secondary:hover {
+  background-color: var(--gray-100);
+  border-color: var(--gray-500);
+  transform: translateY(-2px);
+}
+
+/* ========================================
+   SPINNER
+   ======================================== */
+.spinner-border {
+  width: 1.2rem;
+  height: 1.2rem;
+  border-width: 0.2rem;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.spinner-border {
+  animation: spin 0.75s linear infinite;
+}
+
+/* ========================================
+   LOADING STATE
+   ======================================== */
+.text-center.py-5 {
+  padding: 4rem 1rem;
+}
+
+.spinner-border.text-primary {
+  width: 3rem;
+  height: 3rem;
+  border-width: 0.3rem;
+}
+
+/* ========================================
+   RESPONSIVE
+   ======================================== */
+@media (max-width: 768px) {
+  .display-6 {
+    font-size: 1.5rem;
+  }
+  
+  .btn-lg {
+    padding: 0.75rem 1.25rem;
+    font-size: 0.9rem;
+  }
+  
+  .form-control-lg,
+  .form-select-lg {
+    font-size: 0.95rem;
+    padding: 0.75rem 1rem;
+  }
+  
+  .row.mb-4 {
+    margin-bottom: 1.5rem !important;
+  }
+  
+  .col-md-6.mb-3 {
+    margin-bottom: 1rem !important;
+  }
+  
+  .border h5 {
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .card-body {
+    padding: 1rem;
+  }
+  
+  .btn {
+    padding: 0.6rem 1rem;
+  }
+  
+  .btn-lg {
+    padding: 0.6rem 1rem;
+  }
+  
+  .alert {
+    padding: 0.75rem 1rem;
+    font-size: 0.85rem;
+  }
+  
+  .border {
+    padding: 1rem !important;
+  }
+  
+  .d-flex.justify-content-between {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .d-flex.justify-content-between .btn {
+    width: 100%;
+  }
+}
+
+/* ========================================
+   ANIMATIONS
+   ======================================== */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.card {
+  animation: fadeIn 0.4s ease-out;
+}
+
+.border {
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* ========================================
+   SCROLLBAR PERSONNALISÉE
+   ======================================== */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--gray-200);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--gray-500);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--gray-600);
+}
+
+/* ========================================
+   PRINT STYLES
+   ======================================== */
+@media print {
+  .btn,
+  .btn-link,
+  .alert-dismissible {
+    display: none;
+  }
+  
+  .card {
+    box-shadow: none;
+    border: 1px solid var(--gray-300);
+  }
+  
+  .container {
+    padding: 0;
+    margin: 0;
+  }
+}
+
+
+/* Styles pour le formulaire dans le popup */
+.container {
+  max-width: 100%;
+  padding: 0;
+}
+
+.card {
+  border: none;
+  box-shadow: none;
+}
+
+.card-body {
+  padding: 0;
+}
+
+/* Ajustements pour popup */
+.modal-body .container {
+  padding: 0;
+}
+
+/* Boutons */
+.btn-outline-secondary {
+  border: 1px solid #d1d5db;
+  color: #4b5563;
+}
+
+.btn-outline-secondary:hover {
+  background: #f3f4f6;
+  border-color: #9ca3af;
+}
+
+/* Alertes dans le popup */
+.alert {
+  margin-bottom: 1rem;
+}
+
+/* Responsive dans le popup */
+@media (max-width: 768px) {
+  .card-body {
+    padding: 0;
+  }
+  
+  .btn-lg {
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+  }
+}

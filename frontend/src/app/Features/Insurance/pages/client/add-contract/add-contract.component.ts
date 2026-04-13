@@ -23,6 +23,7 @@ export class AddContractComponent implements OnInit {
   products: any[] = [];
   paymentFrequencies = ['MONTHLY', 'SEMI_ANNUAL', 'ANNUAL'];
   isLoading = false;
+  isLoadingProducts = false;
   riskEvaluation: any = null;
 
   constructor(
@@ -35,57 +36,61 @@ export class AddContractComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    // Vérifier si l'utilisateur est connecté
     if (!this.authService.isLoggedIn()) {
       this.toastr.warning('Veuillez vous connecter pour créer un contrat');
       this.cancel.emit();
       return;
     }
     this.initForm();
-    this.loadProducts();
+    this.loadActiveProducts();
   }
 
   initForm(): void {
     this.contractForm = this.fb.group({
       startDate: ['', Validators.required],
       endDate: ['', Validators.required],
-      premium: [{ value: 0, disabled: true }, [Validators.required, Validators.min(0)]],
-      deductible: [{ value: 0, disabled: true }],
-      coverageLimit: [{ value: 0, disabled: true }],
       paymentFrequency: ['MONTHLY', Validators.required],
       productId: ['', Validators.required]
     });
-
-    // Recalculer la prime quand le produit change
-    this.contractForm.get('productId')?.valueChanges.subscribe(productId => {
-      this.updatePremiumFromProduct(productId);
-    });
   }
 
-  loadProducts(): void {
-    this.productService.getAllProducts().subscribe({
+  loadActiveProducts(): void {
+    this.isLoadingProducts = true;
+    
+    this.productService.getActiveProducts().subscribe({
       next: (products) => {
-        this.products = products;
-        console.log('Produits chargés:', products);
+        this.products = products.filter(p => p.status === 'ACTIVE');
+        console.log('Produits actifs chargés:', this.products);
+        this.isLoadingProducts = false;
+        
+        if (this.products.length === 0) {
+          this.toastr.warning('Aucun produit actif disponible pour créer un contrat');
+        }
       },
       error: (err) => {
-        console.error('Erreur:', err);
-        this.toastr.error('Erreur lors du chargement des produits');
+        console.error('Erreur chargement produits:', err);
+        this.loadAndFilterProducts();
       }
     });
   }
 
-  updatePremiumFromProduct(productId: number): void {
-    const product = this.products.find(p => (p as any).productId === productId || (p as any).id === productId);
-    if (product) {
-      const basePrice = (product as any).basePrice || (product as any).price || 0;
-      const estimatedPremium = basePrice * 0.1;
-      this.contractForm.patchValue({
-        premium: estimatedPremium,
-        deductible: estimatedPremium * 0.1,
-        coverageLimit: basePrice * 10
-      });
-    }
+  loadAndFilterProducts(): void {
+    this.productService.getAllProducts().subscribe({
+      next: (products) => {
+        this.products = products.filter(p => p.status === 'ACTIVE');
+        console.log('Produits filtrés:', this.products);
+        this.isLoadingProducts = false;
+        
+        if (this.products.length === 0) {
+          this.toastr.warning('Aucun produit actif disponible');
+        }
+      },
+      error: (err) => {
+        console.error('Erreur:', err);
+        this.toastr.error('Erreur lors du chargement des produits');
+        this.isLoadingProducts = false;
+      }
+    });
   }
 
   onSubmit(): void {
@@ -94,7 +99,6 @@ export class AddContractComponent implements OnInit {
       return;
     }
 
-    // Vérifier à nouveau la connexion
     if (!this.authService.isLoggedIn()) {
       this.toastr.error('Veuillez vous reconnecter');
       this.cancel.emit();
@@ -104,20 +108,24 @@ export class AddContractComponent implements OnInit {
     this.isLoading = true;
     const formValue = this.contractForm.getRawValue();
     
+    // Envoi uniquement des champs nécessaires
     const contractData = {
       startDate: formValue.startDate,
       endDate: formValue.endDate,
-      premium: formValue.premium,
-      deductible: formValue.deductible,
-      coverageLimit: formValue.coverageLimit,
       paymentFrequency: formValue.paymentFrequency,
       productId: formValue.productId
     };
 
+    console.log('📤 Envoi des données au backend:', contractData);
+
     this.contractService.addContract(contractData).subscribe({
       next: (contract) => {
         this.isLoading = false;
-        this.toastr.success('Contrat créé avec succès !');
+        this.toastr.success('✅ Contrat créé avec succès !');
+        console.log('✅ Contrat reçu du backend:', contract);
+        
+        // Afficher les valeurs calculées par le backend
+        this.toastr.info(`💰 Prime: ${contract.premium} DT | Franchise: ${contract.deductible} DT`);
         
         // Récupérer l'évaluation du risque
         this.contractService.getContractRisk(contract.contractId).subscribe({
@@ -129,19 +137,24 @@ export class AddContractComponent implements OnInit {
             this.contractAdded.emit();
           },
           error: (err) => {
+            console.error('Erreur récupération risque:', err);
             this.contractAdded.emit();
           }
         });
       },
       error: (err) => {
         this.isLoading = false;
-        console.error('Erreur:', err);
+        console.error('❌ Erreur création contrat:', err);
+        
         if (err.status === 401) {
           this.toastr.error('Session expirée, veuillez vous reconnecter');
           this.authService.logout();
           this.cancel.emit();
+        } else if (err.status === 403) {
+          this.toastr.error('Vous n\'avez pas les droits pour créer un contrat');
         } else {
-          this.toastr.error(err.error?.message || 'Erreur lors de la création du contrat');
+          const errorMsg = err.error?.message || err.message || 'Erreur lors de la création du contrat';
+          this.toastr.error(errorMsg);
         }
       }
     });

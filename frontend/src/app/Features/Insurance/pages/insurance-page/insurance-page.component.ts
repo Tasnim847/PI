@@ -1,13 +1,12 @@
-// src/app/Features/Insurance/pages/insurance-page/insurance-page.component.ts
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { ContractService } from '../../services/contract.service';
+import { AuthService } from '../../../../services/auth.service';
 import { AddContractComponent } from '../client/add-contract/add-contract.component';
 import { ToastrService } from 'ngx-toastr';
 import { saveAs } from 'file-saver';
-import { AuthService } from '../../../../services/auth.service';
 
 @Component({
   selector: 'app-insurance-page',
@@ -20,13 +19,32 @@ export class InsurancePageComponent implements OnInit {
   contracts: any[] = [];
   filteredContracts: any[] = [];
   selectedStatus: string = 'ALL';
+  searchTerm: string = '';
   isLoading = false;
   selectedContract: any = null;
   showRiskModal = false;
   showAddContractForm = false;
-  isLoggedIn = false;
+  showActivateModal = false;
+  showRejectModal = false;
+  rejectReason: string = '';
+  showAddContractModal: boolean = false;
+  
+  // Informations utilisateur
+  userRole: string = '';
+  isAgent: boolean = false;
+  isClient: boolean = false;
+  isLoggedIn: boolean = false;
 
-  statuses = ['ALL', 'ACTIVE', 'INACTIVE', 'COMPLETED', 'CANCELLED', 'EXPIRED'];
+  // Statistiques
+  stats = {
+    total: 0,
+    pending: 0,
+    active: 0,
+    completed: 0,
+    cancelled: 0
+  };
+
+  statuses = ['ALL', 'PENDING', 'ACTIVE', 'COMPLETED', 'CANCELLED', 'EXPIRED'];
 
   constructor(
     private contractService: ContractService,
@@ -35,64 +53,105 @@ export class InsurancePageComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.checkAuthAndLoadContracts();
-  }
-
-  checkAuthAndLoadContracts(): void {
     this.isLoggedIn = this.authService.isLoggedIn();
+    this.userRole = this.authService.getRole() || '';
+    this.isAgent = this.userRole === 'AGENT_ASSURANCE';
+    this.isClient = this.userRole === 'CLIENT';
     
     if (this.isLoggedIn) {
       this.loadContracts();
-    } else {
-      // Afficher un message invitant à se connecter
-      console.log('Utilisateur non connecté');
     }
   }
 
   loadContracts(): void {
     this.isLoading = true;
-    this.contractService.getMyContracts().subscribe({
-      next: (contracts) => {
-        this.contracts = contracts;
-        this.filterContracts();
-        this.isLoading = false;
-      },
-      error: (err) => {
-        console.error('Erreur:', err);
-        if (err.status === 401) {
-          this.toastr.error('Session expirée, veuillez vous reconnecter');
-          this.authService.logout();
-        } else {
-          this.toastr.error('Erreur lors du chargement des contrats');
+    
+    if (this.isClient) {
+      // CLIENT: Utiliser getMyContracts() - ses propres contrats
+      this.contractService.getMyContracts().subscribe({
+        next: (contracts) => {
+          this.contracts = contracts;
+          this.calculateStats();
+          this.filterContracts();
+          this.isLoading = false;
+        },
+        error: (err) => {
+          console.error('Erreur:', err);
+          this.toastr.error('Erreur lors du chargement de vos contrats');
+          this.isLoading = false;
         }
-        this.isLoading = false;
-      }
-    });
+      });
+    } else if (this.isAgent) {
+      // AGENT: Utiliser getAllContracts() - contrats des clients
+      this.contractService.getAllContracts().subscribe({
+        next: (contracts) => {
+          this.contracts = contracts;
+          this.calculateStats();
+          this.filterContracts();
+          this.isLoading = false;
+          if (contracts.length > 0) {
+            this.toastr.info(`Vous avez ${contracts.length} contrat(s) à gérer`);
+          }
+        },
+        error: (err) => {
+          console.error('Erreur:', err);
+          this.toastr.error('Erreur lors du chargement des contrats');
+          this.isLoading = false;
+        }
+      });
+    } else {
+      this.isLoading = false;
+    }
+  }
+
+  calculateStats(): void {
+    this.stats.total = this.contracts.length;
+    this.stats.pending = this.contracts.filter(c => c.status === 'INACTIVE').length;
+    this.stats.active = this.contracts.filter(c => c.status === 'ACTIVE').length;
+    this.stats.completed = this.contracts.filter(c => c.status === 'COMPLETED').length;
+    this.stats.cancelled = this.contracts.filter(c => c.status === 'CANCELLED').length;
   }
 
   filterContracts(): void {
-    if (this.selectedStatus === 'ALL') {
-      this.filteredContracts = this.contracts;
-    } else {
-      this.filteredContracts = this.contracts.filter(
-        c => c.status === this.selectedStatus
+    let filtered = this.contracts;
+    
+    if (this.selectedStatus !== 'ALL') {
+      let statusFilter = this.selectedStatus;
+      if (statusFilter === 'PENDING') statusFilter = 'INACTIVE';
+      filtered = filtered.filter(c => c.status === statusFilter);
+    }
+    
+    if (this.searchTerm) {
+      const term = this.searchTerm.toLowerCase();
+      filtered = filtered.filter(c => 
+        c.contractId.toString().includes(term) ||
+        c.client?.firstName?.toLowerCase().includes(term) ||
+        c.client?.lastName?.toLowerCase().includes(term) ||
+        c.client?.email?.toLowerCase().includes(term) ||
+        c.product?.name?.toLowerCase().includes(term)
       );
     }
+    
+    this.filteredContracts = filtered;
   }
 
   onStatusChange(): void {
     this.filterContracts();
   }
 
+  onSearch(): void {
+    this.filterContracts();
+  }
+
   getStatusBadgeClass(status: string): string {
     const classes: {[key: string]: string} = {
-      'ACTIVE': 'bg-success',
-      'INACTIVE': 'bg-warning',
-      'COMPLETED': 'bg-info',
-      'CANCELLED': 'bg-danger',
-      'EXPIRED': 'bg-secondary'
+      'ACTIVE': 'status-active',
+      'INACTIVE': 'status-pending',
+      'COMPLETED': 'status-completed',
+      'CANCELLED': 'status-cancelled',
+      'EXPIRED': 'status-expired'
     };
-    return classes[status] || 'bg-secondary';
+    return classes[status] || 'status-pending';
   }
 
   getStatusLabel(status: string): string {
@@ -133,6 +192,55 @@ export class InsurancePageComponent implements OnInit {
     });
   }
 
+  // Actions pour l'agent
+  openActivateModal(contract: any): void {
+    if (contract.riskClaim?.riskLevel === 'HIGH') {
+      this.toastr.error('Ce contrat ne peut pas être activé car son niveau de risque est ÉLEVÉ');
+      return;
+    }
+    this.selectedContract = contract;
+    this.showActivateModal = true;
+  }
+
+  confirmActivate(): void {
+    if (this.selectedContract) {
+      this.contractService.activateContract(this.selectedContract.contractId).subscribe({
+        next: () => {
+          this.toastr.success(`Contrat #${this.selectedContract.contractId} activé avec succès`);
+          this.showActivateModal = false;
+          this.loadContracts();
+        },
+        error: (err) => {
+          this.toastr.error(err.error?.message || 'Erreur lors de l\'activation');
+        }
+      });
+    }
+  }
+
+  openRejectModal(contract: any): void {
+    this.selectedContract = contract;
+    this.rejectReason = '';
+    this.showRejectModal = true;
+  }
+
+  confirmReject(): void {
+    if (this.selectedContract && this.rejectReason.trim()) {
+      this.contractService.rejectContract(this.selectedContract.contractId, this.rejectReason).subscribe({
+        next: () => {
+          this.toastr.success(`Contrat #${this.selectedContract.contractId} rejeté`);
+          this.showRejectModal = false;
+          this.loadContracts();
+        },
+        error: (err) => {
+          this.toastr.error(err.error?.message || 'Erreur lors du rejet');
+        }
+      });
+    } else {
+      this.toastr.warning('Veuillez saisir une raison de rejet');
+    }
+  }
+
+  // Action pour le client
   cancelContract(contract: any): void {
     if (confirm('Êtes-vous sûr de vouloir annuler ce contrat ?')) {
       this.contractService.deleteContract(contract.contractId).subscribe({
@@ -154,26 +262,43 @@ export class InsurancePageComponent implements OnInit {
     return d.toLocaleDateString('fr-FR');
   }
 
-  closeModal(): void {
-    this.showRiskModal = false;
-    this.selectedContract = null;
+  getProgressPercentage(contract: any): number {
+    if (!contract.premium || contract.premium === 0) return 0;
+    return (contract.totalPaid / contract.premium) * 100;
   }
 
-  toggleAddContractForm(): void {
+  closeModal(): void {
+    this.showRiskModal = false;
+    this.showActivateModal = false;
+    this.showRejectModal = false;
+    this.selectedContract = null;
+    this.rejectReason = '';
+  }
+
+  // Méthodes pour le popup d'ajout de contrat (client uniquement)
+  openAddContractModal(): void {
     if (!this.isLoggedIn) {
       this.toastr.warning('Veuillez vous connecter pour créer un contrat');
       return;
     }
-    this.showAddContractForm = !this.showAddContractForm;
+    if (!this.isClient) {
+      this.toastr.warning('Seuls les clients peuvent créer des contrats');
+      return;
+    }
+    this.showAddContractModal = true;
+  }
+
+  closeAddContractModal(): void {
+    this.showAddContractModal = false;
   }
 
   onContractAdded(): void {
-    this.showAddContractForm = false;
+    this.closeAddContractModal();
     this.loadContracts();
     this.toastr.success('Contrat créé avec succès !');
   }
 
-  onCancelAddContract(): void {
-    this.showAddContractForm = false;
+  refresh(): void {
+    this.loadContracts();
   }
 }

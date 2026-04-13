@@ -1,84 +1,152 @@
-<!-- add-contract.component.html -->
-<div class="card shadow">
-  <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-    <h5 class="mb-0">Nouveau Contrat d'Assurance</h5>
-    <button type="button" class="btn-close btn-close-white" (click)="onCancel()"></button>
-  </div>
-  <div class="card-body">
-    <form [formGroup]="contractForm" (ngSubmit)="onSubmit()">
-      <!-- Sélection du produit -->
-      <div class="mb-3">
-        <label class="form-label">Produit d'assurance *</label>
-        <select class="form-select" formControlName="productId">
-          <option value="">Sélectionnez un produit</option>
-          <option *ngFor="let product of products" [value]="getProductId(product)">
-            {{ getProductName(product) }} - {{ getProductBasePrice(product) }} DT
-          </option>
-        </select>
-      </div>
-
-      <!-- Dates -->
-      <div class="row">
-        <div class="col-md-6 mb-3">
-          <label class="form-label">Date de début *</label>
-          <input type="date" class="form-control" formControlName="startDate">
+<!-- src/app/Features/Insurance/pages/client/add-contract/add-contract.component.html -->
+<div class="add-contract-container">
+  <div class="card shadow-lg border-0">
+    <div class="card-header bg-gradient-primary text-white">
+      <div class="d-flex justify-content-between align-items-center">
+        <div>
+          <h4 class="mb-0">
+            <i class="bi bi-file-earmark-plus me-2"></i>
+            Nouveau Contrat d'Assurance
+          </h4>
+          <p class="mb-0 mt-1 small opacity-75">
+            Complétez le formulaire pour créer votre contrat
+          </p>
         </div>
-        <div class="col-md-6 mb-3">
-          <label class="form-label">Date de fin *</label>
-          <input type="date" class="form-control" formControlName="endDate">
-        </div>
+        <button type="button" class="btn-close btn-close-white" (click)="onCancel()"></button>
       </div>
-
-      <!-- Fréquence de paiement -->
-      <div class="mb-3">
-        <label class="form-label">Fréquence de paiement *</label>
-        <select class="form-select" formControlName="paymentFrequency">
-          <option *ngFor="let freq of paymentFrequencies" [value]="freq">
-            {{ freq === 'MONTHLY' ? 'Mensuel' : freq === 'SEMI_ANNUAL' ? 'Semestriel' : 'Annuel' }}
-          </option>
-        </select>
-      </div>
-
-      <!-- Informations financières -->
-      <div class="alert alert-info">
-        <h6>Informations financières estimées</h6>
-        <div class="row">
-          <div class="col-md-4">
-            <label>Prime (DT)</label>
-            <input type="number" class="form-control" formControlName="premium" readonly>
+    </div>
+    
+    <div class="card-body p-4">
+      <form [formGroup]="contractForm" (ngSubmit)="onSubmit()">
+        
+        <!-- Sélection du produit -->
+        <div class="mb-4">
+          <label class="form-label fw-semibold">
+            <i class="bi bi-box-seam me-1"></i>
+            Produit d'assurance <span class="text-danger">*</span>
+          </label>
+          
+          <div *ngIf="isLoadingProducts" class="text-center py-3">
+            <div class="spinner-border spinner-border-sm text-primary me-2"></div>
+            <span class="text-muted">Chargement des produits actifs...</span>
           </div>
-          <div class="col-md-4">
-            <label>Franchise (DT)</label>
-            <input type="number" class="form-control" formControlName="deductible" readonly>
+          
+          <select *ngIf="!isLoadingProducts" class="form-select" formControlName="productId" 
+                  [class.is-invalid]="contractForm.get('productId')?.invalid && contractForm.get('productId')?.touched">
+            <option value="">-- Sélectionnez un produit --</option>
+            <option *ngFor="let product of products" [value]="getProductId(product)">
+              {{ getProductName(product) }} - {{ getProductBasePrice(product) | number }} DT
+            </option>
+          </select>
+          
+          <div *ngIf="contractForm.get('productId')?.invalid && contractForm.get('productId')?.touched" class="text-danger small mt-1">
+            Veuillez sélectionner un produit
           </div>
-          <div class="col-md-4">
-            <label>Plafond (DT)</label>
-            <input type="number" class="form-control" formControlName="coverageLimit" readonly>
+          
+          <div *ngIf="!isLoadingProducts && products.length === 0" class="alert alert-warning mt-2">
+            <i class="bi bi-exclamation-triangle me-2"></i>
+            Aucun produit actif n'est disponible pour le moment.
           </div>
         </div>
-      </div>
 
-      <!-- Avertissement risque -->
-      <div *ngIf="riskEvaluation" class="alert" 
-           [class.alert-danger]="!riskEvaluation.canBeActivated"
-           [class.alert-warning]="riskEvaluation.canBeActivated && riskEvaluation.riskEvaluation?.riskLevel === 'MEDIUM'"
-           [class.alert-success]="riskEvaluation.canBeActivated && riskEvaluation.riskEvaluation?.riskLevel === 'LOW'">
-        <h6>Évaluation du risque</h6>
-        <p>{{ riskEvaluation.recommendation }}</p>
-        <small>Score: {{ riskEvaluation.riskEvaluation?.riskScore }}/100 - 
-               Niveau: {{ riskEvaluation.riskEvaluation?.riskLevel }}</small>
-      </div>
+        <!-- Dates du contrat -->
+        <div class="row mb-4">
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">
+              <i class="bi bi-calendar-plus me-1"></i>
+              Date de début <span class="text-danger">*</span>
+            </label>
+            <input type="date" class="form-control" formControlName="startDate" 
+                   [class.is-invalid]="contractForm.get('startDate')?.invalid && contractForm.get('startDate')?.touched">
+            <div *ngIf="contractForm.get('startDate')?.invalid && contractForm.get('startDate')?.touched" class="text-danger small mt-1">
+              Date de début requise
+            </div>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">
+              <i class="bi bi-calendar-minus me-1"></i>
+              Date de fin <span class="text-danger">*</span>
+            </label>
+            <input type="date" class="form-control" formControlName="endDate"
+                   [class.is-invalid]="contractForm.get('endDate')?.invalid && contractForm.get('endDate')?.touched">
+            <div *ngIf="contractForm.get('endDate')?.invalid && contractForm.get('endDate')?.touched" class="text-danger small mt-1">
+              Date de fin requise
+            </div>
+          </div>
+        </div>
 
-      <!-- Boutons -->
-      <div class="d-flex justify-content-end gap-2 mt-3">
-        <button type="button" class="btn btn-secondary" (click)="onCancel()">
-          Annuler
-        </button>
-        <button type="submit" class="btn btn-primary" [disabled]="contractForm.invalid || isLoading">
-          <span *ngIf="isLoading" class="spinner-border spinner-border-sm me-2"></span>
-          Créer le contrat
-        </button>
-      </div>
-    </form>
+        <!-- Fréquence de paiement -->
+        <div class="mb-4">
+          <label class="form-label fw-semibold">
+            <i class="bi bi-calendar-week me-1"></i>
+            Fréquence de paiement <span class="text-danger">*</span>
+          </label>
+          <div class="d-flex gap-3 flex-wrap">
+            <div *ngFor="let freq of paymentFrequencies" class="form-check">
+              <input class="form-check-input" type="radio" formControlName="paymentFrequency" [value]="freq" [id]="freq">
+              <label class="form-check-label" [for]="freq">
+                <i class="bi" 
+                   [class.bi-calendar-month]="freq === 'MONTHLY'"
+                   [class.bi-calendar-week]="freq === 'SEMI_ANNUAL'"
+                   [class.bi-calendar-year]="freq === 'ANNUAL'"></i>
+                {{ freq === 'MONTHLY' ? 'Mensuel' : freq === 'SEMI_ANNUAL' ? 'Semestriel' : 'Annuel' }}
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Message d'information sur le calcul automatique -->
+        <div class="alert alert-info mb-4">
+          <div class="d-flex align-items-start">
+            <i class="bi bi-calculator-fill me-2 fs-5"></i>
+            <div>
+              <h6 class="mb-1 fw-semibold">Calcul automatique</h6>
+              <p class="mb-0 small">
+                La prime, la franchise et le plafond de couverture seront calculés automatiquement 
+                par notre système en fonction du produit sélectionné et de votre profil.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Avertissement risque -->
+        <div *ngIf="riskEvaluation" class="alert mb-4" 
+             [class.alert-danger]="!riskEvaluation.canBeActivated"
+             [class.alert-warning]="riskEvaluation.canBeActivated && riskEvaluation.riskEvaluation?.riskLevel === 'MEDIUM'"
+             [class.alert-success]="riskEvaluation.canBeActivated && riskEvaluation.riskEvaluation?.riskLevel === 'LOW'">
+          <div class="d-flex align-items-start">
+            <i class="bi bi-shield-exclamation me-2 fs-4"></i>
+            <div>
+              <h6 class="mb-1 fw-semibold">Évaluation du risque</h6>
+              <p class="mb-1 small">{{ riskEvaluation.recommendation }}</p>
+              <div class="d-flex gap-3 mt-2">
+                <span class="badge" 
+                      [class.bg-danger]="riskEvaluation.riskEvaluation?.riskLevel === 'HIGH'"
+                      [class.bg-warning]="riskEvaluation.riskEvaluation?.riskLevel === 'MEDIUM'"
+                      [class.bg-success]="riskEvaluation.riskEvaluation?.riskLevel === 'LOW'">
+                  Score: {{ riskEvaluation.riskEvaluation?.riskScore }}/100
+                </span>
+                <span class="badge bg-secondary">
+                  Niveau: {{ riskEvaluation.riskEvaluation?.riskLevel }}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Boutons d'action -->
+        <div class="d-flex justify-content-end gap-3 pt-2 border-top">
+          <button type="button" class="btn btn-light px-4" (click)="onCancel()">
+            <i class="bi bi-x-circle me-1"></i> Annuler
+          </button>
+          <button type="submit" class="btn btn-primary px-4" 
+                  [disabled]="contractForm.invalid || isLoading || isLoadingProducts || products.length === 0">
+            <span *ngIf="isLoading" class="spinner-border spinner-border-sm me-2"></span>
+            <i *ngIf="!isLoading" class="bi bi-check-circle me-1"></i>
+            {{ isLoading ? 'Création en cours...' : 'Créer le contrat' }}
+          </button>
+        </div>
+      </form>
+    </div>
   </div>
 </div>

@@ -1,117 +1,588 @@
-<!-- my-contracts.component.html -->
-<div class="container mt-4">
-  <div class="row">
-    <div class="col-12">
-      <div class="card shadow">
-        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-          <h4 class="mb-0">Mes Contrats d'Assurance</h4>
-          <button class="btn btn-light" routerLink="/public/insurance/add-contract">
-            <i class="bi bi-plus-circle"></i> Nouveau contrat
+<!-- Modern Professional Template for My Contracts -->
+<div class="contracts-dashboard">
+  <!-- Hero Section with Statistics -->
+  <div class="dashboard-hero">
+    <div class="hero-background"></div>
+    <div class="hero-content">
+      <div class="hero-text">
+        <h1 class="hero-title">
+          <svg class="hero-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20 12V8H4v4M20 12v6a2 2 0 01-2 2H6a2 2 0 01-2-2v-6m16 0h-4M4 12H0m20 0h4M12 4v4m0 4v4"/>
+          </svg>
+          My Insurance Contracts
+        </h1>
+        <p class="hero-subtitle">Manage and track all your insurance contracts in real time</p>
+      </div>
+      <button class="btn-create" (click)="openAddContractModal()">
+        <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 5v14M5 12h14"/>
+        </svg>
+        New Contract
+      </button>
+    </div>
+  </div>
+
+  <!-- Statistics Cards -->
+  <div class="stats-grid">
+    <div class="stat-card stat-total">
+      <div class="stat-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path d="M20 12V8H4v4M20 12v6a2 2 0 01-2 2H6a2 2 0 01-2-2v-6m16 0h-4M4 12H0m20 0h4M12 4v4m0 4v4"/>
+        </svg>
+      </div>
+      <div class="stat-info">
+        <span class="stat-value">{{ stats.total }}</span>
+        <span class="stat-label">Total Contracts</span>
+      </div>
+      <div class="stat-trend" *ngIf="stats.total > 0">
+        <span class="trend-value">+{{ stats.active }}</span>
+        <span class="trend-label"> active</span>
+      </div>
+    </div>
+
+    <div class="stat-card stat-active">
+      <div class="stat-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+      </div>
+      <div class="stat-info">
+        <span class="stat-value">{{ stats.active }}</span>
+        <span class="stat-label">Active Contracts</span>
+      </div>
+      <div class="stat-percentage" *ngIf="stats.total > 0">
+        <span class="percentage-value">{{ (stats.active / stats.total * 100) | number:'1.0-0' }}%</span>
+      </div>
+    </div>
+
+    <div class="stat-card stat-pending">
+      <div class="stat-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <circle cx="12" cy="12" r="10"/>
+          <polyline points="12 6 12 12 16 14"/>
+        </svg>
+      </div>
+      <div class="stat-info">
+        <span class="stat-value">{{ stats.pending }}</span>
+        <span class="stat-label">Pending</span>
+      </div>
+    </div>
+
+    <div class="stat-card stat-completed">
+      <div class="stat-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path d="M22 11.08V12a10 10 0 11-5.93-9.14"/>
+          <polyline points="22 4 12 14.01 9 11.01"/>
+        </svg>
+      </div>
+      <div class="stat-info">
+        <span class="stat-value">{{ stats.completed }}</span>
+        <span class="stat-label">Completed</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filters and Search Section -->
+  <div class="filters-section">
+    <div class="filters-container">
+      <div class="filter-group">
+        <label class="filter-label">
+          <svg class="label-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <polygon points="22 3 2 3 10 13 10 21 14 18 14 13 22 3"/>
+          </svg>
+          Status
+        </label>
+        <div class="filter-select-wrapper">
+          <select class="filter-select" [(ngModel)]="selectedStatus" (change)="onStatusChange()">
+            <option value="ALL">📊 All Contracts ({{ stats.total }})</option>
+            <option value="ACTIVE">✅ Active ({{ stats.active }})</option>
+            <option value="INACTIVE">⏳ Pending ({{ stats.pending }})</option>
+            <option value="COMPLETED">🎉 Completed ({{ stats.completed }})</option>
+            <option value="CANCELLED">❌ Cancelled ({{ stats.cancelled }})</option>
+          </select>
+          <svg class="select-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <polyline points="6 9 12 15 18 9"/>
+          </svg>
+        </div>
+      </div>
+
+      <div class="search-group">
+        <div class="search-wrapper">
+          <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <circle cx="11" cy="11" r="8"/>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+          <input type="text" 
+                 class="search-input" 
+                 placeholder="Search contract (ID, product, amount...)" 
+                 [(ngModel)]="searchTerm" 
+                 (input)="onSearch()">
+          <button class="search-clear" *ngIf="searchTerm" (click)="clearSearch()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <line x1="18" y1="6" x2="6" y2="18"/>
+              <line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
           </button>
         </div>
-        <div class="card-body">
-          <!-- Filtres -->
-          <div class="row mb-3">
-            <div class="col-md-4">
-              <label class="form-label">Filtrer par statut</label>
-              <select class="form-select" [(ngModel)]="selectedStatus" (change)="filterContracts()">
-                <option *ngFor="let status of statuses" [value]="status">
-                  {{ status === 'ALL' ? 'Tous' : getStatusLabel(status) }}
-                </option>
-              </select>
+      </div>
+
+      <button class="btn-refresh" (click)="refresh()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/>
+        </svg>
+        Refresh
+      </button>
+    </div>
+
+    <div class="results-info">
+      <div class="results-badge">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path d="M4 4h16v16H4z"/>
+          <line x1="8" y1="8" x2="16" y2="8"/>
+          <line x1="8" y1="12" x2="16" y2="12"/>
+          <line x1="8" y1="16" x2="12" y2="16"/>
+        </svg>
+        <span>{{ filteredContracts.length }} contract(s) found</span>
+      </div>
+      <div class="quick-filters" *ngIf="searchTerm">
+        <button class="quick-filter" (click)="applyQuickFilter('ACTIVE')">
+          🔍 Show only active
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div class="loading-state" *ngIf="isLoading">
+    <div class="loading-spinner">
+      <div class="spinner-ring"></div>
+      <div class="spinner-ring"></div>
+      <div class="spinner-ring"></div>
+    </div>
+    <p class="loading-text">Loading your contracts...</p>
+  </div>
+
+  <!-- Empty State -->
+  <div class="empty-state" *ngIf="!isLoading && filteredContracts.length === 0">
+    <div class="empty-illustration">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <path d="M20 12V8H4v4M20 12v6a2 2 0 01-2 2H6a2 2 0 01-2-2v-6m16 0h-4M4 12H0m20 0h4M12 4v4m0 4v4"/>
+      </svg>
+    </div>
+    <h3 class="empty-title">No contracts found</h3>
+    <p class="empty-description">
+      {{ searchTerm ? 'No contracts match your search.' : 'You don\'t have any insurance contracts yet.' }}
+    </p>
+    <button class="btn-empty-action" (click)="openAddContractModal()" *ngIf="!searchTerm">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <path d="M12 5v14M5 12h14"/>
+      </svg>
+      Create my first contract
+    </button>
+    <button class="btn-empty-action btn-outline" (click)="clearSearch()" *ngIf="searchTerm">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <path d="M4 4v16h16V4H4z M8 8h8M8 12h6M8 16h4"/>
+      </svg>
+      Clear search
+    </button>
+  </div>
+
+  <!-- Contracts Grid - Displaying paginated contracts (6 per page) -->
+  <div class="contracts-grid" *ngIf="!isLoading && paginatedContracts.length > 0">
+    <div class="contract-card" *ngFor="let contract of paginatedContracts; let i = index" [style.animation-delay]="i * 0.05 + 's'">
+      <!-- Card Header -->
+      <div class="contract-card-header">
+        <div class="contract-badge">
+          <span class="badge-id">
+            <svg class="badge-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path d="M4 4h16v16H4z"/>
+              <line x1="8" y1="8" x2="16" y2="8"/>
+              <line x1="8" y1="12" x2="16" y2="12"/>
+              <line x1="8" y1="16" x2="12" y2="16"/>
+            </svg>
+            #{{ contract.contractId }}
+          </span>
+          <span class="badge-status" [class]="'status-' + contract.status.toLowerCase()">
+            <span class="status-dot"></span>
+            {{ getStatusLabel(contract.status) }}
+          </span>
+        </div>
+        <div class="contract-product">
+          <svg class="product-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M20 7h-4.18A3 3 0 0016 5.18V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v1.18A3 3 0 008.18 7H4a2 2 0 00-2 2v10a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z"/>
+            <line x1="16" y1="5" x2="8" y2="5"/>
+            <circle cx="12" cy="15" r="3"/>
+          </svg>
+          <h3 class="product-name">{{ contract.product?.name || 'Insurance Contract' }}</h3>
+        </div>
+      </div>
+
+      <!-- Card Body -->
+      <div class="contract-card-body">
+        <!-- Financial Info -->
+        <div class="financial-info">
+          <div class="info-row">
+            <div class="info-label">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+              </svg>
+              Total Premium
+            </div>
+            <div class="info-value">{{ contract.premium | number }} <span class="currency">DT</span></div>
+          </div>
+          <div class="info-row">
+            <div class="info-label">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M20 12V8H4v4M20 12v6a2 2 0 01-2 2H6a2 2 0 01-2-2v-6m16 0h-4M4 12H0m20 0h4M12 4v4m0 4v4"/>
+              </svg>
+              Amount Paid
+            </div>
+            <div class="info-value success">{{ contract.totalPaid | number }} <span class="currency">DT</span></div>
+          </div>
+          <div class="info-row highlight">
+            <div class="info-label">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="12" y1="8" x2="12" y2="16"/>
+                <line x1="8" y1="12" x2="16" y2="12"/>
+              </svg>
+              Remaining
+            </div>
+            <div class="info-value warning">{{ contract.remainingAmount | number }} <span class="currency">DT</span></div>
+          </div>
+        </div>
+
+        <!-- Progress Bar -->
+        <div class="progress-section">
+          <div class="progress-header">
+            <span class="progress-label">Contract Progress</span>
+            <span class="progress-percentage">{{ getProgressPercentage(contract) | number:'1.0-0' }}%</span>
+          </div>
+          <div class="progress-bar-wrapper">
+            <div class="progress-bar-fill" [style.width.%]="getProgressPercentage(contract)">
+              <div class="progress-glow"></div>
             </div>
           </div>
-
-          <!-- Loading -->
-          <div *ngIf="isLoading" class="text-center py-5">
-            <div class="spinner-border text-primary"></div>
+          <div class="progress-stats">
+            <span class="stat-paid">✓ {{ contract.totalPaid | number }} DT paid</span>
+            <span class="stat-frequency">
+              <svg class="small-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <circle cx="12" cy="12" r="10"/>
+                <polyline points="12 6 12 12 16 14"/>
+              </svg>
+              {{ contract.paymentFrequency === 'MONTHLY' ? 'Monthly payment' : 
+                 contract.paymentFrequency === 'SEMI_ANNUAL' ? 'Semi-annual payment' : 'Annual payment' }}
+            </span>
           </div>
+        </div>
 
-          <!-- Liste des contrats -->
-          <div *ngIf="!isLoading">
-            <div *ngIf="filteredContracts.length === 0" class="alert alert-info text-center">
-              Aucun contrat trouvé
+        <!-- Date Info -->
+        <div class="date-info">
+          <div class="date-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+              <line x1="8" y1="2" x2="8" y2="6"/>
+              <line x1="16" y1="2" x2="16" y2="6"/>
+              <line x1="3" y1="10" x2="21" y2="10"/>
+              <circle cx="12" cy="15" r="1"/>
+            </svg>
+            <div>
+              <span class="date-label">Start Date</span>
+              <span class="date-value">{{ formatDate(contract.startDate) }}</span>
             </div>
+          </div>
+          <div class="date-arrow">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <polyline points="9 18 15 12 9 6"/>
+            </svg>
+          </div>
+          <div class="date-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+              <line x1="8" y1="2" x2="8" y2="6"/>
+              <line x1="16" y1="2" x2="16" y2="6"/>
+              <line x1="3" y1="10" x2="21" y2="10"/>
+              <circle cx="12" cy="15" r="1"/>
+            </svg>
+            <div>
+              <span class="date-label">End Date</span>
+              <span class="date-value">{{ formatDate(contract.endDate) }}</span>
+            </div>
+          </div>
+        </div>
 
-            <div class="row" *ngIf="filteredContracts.length > 0">
-              <div class="col-md-6 mb-3" *ngFor="let contract of filteredContracts">
-                <div class="card h-100">
-                  <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-start mb-3">
-                      <h5 class="card-title">Contrat #{{ contract.contractId }}</h5>
-                      <span class="badge {{getStatusBadgeClass(contract.status)}}">
-                        {{ getStatusLabel(contract.status) }}
-                      </span>
-                    </div>
-                    
-                    <p class="card-text">
-                      <strong>Produit:</strong> {{ contract.product?.name }}<br>
-                      <strong>Prime:</strong> {{ contract.premium | number }} DT<br>
-                      <strong>Payé:</strong> {{ contract.totalPaid | number }} DT / {{ contract.premium | number }} DT<br>
-                      <strong>Restant:</strong> {{ contract.remainingAmount | number }} DT<br>
-                      <strong>Fréquence:</strong> {{ contract.paymentFrequency === 'MONTHLY' ? 'Mensuel' : 
-                                                      contract.paymentFrequency === 'SEMI_ANNUAL' ? 'Semestriel' : 'Annuel' }}<br>
-                      <strong>Durée:</strong> {{ contract.startDate | date }} → {{ contract.endDate | date }}
-                    </p>
+        <!-- Days remaining indicator -->
+        <div class="days-remaining" *ngIf="getDaysRemaining(contract.endDate) >= 0">
+          <div class="days-badge" [class.urgent]="getDaysRemaining(contract.endDate) <= 30">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <circle cx="12" cy="12" r="10"/>
+              <polyline points="12 6 12 12 16 14"/>
+            </svg>
+            <span *ngIf="getDaysRemaining(contract.endDate) > 0">
+              {{ getDaysRemaining(contract.endDate) }} days remaining
+            </span>
+            <span *ngIf="getDaysRemaining(contract.endDate) === 0">
+              Last day
+            </span>
+          </div>
+        </div>
 
-                    <!-- Barre de progression paiement -->
-                    <div class="progress mb-3" style="height: 8px;">
-                      <div class="progress-bar bg-success" 
-                           [style.width]="(contract.totalPaid / contract.premium) * 100 + '%'">
-                      </div>
-                    </div>
+        <!-- Risk Score -->
+        <div class="risk-score" *ngIf="contract.riskClaim" [class]="'risk-' + contract.riskClaim.riskLevel.toLowerCase()">
+          <div class="risk-header">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+            </svg>
+            <span>Risk Assessment</span>
+          </div>
+          <div class="risk-details">
+            <span class="risk-level">Level: {{ contract.riskClaim.riskLevel }}</span>
+            <span class="risk-score-value">Score: {{ contract.riskClaim.riskScore }}/100</span>
+          </div>
+          <div class="risk-progress">
+            <div class="risk-bar" [style.width.%]="contract.riskClaim.riskScore"></div>
+          </div>
+        </div>
+      </div>
 
-                    <!-- Boutons actions -->
-                    <div class="btn-group w-100" role="group">
-                      <button class="btn btn-sm btn-outline-primary" (click)="viewRisk(contract)">
-                        <i class="bi bi-shield-check"></i> Risque
-                      </button>
-                      <button class="btn btn-sm btn-outline-secondary" (click)="downloadPdf(contract.contractId)">
-                        <i class="bi bi-file-pdf"></i> PDF
-                      </button>
-                      <button *ngIf="contract.status === 'INACTIVE'" 
-                              class="btn btn-sm btn-outline-danger" 
-                              (click)="cancelContract(contract)">
-                        <i class="bi bi-x-circle"></i> Annuler
-                      </button>
-                    </div>
-                  </div>
-                </div>
+      <!-- Card Footer Actions -->
+      <div class="contract-card-footer">
+        <button class="action-btn action-risk" (click)="viewRisk(contract)" title="Assess risk">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+          </svg>
+          <span>Assess</span>
+        </button>
+        <button class="action-btn action-pdf" (click)="downloadPdf(contract.contractId)" title="Download PDF">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+            <line x1="16" y1="13" x2="8" y2="13"/>
+            <line x1="16" y1="17" x2="8" y2="17"/>
+            <polyline points="10 9 9 9 8 9"/>
+          </svg>
+          <span>PDF</span>
+        </button>
+        <button class="action-btn action-details" (click)="viewDetails(contract)" title="View details">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="12" y1="16" x2="12" y2="12"/>
+            <line x1="12" y1="8" x2="12.01" y2="8"/>
+          </svg>
+          <span>Details</span>
+        </button>
+        <button class="action-btn action-cancel" *ngIf="contract.status === 'INACTIVE'" 
+                (click)="cancelContract(contract)" title="Cancel contract">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="15" y1="9" x2="9" y2="15"/>
+            <line x1="9" y1="9" x2="15" y2="15"/>
+          </svg>
+          <span>Cancel</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Enhanced Pagination with Page Numbers (6 cards per page) -->
+  <div class="pagination-section" *ngIf="!isLoading && filteredContracts.length > 0">
+    <div class="pagination-info">
+      Showing <strong>{{ (currentPage - 1) * pageSize + 1 }}</strong> to 
+      <strong>{{ Math.min(currentPage * pageSize, filteredContracts.length) }}</strong> of 
+      <strong>{{ filteredContracts.length }}</strong> contracts
+    </div>
+    <div class="pagination-controls">
+      <button class="page-btn" [disabled]="currentPage === 1" (click)="previousPage()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <polyline points="15 18 9 12 15 6"/>
+        </svg>
+      </button>
+      
+      <!-- Page Numbers -->
+      <div class="page-numbers">
+        <button *ngFor="let page of [].constructor(totalPages); let i = index"
+                class="page-number"
+                [class.active]="currentPage === i + 1"
+                (click)="goToPage(i + 1)">
+          {{ i + 1 }}
+        </button>
+      </div>
+      
+      <button class="page-btn" [disabled]="currentPage === totalPages" (click)="nextPage()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <polyline points="9 18 15 12 9 6"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Risk Assessment Modal -->
+<div class="modal fade" [class.show]="showRiskModal" tabindex="-1" style="display: block;" *ngIf="showRiskModal">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title">
+          <svg class="modal-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+          </svg>
+          Risk Assessment - Contract #{{ selectedContract?.contractId }}
+        </h5>
+        <button type="button" class="btn-close btn-close-white" (click)="closeModal()"></button>
+      </div>
+      <div class="modal-body">
+        <div *ngIf="selectedContract?.riskClaim">
+          <div class="risk-score-modal">
+            <div class="score-circle" 
+                 [class.score-high]="selectedContract?.riskClaim?.riskLevel === 'HIGH'"
+                 [class.score-medium]="selectedContract?.riskClaim?.riskLevel === 'MEDIUM'"
+                 [class.score-low]="selectedContract?.riskClaim?.riskLevel === 'LOW'">
+              <span class="score-value">{{ selectedContract?.riskClaim?.riskScore }}/100</span>
+            </div>
+            <div class="score-label">
+              <span class="badge fs-6 px-3 py-2" 
+                    [class.bg-danger]="selectedContract?.riskClaim?.riskLevel === 'HIGH'"
+                    [class.bg-warning]="selectedContract?.riskClaim?.riskLevel === 'MEDIUM'"
+                    [class.bg-success]="selectedContract?.riskClaim?.riskLevel === 'LOW'">
+                Level: {{ selectedContract?.riskClaim?.riskLevel }}
+              </span>
+            </div>
+          </div>
+          <div class="risk-factors" *ngIf="selectedContract?.riskClaim?.riskFactors">
+            <h6>Identified Risk Factors:</h6>
+            <ul>
+              <li *ngFor="let factor of selectedContract.riskClaim.riskFactors">{{ factor }}</li>
+            </ul>
+          </div>
+          <div class="evaluation-note">
+            <strong>📄 Detailed Report:</strong>
+            <pre class="note-content">{{ selectedContract?.riskClaim?.evaluationNote }}</pre>
+          </div>
+          <div class="recommendations" *ngIf="selectedContract?.riskClaim?.recommendations">
+            <strong>💡 Recommendations:</strong>
+            <ul>
+              <li *ngFor="let rec of selectedContract.riskClaim.recommendations">{{ rec }}</li>
+            </ul>
+          </div>
+        </div>
+        <div *ngIf="!selectedContract?.riskClaim" class="text-center py-4">
+          <div class="spinner-border text-primary"></div>
+          <p class="mt-3 text-muted">Loading assessment...</p>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="closeModal()">Close</button>
+        <button type="button" class="btn btn-primary" (click)="downloadRiskReport()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" width="16" height="16">
+            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 9l5 5 5-5M12 4v10"/>
+          </svg>
+          Download Report
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="modal-backdrop fade show" *ngIf="showRiskModal" (click)="closeModal()"></div>
+
+<!-- Contract Details Modal -->
+<div class="modal fade" [class.show]="showDetailsModal" tabindex="-1" style="display: block;" *ngIf="showDetailsModal">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-info text-white">
+        <h5 class="modal-title">
+          <svg class="modal-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="12" y1="16" x2="12" y2="12"/>
+            <line x1="12" y1="8" x2="12.01" y2="8"/>
+          </svg>
+          Contract Details #{{ selectedContract?.contractId }}
+        </h5>
+        <button type="button" class="btn-close btn-close-white" (click)="closeDetailsModal()"></button>
+      </div>
+      <div class="modal-body">
+        <div class="details-grid" *ngIf="selectedContract">
+          <div class="detail-section">
+            <h6>General Information</h6>
+            <div class="detail-row">
+              <span class="detail-label">Contract ID:</span>
+              <span class="detail-value">{{ selectedContract.contractId }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Product:</span>
+              <span class="detail-value">{{ selectedContract.product?.name }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Status:</span>
+              <span class="detail-value">{{ getStatusLabel(selectedContract.status) }}</span>
+            </div>
+          </div>
+          <div class="detail-section">
+            <h6>Financial Information</h6>
+            <div class="detail-row">
+              <span class="detail-label">Total Premium:</span>
+              <span class="detail-value">{{ selectedContract.premium | number }} DT</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Amount Paid:</span>
+              <span class="detail-value">{{ selectedContract.totalPaid | number }} DT</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Remaining:</span>
+              <span class="detail-value">{{ selectedContract.remainingAmount | number }} DT</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Frequency:</span>
+              <span class="detail-value">
+                {{ selectedContract.paymentFrequency === 'MONTHLY' ? 'Monthly' : 
+                   selectedContract.paymentFrequency === 'SEMI_ANNUAL' ? 'Semi-annual' : 'Annual' }}
+              </span>
+            </div>
+          </div>
+          <div class="detail-section">
+            <h6>Contract Period</h6>
+            <div class="detail-row">
+              <span class="detail-label">Start Date:</span>
+              <span class="detail-value">{{ formatDate(selectedContract.startDate) }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">End Date:</span>
+              <span class="detail-value">{{ formatDate(selectedContract.endDate) }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Duration:</span>
+              <span class="detail-value">{{ getContractDuration(selectedContract) }} days</span>
+            </div>
+          </div>
+          <div class="detail-section" *ngIf="selectedContract.payments">
+            <h6>Payment History</h6>
+            <div class="payments-list">
+              <div class="payment-item" *ngFor="let payment of selectedContract.payments">
+                <span class="payment-date">{{ formatDate(payment.date) }}</span>
+                <span class="payment-amount">{{ payment.amount | number }} DT</span>
+                <span class="payment-status" [class]="'payment-' + payment.status.toLowerCase()">
+                  {{ payment.status }}
+                </span>
               </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
-  </div>
-</div>
-
-<!-- Modal Risque -->
-<div class="modal fade" [class.show]="showRiskModal" tabindex="-1" style="display: block;" *ngIf="showRiskModal">
-  <div class="modal-dialog modal-lg">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">Évaluation du Risque - Contrat #{{ selectedContract?.contractId }}</h5>
-        <button type="button" class="btn-close" (click)="showRiskModal = false"></button>
-      </div>
-      <div class="modal-body">
-        <div *ngIf="selectedContract?.riskClaim">
-          <div class="alert" [class.alert-danger]="selectedContract?.riskClaim?.riskLevel === 'HIGH'"
-               [class.alert-warning]="selectedContract?.riskClaim?.riskLevel === 'MEDIUM'"
-               [class.alert-success]="selectedContract?.riskClaim?.riskLevel === 'LOW'">
-            <h6>Score: {{ selectedContract?.riskClaim?.riskScore }}/100</h6>
-            <h6>Niveau: {{ selectedContract?.riskClaim?.riskLevel }}</h6>
-          </div>
-          <div class="mt-3">
-            <strong>Détails de l'évaluation:</strong>
-            <pre class="mt-2 p-3 bg-light rounded">{{ selectedContract?.riskClaim?.evaluationNote }}</pre>
-          </div>
-        </div>
-      </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" (click)="showRiskModal = false">Fermer</button>
+        <button type="button" class="btn btn-secondary" (click)="closeDetailsModal()">Close</button>
+        <button type="button" class="btn btn-primary" (click)="downloadPdf(selectedContract.contractId)">
+          Download Contract
+        </button>
       </div>
     </div>
   </div>
 </div>
-<div class="modal-backdrop fade show" *ngIf="showRiskModal"></div>
+<div class="modal-backdrop fade show" *ngIf="showDetailsModal" (click)="closeDetailsModal()"></div>
+
+<!-- Add Contract Popup -->
+<div class="modal-overlay" *ngIf="showAddContractModal" (click)="closeAddContractModal()"></div>
+<div class="modal-container" *ngIf="showAddContractModal">
+  <app-add-contract 
+    (contractAdded)="onContractAdded()" 
+    (cancel)="closeAddContractModal()">
+  </app-add-contract>
+</div>

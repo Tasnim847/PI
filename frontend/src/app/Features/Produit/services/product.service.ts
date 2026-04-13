@@ -11,6 +11,11 @@ export class ProductService {
 
   constructor(private api: ProductApiService) {}
 
+  // ================= GET BY ID =================
+  getProductById(id: number): Observable<InsuranceProduct> {
+    return this.api.getProductById(id);
+  }
+
   // ================= LIST =================
   getActiveProducts(): Observable<InsuranceProduct[]> {
     return this.api.getActiveProducts();
@@ -23,7 +28,6 @@ export class ProductService {
   // ================= CREATE =================
   addProduct(productData: any, image?: File): Observable<InsuranceProduct> {
     const formData = new FormData();
-    // Ne pas inclure productId pour la création
     const cleanData = {
       name: productData.name,
       description: productData.description,
@@ -44,9 +48,8 @@ export class ProductService {
   // ================= UPDATE =================
   updateProduct(productData: any, image?: File): Observable<string> {
     const formData = new FormData();
-    // Utiliser productId (pas id)
     const cleanData = {
-      productId: productData.productId,  // ← Changement clé
+      productId: productData.productId,
       name: productData.name,
       description: productData.description,
       basePrice: productData.basePrice,

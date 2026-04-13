@@ -23,7 +23,7 @@ public class InsuranceContractDTO {
     private String status;
     private String paymentFrequency;
 
-    private Long clientId;
+    private ClientDTO client;
     private Long productId;
     private Long agentAssuranceId;
 

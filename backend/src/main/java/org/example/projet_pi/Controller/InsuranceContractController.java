@@ -1,6 +1,7 @@
 package org.example.projet_pi.Controller;
 
 import lombok.AllArgsConstructor;
+import org.example.projet_pi.Dto.ClientDTO;
 import org.example.projet_pi.Dto.InsuranceContractDTO;
 import org.example.projet_pi.Dto.RiskClaimDTO;
 import org.example.projet_pi.Mapper.InsuranceContractMapper;
@@ -53,7 +54,14 @@ public class InsuranceContractController {
         }
 
         // Assigner automatiquement le client connecté
-        dto.setClientId(client.getId());
+        ClientDTO clientDTO = new ClientDTO();
+        clientDTO.setId(client.getId());
+        clientDTO.setFirstName(client.getFirstName());
+        clientDTO.setLastName(client.getLastName());
+        clientDTO.setEmail(client.getEmail());
+        clientDTO.setTelephone(client.getTelephone());
+
+        dto.setClient(clientDTO);
 
         // Appeler le service pour créer le contrat
         return contractService.addContract(dto, currentUser.getUsername());

@@ -1,0 +1,616 @@
+/* ============================================
+   ADD CONTRACT COMPONENT - PROFESSIONAL DESIGN
+   Version: 1.0.0 | Style: Modern Insurance Form
+   ============================================ */
+
+/* Container principal avec espace en haut */
+.add-contract-container {
+  padding: 1rem;
+  margin-top: 2rem;
+  animation: fadeInContainer 0.4s ease;
+}
+
+@keyframes fadeInContainer {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Carte principale */
+.add-contract-container .card {
+  border-radius: 24px;
+  overflow: hidden;
+  border: none;
+  box-shadow: 0 20px 35px -8px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(0, 0, 0, 0.02);
+  transition: all 0.3s ease;
+}
+
+.add-contract-container .card:hover {
+  box-shadow: 0 25px 45px -12px rgba(0, 0, 0, 0.15);
+}
+
+/* Header avec dégradé */
+.bg-gradient-primary {
+  background: linear-gradient(135deg, #1a4a6f 0%, #0e3a57 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.bg-gradient-primary::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -20%;
+  width: 250px;
+  height: 250px;
+  background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.bg-gradient-primary::after {
+  content: '';
+  position: absolute;
+  bottom: -50%;
+  left: -10%;
+  width: 200px;
+  height: 200px;
+  background: radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+/* Titre du header */
+.add-contract-container .card-header {
+  padding: 1.5rem 2rem;
+  border-bottom: none;
+}
+
+.add-contract-container .card-header h4 {
+  font-weight: 700;
+  letter-spacing: -0.3px;
+  display: flex;
+  align-items: center;
+  font-size: 1.4rem;
+}
+
+.add-contract-container .card-header p {
+  font-weight: 400;
+  opacity: 0.85;
+}
+
+/* Bouton close personnalisé */
+.btn-close-white {
+  filter: brightness(0) invert(1);
+  opacity: 0.8;
+  transition: all 0.2s ease;
+}
+
+.btn-close-white:hover {
+  opacity: 1;
+  transform: rotate(90deg);
+}
+
+/* Corps de la carte */
+.add-contract-container .card-body {
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  padding: 2rem;
+}
+
+/* Labels de formulaire */
+.form-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin-bottom: 0.5rem;
+  letter-spacing: 0.3px;
+  display: flex;
+  align-items: center;
+}
+
+.form-label i {
+  color: #1a4a6f;
+  font-size: 1rem;
+  margin-right: 0.4rem;
+}
+
+/* Champs de formulaire */
+.form-control, .form-select {
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 0.75rem 1rem;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+  background: white;
+  color: #1a2634;
+}
+
+.form-control:focus, .form-select:focus {
+  border-color: #1a4a6f;
+  box-shadow: 0 0 0 3px rgba(26, 74, 111, 0.1);
+  outline: none;
+}
+
+.form-control:hover:not(:focus), .form-select:hover:not(:focus) {
+  border-color: #cbd5e1;
+}
+
+/* Champs invalides */
+.form-control.is-invalid, .form-select.is-invalid {
+  border-color: #e74c3c;
+  background-image: none;
+}
+
+.form-control.is-invalid:focus, .form-select.is-invalid:focus {
+  box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.1);
+  border-color: #e74c3c;
+}
+
+/* Messages d'erreur */
+.text-danger {
+  color: #e74c3c !important;
+  font-size: 0.7rem;
+  margin-top: 0.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.text-danger::before {
+  content: '⚠';
+  font-size: 0.7rem;
+}
+
+/* Radio buttons personnalisés */
+.form-check {
+  padding-left: 0;
+  margin-right: 1rem;
+}
+
+.form-check-input {
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border: 2px solid #cbd5e1;
+  border-radius: 50%;
+  margin-right: 0.5rem;
+  position: relative;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.form-check-input:checked {
+  border-color: #1a4a6f;
+  background-color: #1a4a6f;
+  box-shadow: inset 0 0 0 3px white;
+}
+
+.form-check-input:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(26, 74, 111, 0.2);
+}
+
+.form-check-label {
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #334155;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.form-check-label i {
+  font-size: 1rem;
+  color: #1a4a6f;
+}
+
+/* Alertes */
+.alert {
+  border-radius: 16px;
+  border: none;
+  padding: 1rem 1.25rem;
+  animation: slideInAlert 0.3s ease;
+}
+
+@keyframes slideInAlert {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.alert-info {
+  background: linear-gradient(135deg, #e8f4fd 0%, #d4eaf7 100%);
+  color: #0c4e6e;
+  border-left: 4px solid #1a4a6f;
+}
+
+.alert-info h6 {
+  color: #0a2b3e;
+}
+
+.alert-info i {
+  color: #1a4a6f;
+}
+
+.alert-warning {
+  background: linear-gradient(135deg, #fff3e6 0%, #ffe8d4 100%);
+  color: #7b4a2e;
+  border-left: 4px solid #e67e22;
+}
+
+.alert-success {
+  background: linear-gradient(135deg, #e6f7ec 0%, #d0f0da 100%);
+  color: #1e5a3a;
+  border-left: 4px solid #2c7a4d;
+}
+
+.alert-danger {
+  background: linear-gradient(135deg, #fee9e9 0%, #fdd4d4 100%);
+  color: #8b2c2c;
+  border-left: 4px solid #e74c3c;
+}
+
+/* Badges dans les alertes */
+.alert .badge {
+  font-size: 0.7rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: 40px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+
+/* Loading spinner */
+.spinner-border-sm {
+  width: 1rem;
+  height: 1rem;
+  border-width: 0.15em;
+}
+
+/* Boutons */
+.add-contract-container .btn {
+  border-radius: 40px;
+  padding: 0.625rem 1.5rem;
+  font-weight: 600;
+  font-size: 0.85rem;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.btn-light {
+  background: white;
+  border: 2px solid #e2e8f0;
+  color: #64748b;
+}
+
+.btn-light:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+  transform: translateY(-1px);
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #1a4a6f 0%, #0e3a57 100%);
+  border: none;
+  color: white;
+  box-shadow: 0 4px 12px rgba(26, 74, 111, 0.2);
+}
+
+.btn-primary:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(26, 74, 111, 0.3);
+  background: linear-gradient(135deg, #1e5580 0%, #104468 100%);
+}
+
+.btn-primary:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Border top pour la section des boutons */
+.border-top {
+  border-top: 1px solid #eef2f7 !important;
+  margin-top: 0.5rem;
+  padding-top: 1.5rem;
+}
+
+/* Animation pour les champs */
+.form-control, .form-select {
+  animation: fadeInField 0.3s ease backwards;
+}
+
+@keyframes fadeInField {
+  from {
+    opacity: 0;
+    transform: translateX(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Stagger animations pour les champs */
+.form-group:nth-child(1) { animation-delay: 0.05s; }
+.form-group:nth-child(2) { animation-delay: 0.1s; }
+.form-group:nth-child(3) { animation-delay: 0.15s; }
+.form-group:nth-child(4) { animation-delay: 0.2s; }
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .add-contract-container {
+    padding: 0.5rem;
+    margin-top: 1rem;
+  }
+  
+  .add-contract-container .card-header {
+    padding: 1.25rem;
+  }
+  
+  .add-contract-container .card-header h4 {
+    font-size: 1.2rem;
+  }
+  
+  .add-contract-container .card-body {
+    padding: 1.25rem;
+  }
+  
+  .form-check {
+    margin-bottom: 0.5rem;
+  }
+  
+  .d-flex.gap-3 {
+    gap: 0.75rem !important;
+    flex-direction: column;
+  }
+  
+  .btn {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .d-flex.justify-content-end {
+    flex-direction: column-reverse;
+    gap: 0.75rem !important;
+  }
+  
+  .add-contract-container .btn {
+    width: 100%;
+  }
+}
+
+/* Loading overlay personnalisé */
+.loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 24px;
+  z-index: 10;
+}
+
+/* Animation de succès */
+@keyframes successPulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.02);
+  }
+}
+
+.btn-primary.success {
+  animation: successPulse 0.4s ease;
+  background: linear-gradient(135deg, #2c7a4d 0%, #1e5a3a 100%);
+}
+
+/* Style pour le select quand il y a des options */
+.form-select option {
+  padding: 0.5rem;
+}
+
+/* Placeholder styling */
+::placeholder {
+  color: #94a3b8;
+  opacity: 1;
+}
+
+:-ms-input-placeholder {
+  color: #94a3b8;
+}
+
+::-ms-input-placeholder {
+  color: #94a3b8;
+}
+
+/* Focus visible pour accessibilité */
+.form-control:focus-visible,
+.form-select:focus-visible,
+.btn:focus-visible,
+.form-check-input:focus-visible {
+  outline: 2px solid #1a4a6f;
+  outline-offset: 2px;
+}
+
+/* Tooltip personnalisé si nécessaire */
+[data-tooltip] {
+  position: relative;
+  cursor: help;
+}
+
+[data-tooltip]:before {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1e293b;
+  color: white;
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
+  font-size: 0.7rem;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s;
+  z-index: 100;
+}
+
+[data-tooltip]:hover:before {
+  opacity: 1;
+}
+
+/* Animation de chargement des produits */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.text-center .spinner-border {
+  animation: spin 0.8s linear infinite;
+}
+
+/* Amélioration de la lisibilité des messages d'erreur */
+small.text-danger {
+  display: block;
+  margin-top: 0.25rem;
+}
+
+/* Style pour les champs requis */
+.form-label .text-danger {
+  font-size: 1rem;
+  margin-left: 0.15rem;
+  display: inline;
+}
+
+/* Hover effect sur les cartes de produit (si présentes) */
+.product-card {
+  transition: all 0.2s ease;
+}
+
+.product-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Icônes Bootstrap personnalisées */
+.bi {
+  vertical-align: middle;
+}
+
+/* Scrollbar personnalisée pour le contenu */
+.add-contract-container ::-webkit-scrollbar {
+  width: 8px;
+}
+
+.add-contract-container ::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 10px;
+}
+
+.add-contract-container ::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 10px;
+}
+
+.add-contract-container ::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Impression */
+@media print {
+  .add-contract-container .btn,
+  .btn-close-white {
+    display: none;
+  }
+  
+  .add-contract-container .card {
+    box-shadow: none;
+    border: 1px solid #e2e8f0;
+  }
+}
+
+/* Animation d'entrée pour les sections du formulaire */
+.form-section {
+  animation: fadeInSection 0.4s ease backwards;
+}
+
+@keyframes fadeInSection {
+  from {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Délais d'animation pour les sections */
+.form-section:nth-child(1) { animation-delay: 0.05s; }
+.form-section:nth-child(2) { animation-delay: 0.1s; }
+.form-section:nth-child(3) { animation-delay: 0.15s; }
+.form-section:nth-child(4) { animation-delay: 0.2s; }
+
+/* Effet de focus amélioré */
+.form-control:focus, .form-select:focus {
+  transform: translateY(-1px);
+}
+
+/* Style pour les champs désactivés */
+.form-control:disabled, .form-select:disabled {
+  background-color: #f1f5f9;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+/* Amélioration de la lisibilité sur mobile */
+@media (max-width: 480px) {
+  .add-contract-container {
+    margin-top: 0.75rem;
+  }
+  
+  .add-contract-container .card-header h4 {
+    font-size: 1rem;
+  }
+  
+  .add-contract-container .card-header p {
+    font-size: 0.7rem;
+  }
+  
+  .form-label {
+    font-size: 0.75rem;
+  }
+  
+  .form-control, .form-select {
+    padding: 0.6rem 0.875rem;
+    font-size: 0.85rem;
+  }
+}

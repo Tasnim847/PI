@@ -1,15 +1,14 @@
 <div class="container mt-4">
   <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2>Mes Compensations</h2>
     <button class="btn btn-outline-primary" (click)="loadCompensations()">
-      <i class="bi bi-arrow-repeat"></i> Actualiser
+      <i class="bi bi-arrow-repeat"></i> Refresh
     </button>
   </div>
 
   <!-- Loading spinner -->
   <div *ngIf="loading" class="text-center">
     <div class="spinner-border text-primary" role="status">
-      <span class="visually-hidden">Chargement...</span>
+      <span class="visually-hidden">Loading...</span>
     </div>
   </div>
 
@@ -27,7 +26,7 @@
 
   <!-- Compensations list -->
   <div *ngIf="!loading && compensations.length === 0" class="alert alert-info">
-    <i class="bi bi-info-circle"></i> Vous n'avez aucune compensation pour le moment.
+    <i class="bi bi-info-circle"></i> You have no compensations at the moment.
   </div>
 
   <div class="row" *ngIf="compensations.length > 0">
@@ -42,19 +41,19 @@
         <div class="card-body">
           <div class="row">
             <div class="col-6">
-              <small class="text-muted">Montant assurance:</small><br>
+              <small class="text-muted">Insurance amount:</small><br>
               <strong class="text-success">{{ formatAmount(compensation.amount) }}</strong>
             </div>
             <div class="col-6">
-              <small class="text-muted">Reste à charge:</small><br>
+              <small class="text-muted">Out of pocket:</small><br>
               <strong class="text-danger">{{ formatAmount(compensation.clientOutOfPocket) }}</strong>
             </div>
             <div class="col-6 mt-2">
-              <small class="text-muted">Date de calcul:</small><br>
+              <small class="text-muted">Calculation date:</small><br>
               <strong>{{ formatDate(compensation.calculationDate) }}</strong>
             </div>
             <div class="col-6 mt-2">
-              <small class="text-muted">Score de risque:</small><br>
+              <small class="text-muted">Risk score:</small><br>
               <strong [class]="getRiskLevelColor(compensation.riskLevel)">
                 {{ compensation.riskScore }}/100 - {{ compensation.riskLevel }}
               </strong>
@@ -68,31 +67,31 @@
         </div>
         <div class="card-footer bg-transparent">
           <button class="btn btn-sm btn-outline-info me-2" (click)="viewCompensationDetails(compensation.compensationId)">
-            <i class="bi bi-graph-up"></i> Détails & Scoring
+            <i class="bi bi-graph-up"></i> Details & Scoring
           </button>
           <button *ngIf="compensation.status === 'CALCULATED'" 
                   class="btn btn-sm btn-success" 
                   (click)="payCompensation(compensation.compensationId)">
-            <i class="bi bi-credit-card"></i> Payer
+            <i class="bi bi-credit-card"></i> Pay
           </button>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Modal Détails avec Scoring -->
+  <!-- Modal Details with Scoring -->
   <div class="modal fade" [class.show]="showDetails" [style.display]="showDetails ? 'block' : 'none'" tabindex="-1" *ngIf="showDetails && selectedCompensation">
     <div class="modal-dialog modal-lg">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title">Détails complets de la compensation</h5>
+          <h5 class="modal-title">Complete Compensation Details</h5>
           <button type="button" class="btn-close" (click)="closeDetails()"></button>
         </div>
         <div class="modal-body">
           <!-- Compensation Details -->
           <div class="card mb-3">
             <div class="card-header bg-primary text-white">
-              <strong>Informations de compensation</strong>
+              <strong>Compensation Information</strong>
             </div>
             <div class="card-body">
               <div class="row">
@@ -100,25 +99,25 @@
                   <strong>Compensation ID:</strong> {{ selectedCompensation.compensation?.compensationId }}
                 </div>
                 <div class="col-md-6">
-                  <strong>Statut:</strong> {{ selectedCompensation.compensation?.status }}
+                  <strong>Status:</strong> {{ selectedCompensation.compensation?.status }}
                 </div>
                 <div class="col-md-6 mt-2">
-                  <strong>Montant original réclamé:</strong> {{ formatAmount(selectedCompensation.compensation?.originalClaimedAmount) }}
+                  <strong>Original claimed amount:</strong> {{ formatAmount(selectedCompensation.compensation?.originalClaimedAmount) }}
                 </div>
                 <div class="col-md-6 mt-2">
-                  <strong>Montant approuvé:</strong> {{ formatAmount(selectedCompensation.compensation?.approvedAmount) }}
+                  <strong>Approved amount:</strong> {{ formatAmount(selectedCompensation.compensation?.approvedAmount) }}
                 </div>
                 <div class="col-md-6 mt-2">
-                  <strong>Franchise:</strong> {{ formatAmount(selectedCompensation.compensation?.deductible) }}
+                  <strong>Deductible:</strong> {{ formatAmount(selectedCompensation.compensation?.deductible) }}
                 </div>
                 <div class="col-md-6 mt-2">
-                  <strong>Plafond contrat:</strong> {{ formatAmount(selectedCompensation.compensation?.coverageLimit) }}
+                  <strong>Coverage limit:</strong> {{ formatAmount(selectedCompensation.compensation?.coverageLimit) }}
                 </div>
                 <div class="col-md-6 mt-2">
-                  <strong>Remboursement assurance:</strong> {{ formatAmount(selectedCompensation.compensation?.amount) }}
+                  <strong>Insurance reimbursement:</strong> {{ formatAmount(selectedCompensation.compensation?.amount) }}
                 </div>
                 <div class="col-md-6 mt-2">
-                  <strong>Reste à charge client:</strong> {{ formatAmount(selectedCompensation.compensation?.clientOutOfPocket) }}
+                  <strong>Client out of pocket:</strong> {{ formatAmount(selectedCompensation.compensation?.clientOutOfPocket) }}
                 </div>
               </div>
               <div class="mt-3">
@@ -135,7 +134,7 @@
               'bg-warning': selectedCompensation.claimScore.riskScore >= 40 && selectedCompensation.claimScore.riskScore < 70,
               'bg-danger': selectedCompensation.claimScore.riskScore < 40
             }">
-              <strong class="text-white">Score de risque avancé</strong>
+              <strong class="text-white">Advanced Risk Score</strong>
             </div>
             <div class="card-body">
               <div class="row">
@@ -153,13 +152,13 @@
                   </div>
                 </div>
                 <div class="col-md-6">
-                  <strong>Niveau de risque:</strong>
+                  <strong>Risk level:</strong>
                   <span [class]="getRiskLevelColor(selectedCompensation.claimScore.riskLevel)">
                     {{ selectedCompensation.claimScore.riskLevel }}
                   </span>
                 </div>
                 <div class="col-md-12 mt-3">
-                  <strong>Décision suggérée:</strong>
+                  <strong>Suggested decision:</strong>
                   <span class="badge" [ngClass]="{
                     'bg-success': selectedCompensation.claimScore.decisionSuggestion === 'AUTO_APPROVE',
                     'bg-danger': selectedCompensation.claimScore.decisionSuggestion === 'AUTO_REJECT',
@@ -169,17 +168,17 @@
                   </span>
                 </div>
                 <div class="col-12 mt-3">
-                  <strong>Recommandation:</strong>
+                  <strong>Recommendation:</strong>
                   <div class="alert alert-info mt-2">
                     {{ selectedCompensation.claimScore.recommendation }}
                   </div>
                 </div>
                 <div class="col-12 mt-3">
-                  <strong>Facteurs analysés:</strong>
+                  <strong>Analyzed factors:</strong>
                   <ul class="mt-2">
-                    <li *ngIf="selectedCompensation.claimScore.delayInfo">Délai: {{ selectedCompensation.claimScore.delayInfo }}</li>
+                    <li *ngIf="selectedCompensation.claimScore.delayInfo">Delay: {{ selectedCompensation.claimScore.delayInfo }}</li>
                     <li *ngIf="selectedCompensation.claimScore.documentTypeInfo">Documents: {{ selectedCompensation.claimScore.documentTypeInfo }}</li>
-                    <li *ngIf="selectedCompensation.claimScore.frequencyInfo">Fréquence: {{ selectedCompensation.claimScore.frequencyInfo }}</li>
+                    <li *ngIf="selectedCompensation.claimScore.frequencyInfo">Frequency: {{ selectedCompensation.claimScore.frequencyInfo }}</li>
                   </ul>
                 </div>
               </div>
@@ -187,7 +186,7 @@
           </div>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" (click)="closeDetails()">Fermer</button>
+          <button type="button" class="btn btn-secondary" (click)="closeDetails()">Close</button>
         </div>
       </div>
     </div>

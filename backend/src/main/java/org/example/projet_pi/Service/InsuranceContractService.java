@@ -331,8 +331,8 @@ public class InsuranceContractService implements IInsuranceContractService {
         }
 
         // 8️⃣ Mise à jour des relations (client, agent, produit)
-        if (dto.getClientId() != null) {
-            Client client = clientRepository.findById(dto.getClientId())
+        if (dto.getClient() != null && dto.getClient().getId() != null) {
+            Client client = clientRepository.findById(dto.getClient().getId())
                     .orElseThrow(() -> new RuntimeException("Client non trouvé"));
             contract.setClient(client);
         }

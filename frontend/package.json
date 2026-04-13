@@ -22,6 +22,7 @@
     "@angular/router": "^18.2.0",
     "@angular/ssr": "^18.2.21",
     "@fortawesome/fontawesome-free": "^7.2.0",
+    "@types/bootstrap": "^5.2.10",
     "@types/file-saver": "^2.0.7",
     "bootstrap": "^5.3.8",
     "express": "^4.18.2",

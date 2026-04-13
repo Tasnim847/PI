@@ -1,7 +1,6 @@
 ﻿import { Claim } from './claim.model';
 
 export interface AutoClaimDetails {
-    id: number;
     driverA: string;
     driverB: string;
     vehicleA: string;

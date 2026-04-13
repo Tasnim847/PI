@@ -3,21 +3,18 @@
     <div class="col-lg-8">
       <!-- Header -->
       <div class="mb-4">
-        <button class="btn btn-link text-decoration-none mb-2" routerLink="/public/claims">
-          <i class="bi bi-arrow-left me-1"></i>Retour à mes réclamations
-        </button>
         <h1 class="display-6">
-          <i class="bi bi-plus-circle me-2 text-primary"></i>Nouvelle Réclamation
+          <i class="bi bi-plus-circle me-2 text-primary"></i>New Claim
         </h1>
-        <p class="text-muted">Remplissez le formulaire ci-dessous pour déclarer un sinistre</p>
+        <p class="text-muted">Fill out the form below to submit an insurance claim</p>
       </div>
 
       <!-- Loading -->
       <div *ngIf="loading" class="text-center py-5">
         <div class="spinner-border text-primary" role="status">
-          <span class="visually-hidden">Chargement...</span>
+          <span class="visually-hidden">Loading...</span>
         </div>
-        <p class="mt-3">Chargement de vos contrats...</p>
+        <p class="mt-3">Loading your contracts...</p>
       </div>
 
       <!-- Error -->
@@ -29,37 +26,56 @@
       <!-- Form -->
       <form [formGroup]="claimForm" (ngSubmit)="onSubmit()" *ngIf="!loading" class="card shadow-sm">
         <div class="card-body p-4">
-          <!-- Sélection du contrat -->
+          <!-- Contract Selection -->
           <div class="mb-4">
             <label for="contractId" class="form-label fw-bold">
-              <i class="bi bi-file-earmark-text me-1"></i>Contrat d'assurance *
+              <i class="bi bi-file-earmark-text me-1"></i>Insurance Contract *
             </label>
             <select id="contractId" formControlName="contractId" 
                     class="form-select form-select-lg" 
                     [class.is-invalid]="claimForm.get('contractId')?.invalid && claimForm.get('contractId')?.touched">
-              <option value="">Sélectionnez un contrat</option>
+              <option value="">Select a contract</option>
               <option *ngFor="let contract of contracts" [value]="contract.contractId">
                 {{ contract.product?.name }} - {{ contract.product?.productType }} 
-                (Plafond: {{ contract.coverageLimit | number:'1.2-2' }} DT)
+                (Limit: {{ contract.coverageLimit | number:'1.2-2' }} DT)
               </option>
             </select>
             <div class="invalid-feedback" *ngIf="claimForm.get('contractId')?.invalid && claimForm.get('contractId')?.touched">
-              Veuillez sélectionner un contrat actif
+              Please select an active contract
             </div>
           </div>
 
-          <!-- Montant et description -->
+          <!-- Product Type Information -->
+          <div *ngIf="selectedProductType" class="alert alert-info mb-4">
+            <i class="bi bi-info-circle-fill me-2"></i>
+            <strong>Contract Type:</strong> {{ selectedProductType }}
+            <br>
+            <small>
+              <span *ngIf="selectedProductType === 'AUTO'">✓ You need to provide vehicle and accident details</span>
+              <span *ngIf="selectedProductType === 'HEALTH'">✓ You need to provide medical and hospital details</span>
+              <span *ngIf="selectedProductType === 'HOME'">✓ You need to provide property damage details</span>
+              <span *ngIf="selectedProductType === 'LIFE' || selectedProductType === 'OTHER'">✓ Standard form with no specific details required</span>
+            </small>
+          </div>
+
+          <!-- Warning when no contract selected -->
+          <div *ngIf="!selectedProductType && claimForm.get('contractId')?.value" class="alert alert-warning mb-4">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            <strong>Warning:</strong> The selected contract has no associated product or product type not recognized.
+          </div>
+
+          <!-- Amount and Description -->
           <div class="row mb-4">
             <div class="col-md-6">
               <label for="claimedAmount" class="form-label fw-bold">
-                <i class="bi bi-cash-stack me-1"></i>Montant réclamé (DT) *
+                <i class="bi bi-cash-stack me-1"></i>Claim Amount (DT) *
               </label>
               <input type="number" id="claimedAmount" formControlName="claimedAmount" 
                      class="form-control form-control-lg" 
                      placeholder="Ex: 1500.00"
                      [class.is-invalid]="claimForm.get('claimedAmount')?.invalid && claimForm.get('claimedAmount')?.touched">
               <div class="invalid-feedback" *ngIf="claimForm.get('claimedAmount')?.invalid && claimForm.get('claimedAmount')?.touched">
-                Le montant doit être supérieur à 0
+                Amount must be greater than 0
               </div>
             </div>
             
@@ -67,102 +83,166 @@
               <label for="description" class="form-label fw-bold">
                 <i class="bi bi-chat-text me-1"></i>Description *
               </label>
-              <textarea id="description" formControlName="description" rows="1" 
+              <textarea id="description" formControlName="description" rows="2" 
                         class="form-control" 
-                        placeholder="Décrivez brièvement le sinistre..."
+                        placeholder="Briefly describe the incident..."
                         [class.is-invalid]="claimForm.get('description')?.invalid && claimForm.get('description')?.touched"></textarea>
               <div class="invalid-feedback" *ngIf="claimForm.get('description')?.invalid && claimForm.get('description')?.touched">
-                Minimum 10 caractères requis
+                Minimum 10 characters required
               </div>
             </div>
           </div>
 
           <!-- Auto Details -->
-          <div *ngIf="selectedProductType === ProductType.AUTO" class="border rounded p-3 mb-4 bg-light">
+          <div *ngIf="selectedProductType === 'AUTO'" class="border rounded p-3 mb-4 bg-light">
             <h5 class="mb-3">
-              <i class="bi bi-car-front me-2 text-primary"></i>Détails de l'accident automobile
+              <i class="bi bi-car-front me-2 text-primary"></i>Auto Accident Details
             </h5>
             <div class="row">
-              <div class="col-md-6 mb-2">
-                <label class="form-label">Conducteur A *</label>
-                <input type="text" formControlName="driverA" class="form-control" placeholder="Nom complet">
+              <div class="col-md-6 mb-3">
+                <label class="form-label">Driver A <span class="text-danger">*</span></label>
+                <input type="text" formControlName="driverA" 
+                       class="form-control" 
+                       [class.is-invalid]="claimForm.get('driverA')?.invalid && claimForm.get('driverA')?.touched"
+                       placeholder="Full name">
+                <div class="invalid-feedback" *ngIf="claimForm.get('driverA')?.invalid && claimForm.get('driverA')?.touched">
+                  Driver A is required
+                </div>
               </div>
-              <div class="col-md-6 mb-2">
-                <label class="form-label">Conducteur B</label>
-                <input type="text" formControlName="driverB" class="form-control" placeholder="Nom complet">
+              <div class="col-md-6 mb-3">
+                <label class="form-label">Driver B</label>
+                <input type="text" formControlName="driverB" class="form-control" placeholder="Full name (optional)">
               </div>
-              <div class="col-md-6 mb-2">
-                <label class="form-label">Véhicule A *</label>
-                <input type="text" formControlName="vehicleA" class="form-control" placeholder="Marque, modèle, immatriculation">
+              <div class="col-md-6 mb-3">
+                <label class="form-label">Vehicle A <span class="text-danger">*</span></label>
+                <input type="text" formControlName="vehicleA" 
+                       class="form-control" 
+                       [class.is-invalid]="claimForm.get('vehicleA')?.invalid && claimForm.get('vehicleA')?.touched"
+                       placeholder="Brand, model, license plate">
+                <div class="invalid-feedback" *ngIf="claimForm.get('vehicleA')?.invalid && claimForm.get('vehicleA')?.touched">
+                  Vehicle A is required
+                </div>
               </div>
-              <div class="col-md-6 mb-2">
-                <label class="form-label">Véhicule B</label>
-                <input type="text" formControlName="vehicleB" class="form-control" placeholder="Marque, modèle, immatriculation">
+              <div class="col-md-6 mb-3">
+                <label class="form-label">Vehicle B</label>
+                <input type="text" formControlName="vehicleB" class="form-control" placeholder="Brand, model, license plate (optional)">
               </div>
-              <div class="col-md-6 mb-2">
-                <label class="form-label">Lieu de l'accident *</label>
-                <input type="text" formControlName="accidentLocation" class="form-control" placeholder="Adresse, ville">
+              <div class="col-md-6 mb-3">
+                <label class="form-label">Accident Location <span class="text-danger">*</span></label>
+                <input type="text" formControlName="accidentLocation" 
+                       class="form-control" 
+                       [class.is-invalid]="claimForm.get('accidentLocation')?.invalid && claimForm.get('accidentLocation')?.touched"
+                       placeholder="Address, city">
+                <div class="invalid-feedback" *ngIf="claimForm.get('accidentLocation')?.invalid && claimForm.get('accidentLocation')?.touched">
+                  Accident location is required
+                </div>
               </div>
-              <div class="col-md-6 mb-2">
-                <label class="form-label">Date de l'accident *</label>
-                <input type="date" formControlName="accidentDate" class="form-control">
+              <div class="col-md-6 mb-3">
+                <label class="form-label">Accident Date <span class="text-danger">*</span></label>
+                <input type="date" formControlName="accidentDate" 
+                       class="form-control" 
+                       [class.is-invalid]="claimForm.get('accidentDate')?.invalid && claimForm.get('accidentDate')?.touched">
+                <div class="invalid-feedback" *ngIf="claimForm.get('accidentDate')?.invalid && claimForm.get('accidentDate')?.touched">
+                  Accident date is required
+                </div>
               </div>
             </div>
           </div>
 
           <!-- Health Details -->
-          <div *ngIf="selectedProductType === ProductType.HEALTH" class="border rounded p-3 mb-4 bg-light">
+          <div *ngIf="selectedProductType === 'HEALTH'" class="border rounded p-3 mb-4 bg-light">
             <h5 class="mb-3">
-              <i class="bi bi-heart-pulse me-2 text-primary"></i>Détails des soins médicaux
+              <i class="bi bi-heart-pulse me-2 text-primary"></i>Medical Care Details
             </h5>
             <div class="row">
-              <div class="col-md-6 mb-2">
-                <label class="form-label">Nom du patient *</label>
-                <input type="text" formControlName="patientName" class="form-control" placeholder="Nom complet">
+              <div class="col-md-6 mb-3">
+                <label class="form-label">Patient Name <span class="text-danger">*</span></label>
+                <input type="text" formControlName="patientName" 
+                       class="form-control" 
+                       [class.is-invalid]="claimForm.get('patientName')?.invalid && claimForm.get('patientName')?.touched"
+                       placeholder="Full name">
+                <div class="invalid-feedback" *ngIf="claimForm.get('patientName')?.invalid && claimForm.get('patientName')?.touched">
+                  Patient name is required
+                </div>
               </div>
-              <div class="col-md-6 mb-2">
-                <label class="form-label">Hôpital / Clinique *</label>
-                <input type="text" formControlName="hospitalName" class="form-control" placeholder="Nom de l'établissement">
+              <div class="col-md-6 mb-3">
+                <label class="form-label">Hospital / Clinic <span class="text-danger">*</span></label>
+                <input type="text" formControlName="hospitalName" 
+                       class="form-control" 
+                       [class.is-invalid]="claimForm.get('hospitalName')?.invalid && claimForm.get('hospitalName')?.touched"
+                       placeholder="Facility name">
+                <div class="invalid-feedback" *ngIf="claimForm.get('hospitalName')?.invalid && claimForm.get('hospitalName')?.touched">
+                  Hospital name is required
+                </div>
               </div>
-              <div class="col-md-6 mb-2">
-                <label class="form-label">Médecin traitant</label>
-                <input type="text" formControlName="doctorName" class="form-control" placeholder="Nom du médecin">
+              <div class="col-md-6 mb-3">
+                <label class="form-label">Treating Physician</label>
+                <input type="text" formControlName="doctorName" class="form-control" placeholder="Doctor's name (optional)">
               </div>
-              <div class="col-md-6 mb-2">
-                <label class="form-label">Coût des soins (DT) *</label>
-                <input type="number" formControlName="medicalCost" class="form-control" placeholder="Montant">
+              <div class="col-md-6 mb-3">
+                <label class="form-label">Medical Cost (DT) <span class="text-danger">*</span></label>
+                <input type="number" formControlName="medicalCost" 
+                       class="form-control" 
+                       [class.is-invalid]="claimForm.get('medicalCost')?.invalid && claimForm.get('medicalCost')?.touched"
+                       placeholder="Amount">
+                <div class="invalid-feedback" *ngIf="claimForm.get('medicalCost')?.invalid && claimForm.get('medicalCost')?.touched">
+                  Medical cost is required
+                </div>
               </div>
-              <div class="col-md-12 mb-2">
-                <label class="form-label">Type de maladie *</label>
-                <input type="text" formControlName="illnessType" class="form-control" placeholder="Diagnostic">
+              <div class="col-md-12 mb-3">
+                <label class="form-label">Illness / Condition Type <span class="text-danger">*</span></label>
+                <input type="text" formControlName="illnessType" 
+                       class="form-control" 
+                       [class.is-invalid]="claimForm.get('illnessType')?.invalid && claimForm.get('illnessType')?.touched"
+                       placeholder="Diagnosis">
+                <div class="invalid-feedback" *ngIf="claimForm.get('illnessType')?.invalid && claimForm.get('illnessType')?.touched">
+                  Illness type is required
+                </div>
               </div>
             </div>
           </div>
 
           <!-- Home Details -->
-          <div *ngIf="selectedProductType === ProductType.HOME" class="border rounded p-3 mb-4 bg-light">
+          <div *ngIf="selectedProductType === 'HOME'" class="border rounded p-3 mb-4 bg-light">
             <h5 class="mb-3">
-              <i class="bi bi-house-heart me-2 text-primary"></i>Détails du sinistre habitation
+              <i class="bi bi-house-heart me-2 text-primary"></i>Property Damage Details
             </h5>
             <div class="row">
-              <div class="col-md-12 mb-2">
-                <label class="form-label">Type de dégât *</label>
-                <select formControlName="damageType" class="form-select">
-                  <option value="">Sélectionnez</option>
-                  <option value="INCENDIE">Incendie</option>
-                  <option value="DEGAT_EAU">Dégât des eaux</option>
-                  <option value="VOL">Vol</option>
-                  <option value="TEMPETE">Tempête</option>
-                  <option value="AUTRE">Autre</option>
+              <div class="col-md-12 mb-3">
+                <label class="form-label">Damage Type <span class="text-danger">*</span></label>
+                <select formControlName="damageType" 
+                        class="form-select" 
+                        [class.is-invalid]="claimForm.get('damageType')?.invalid && claimForm.get('damageType')?.touched">
+                  <option value="">Select</option>
+                  <option value="INCENDIE">Fire</option>
+                  <option value="DEGAT_EAU">Water Damage</option>
+                  <option value="VOL">Theft</option>
+                  <option value="TEMPETE">Storm</option>
+                  <option value="AUTRE">Other</option>
                 </select>
+                <div class="invalid-feedback" *ngIf="claimForm.get('damageType')?.invalid && claimForm.get('damageType')?.touched">
+                  Damage type is required
+                </div>
               </div>
-              <div class="col-md-12 mb-2">
-                <label class="form-label">Adresse du sinistre *</label>
-                <input type="text" formControlName="address" class="form-control" placeholder="Adresse complète">
+              <div class="col-md-12 mb-3">
+                <label class="form-label">Incident Address <span class="text-danger">*</span></label>
+                <input type="text" formControlName="address" 
+                       class="form-control" 
+                       [class.is-invalid]="claimForm.get('address')?.invalid && claimForm.get('address')?.touched"
+                       placeholder="Full address">
+                <div class="invalid-feedback" *ngIf="claimForm.get('address')?.invalid && claimForm.get('address')?.touched">
+                  Address is required
+                </div>
               </div>
-              <div class="col-md-12 mb-2">
-                <label class="form-label">Estimation des pertes (DT) *</label>
-                <input type="number" formControlName="estimatedLoss" class="form-control" placeholder="Montant estimé">
+              <div class="col-md-12 mb-3">
+                <label class="form-label">Estimated Loss (DT) <span class="text-danger">*</span></label>
+                <input type="number" formControlName="estimatedLoss" 
+                       class="form-control" 
+                       [class.is-invalid]="claimForm.get('estimatedLoss')?.invalid && claimForm.get('estimatedLoss')?.touched"
+                       placeholder="Estimated amount">
+                <div class="invalid-feedback" *ngIf="claimForm.get('estimatedLoss')?.invalid && claimForm.get('estimatedLoss')?.touched">
+                  Estimated loss is required
+                </div>
               </div>
             </div>
           </div>
@@ -170,13 +250,15 @@
           <!-- Documents -->
           <div class="mb-4">
             <label class="form-label fw-bold">
-              <i class="bi bi-paperclip me-1"></i>Documents justificatifs *
+              <i class="bi bi-paperclip me-1"></i>Supporting Documents *
             </label>
-            <input type="file" (change)="onFileSelected($event)" multiple class="form-control" accept=".pdf,.jpg,.jpeg,.png">
-            <small class="text-muted">Formats acceptés: PDF, JPG, PNG (max 5Mo par fichier)</small>
+            <input type="file" (change)="onFileSelected($event)" multiple 
+                   class="form-control" accept=".pdf,.jpg,.jpeg,.png">
+            <small class="text-muted">Accepted formats: PDF, JPG, PNG (max 5MB per file)</small>
             
             <div *ngIf="fileNames.length > 0" class="mt-3">
-              <div *ngFor="let fileName of fileNames; let i = index" class="alert alert-secondary d-flex justify-content-between align-items-center">
+              <label class="fw-bold mb-2">Selected Files:</label>
+              <div *ngFor="let fileName of fileNames; let i = index" class="alert alert-secondary d-flex justify-content-between align-items-center mb-2">
                 <div>
                   <i class="bi bi-file-earmark-text me-2"></i>
                   <span>{{ fileName }}</span>
@@ -188,13 +270,10 @@
 
           <!-- Actions -->
           <div class="d-flex justify-content-between pt-3 border-top">
-            <button type="button" class="btn btn-outline-secondary btn-lg" routerLink="/public/claims">
-              <i class="bi bi-x-circle me-2"></i>Annuler
-            </button>
-            <button type="submit" class="btn btn-primary btn-lg" [disabled]="submitting">
+            <button type="submit" class="btn btn-primary btn-lg" [disabled]="submitting || !selectedProductType">
               <span *ngIf="submitting" class="spinner-border spinner-border-sm me-2"></span>
               <i class="bi bi-send me-2" *ngIf="!submitting"></i>
-              Soumettre la réclamation
+              Submit Claim
             </button>
           </div>
         </div>

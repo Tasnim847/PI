@@ -18,13 +18,16 @@ import { MyContractsComponent } from './Features/Insurance/pages/client/my-contr
 import { AdminProductListComponent } from './Features/Produit/pages/admin-product-list/admin-product-list/admin-product-list.component';
 import { ContractListComponent } from './Features/Insurance/pages/admin/contract-list/contract-list.component';
 import { ListAllClaimsComponent } from './Features/Claims/admin/list-all-claims/list-all-claims.component';
-import { ListAllCompensationsComponent } from './Features/Compensation/admin/list-all-compensations/list-all-compensations.component';
 import { ListMyClaimsComponent } from './Features/Claims/client/list-my-claims/list-my-claims.component';
-import { ListMyCompensationsComponent } from './Features/Compensation/client/list-my-compensations/list-my-compensations.component';
 import { AddClaimComponent } from './Features/Claims/client/add-claim/add-claim.component';
 import {ForgotPasswordComponent} from './Features/auth/forgot-password/forgot-password.component';
 import { UserManagementComponent } from './pages/dashboard/user-management/user-management.component';
 import {DashboardProfileComponent} from './pages/dashboard-profile/dashboard-profile.component';
+import { InsuranceRouterComponent } from './Features/Insurance/insurance-router';
+import { AgentClaimsComponent } from './Features/Claims/agent/agent-claims/agent-claims.component';
+import { AgentContractsComponent } from './Features/Insurance/pages/agent/agent-contracts/agent-contracts.component';
+import { ListMyCompensationsComponent } from './Features/Compensation/client/list-my-compensations/list-my-compensations.component';
+import { ListAllCompensationsComponent } from './Features/Compensation/admin/list-all-compensations/list-all-compensations.component';
 export const routes: Routes = [
   // Landing page ouverte par défaut
   { path: '', component: LandingPageComponent },
@@ -51,37 +54,54 @@ export const routes: Routes = [
       { path: 'home', component: HomeComponent },
       { path: 'about', component: AboutComponent },
       { path: 'credit', component: CreditPageComponent },
-      { path: 'insurance', component: MyContractsComponent },
+      { path: 'insurance', component: InsuranceRouterComponent }, // ✅ MODIFIÉ ICI
       { path: 'account', component: AccountPageComponent },
       { path: 'complaint', component: ComplaintPageComponent },
       { path: 'news', component: NewsPageComponent },
       { path: 'products', component: ProductListComponent },
       {path: 'profile', component: ProfileComponent},
-      {
-        path: 'insurance/add-contract',
-        component: AddContractComponent,
-        canActivate: [authGuard]
-      },
-      {
-        path: 'insurance/my-contracts',
-        component: MyContractsComponent,
-        canActivate: [authGuard]
-      },
-      {
-        path: 'claims',
-        component: ListMyClaimsComponent,
-        canActivate: [authGuard]
-      },
-      {
-        path: 'claims/new',
-        component: AddClaimComponent,
-        canActivate: [authGuard]
-      },
-      {
-        path: 'compensations',
-        component: ListMyCompensationsComponent,
-        canActivate: [authGuard]
-      },
+      { 
+      path: 'insurance/add-contract', 
+      component: AddContractComponent,
+      canActivate: [authGuard]
+    },
+    { 
+      path: 'insurance/my-contracts', 
+      component: MyContractsComponent,
+      canActivate: [authGuard]
+    }, 
+    
+    // Route pour l'agent (gardée séparément)
+    { 
+      path: 'agent/contracts', 
+      component: AgentContractsComponent,
+      canActivate: [roleGuard],
+      data: { roles: ['AGENT_ASSURANCE'] }
+    },
+    
+    // Routes pour les claims
+    {
+      path: 'claims',
+      component: ListMyClaimsComponent,
+      canActivate: [authGuard],
+      data: { roles: ['CLIENT'] }
+    },
+    {
+      path: 'agent/claims',
+      component: AgentClaimsComponent,
+      canActivate: [roleGuard],
+      data: { roles: ['AGENT_ASSURANCE'] }
+    },
+    { 
+      path: 'claims/new', 
+      component: AddClaimComponent,
+      canActivate: [authGuard]
+    },
+    { 
+      path: 'compensations', 
+      component: ListMyCompensationsComponent,
+      canActivate: [authGuard]
+    },
 
     ]
   },

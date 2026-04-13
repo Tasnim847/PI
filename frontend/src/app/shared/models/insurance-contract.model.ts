@@ -7,6 +7,7 @@ import { RiskClaim } from './risk-claim.model';
 import { Claim } from './claim.model';
 import { Payment } from './payment.model';
 
+// insurance-contract.model.ts
 export interface InsuranceContract {
     contractId: number;
     startDate: Date;
@@ -21,7 +22,8 @@ export interface InsuranceContract {
     paymentFrequency: PaymentFrequency;
     riskClaim?: RiskClaim;
     client?: Client;
-    product?: InsuranceProduct;
+    productId?: number;  // ← Ajouter cette ligne
+    product?: InsuranceProduct;  // Garder pour compatibilité
     agentAssurance?: AgentAssurance;
     claims?: Claim[];
     payments?: Payment[];
