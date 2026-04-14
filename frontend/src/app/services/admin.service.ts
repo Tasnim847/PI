@@ -16,7 +16,7 @@ export interface User {
 @Injectable({ providedIn: 'root' })
 export class AdminService {
   // ✅ Enlever /api - URL correcte
-  private apiUrl = 'http://localhost:8083';
+  private apiUrl = 'http://localhost:8081';
 
   constructor(private http: HttpClient) {}
 

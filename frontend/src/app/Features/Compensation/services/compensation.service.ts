@@ -40,4 +40,13 @@ export class CompensationService {
   payCompensation(id: number): Observable<any> {
     return this.http.post(`${this.apiUrl}/${id}/pay-by-client`, {});
   }
+
+  // Dans compensation.service.ts
+  getAllCompensations(): Observable<Compensation[]> {
+    return this.http.get<Compensation[]>(`${this.apiUrl}/allComp`);
+  }
+
+  recalculateCompensation(claimId: number): Observable<Compensation> {
+    return this.http.post<Compensation>(`${this.apiUrl}/recalculate/${claimId}`, {});
+  }
 }

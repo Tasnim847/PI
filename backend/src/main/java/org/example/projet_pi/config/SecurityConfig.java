@@ -88,6 +88,9 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/me").authenticated()
                         .requestMatchers("/agents/**").hasRole("AGENT_FINANCE")
 
+                        .requestMatchers("/api/clients/**").hasAnyRole("ADMIN", "AGENT_ASSURANCE", "AGENT_FINANCE")
+                        .requestMatchers("/api/clients/{id}").hasAnyRole("ADMIN", "AGENT_ASSURANCE", "AGENT_FINANCE")
+                        .requestMatchers("/api/clients/email/{email}").hasAnyRole("ADMIN", "AGENT_ASSURANCE", "AGENT_FINANCE")
 
                         // 👑 ADMIN uniquement
                         .requestMatchers("/products/addProduct").hasRole("ADMIN")

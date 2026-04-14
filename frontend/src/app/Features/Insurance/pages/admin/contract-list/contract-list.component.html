@@ -1,152 +1,274 @@
 <!-- contract-list.component.html -->
-<div class="container-fluid mt-4">
-  <div class="card shadow">
-    <div class="card-header bg-primary text-white">
-      <div class="d-flex justify-content-between align-items-center">
-        <h4 class="mb-0">Gestion des Contrats</h4>
-        <button class="btn btn-light btn-sm" (click)="runSystemCheck()">
-          <i class="bi bi-gear"></i> Vérifier retards
-        </button>
+<div class="contract-management-container">
+  <!-- Header Section -->
+  <div class="page-header">
+    <div class="header-content">
+      <div>
+        <h1 class="page-title">Contract Management</h1>
+        <p class="page-subtitle">Manage and monitor all insurance contracts</p>
       </div>
+      <button class="btn-primary" (click)="runSystemCheck()">
+        <i class="bi bi-gear-fill"></i>
+        <span>Check Delays</span>
+      </button>
     </div>
-    <div class="card-body">
-      <!-- Filtres -->
-      <div class="row mb-4">
-        <div class="col-md-4">
-          <label class="form-label">Statut</label>
-          <select class="form-select" [(ngModel)]="selectedStatus" (change)="filterContracts()">
+  </div>
+
+  <!-- Main Card -->
+  <div class="contract-card">
+    <!-- Filters Section -->
+    <div class="filters-section">
+      <div class="filters-grid">
+        <div class="filter-group">
+          <label class="filter-label">
+            <i class="bi bi-funnel"></i>
+            Status
+          </label>
+          <select 
+            class="filter-select" 
+            [(ngModel)]="selectedStatus" 
+            (change)="filterContracts()">
             <option *ngFor="let status of statuses" [value]="status">
-              {{ status === 'ALL' ? 'Tous' : getStatusLabel(status) }}
+              {{ status === 'ALL' ? 'All Contracts' : getStatusLabel(status) }}
             </option>
           </select>
         </div>
-        <div class="col-md-6">
-          <label class="form-label">Recherche</label>
-          <input type="text" class="form-control" placeholder="ID, Email, Produit..." 
-                 [(ngModel)]="searchTerm" (input)="filterContracts()">
+
+        <div class="filter-group">
+          <label class="filter-label">
+            <i class="bi bi-search"></i>
+            Search
+          </label>
+          <div class="search-input-wrapper">
+            <i class="bi bi-search search-icon"></i>
+            <input 
+              type="text" 
+              class="search-input" 
+              placeholder="Search by ID, email, or product..." 
+              [(ngModel)]="searchTerm" 
+              (input)="filterContracts()">
+            <button *ngIf="searchTerm" class="clear-search" (click)="clearSearch()">
+              <i class="bi bi-x-circle"></i>
+            </button>
+          </div>
         </div>
-        <div class="col-md-2 d-flex align-items-end">
-          <button class="btn btn-secondary w-100" (click)="loadContracts()">
-            <i class="bi bi-arrow-repeat"></i> Rafraîchir
+
+        <div class="filter-group filter-actions">
+          <button class="btn-secondary" (click)="loadContracts()">
+            <i class="bi bi-arrow-repeat"></i>
+            <span>Refresh</span>
           </button>
         </div>
       </div>
+    </div>
 
-      <!-- Loading -->
-      <div *ngIf="isLoading" class="text-center py-5">
-        <div class="spinner-border text-primary"></div>
-      </div>
+    <!-- Loading State -->
+    <div *ngIf="isLoading" class="loading-state">
+      <div class="spinner"></div>
+      <p>Loading contracts...</p>
+    </div>
 
-      <!-- Tableau -->
-      <div *ngIf="!isLoading && filteredContracts.length > 0" class="table-responsive">
-        <table class="table table-hover">
-          <thead class="table-dark">
-            <tr>
-              <th>ID</th>
-              <th>Client</th>
-              <th>Produit</th>
-              <th>Prime</th>
-              <th>Payé</th>
-              <th>Statut</th>
-              <th>Risque</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let contract of filteredContracts">
-              <td>#{{ contract.contractId }}</td>
-              <td>
-                {{ contract.client?.firstName }} {{ contract.client?.lastName }}<br>
-                <small class="text-muted">{{ contract.client?.email }}</small>
-              </td>
-              <td>{{ contract.product?.name }}</td>
-              <td>{{ contract.premium | number }} DT</td>
-              <td>
-                <div class="progress" style="height: 5px;">
-                  <div class="progress-bar bg-success" 
-                       [style.width.%]="(contract.totalPaid / contract.premium) * 100">
+    <!-- Contracts Table -->
+    <div *ngIf="!isLoading && paginatedContracts.length > 0" class="table-container">
+      <table class="contracts-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Client Information</th>
+            <th>Product</th>
+            <th>Premium Amount</th>
+            <th>Payment Status</th>
+            <th>Contract Status</th>
+            <th>Risk Score</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let contract of paginatedContracts" class="contract-row">
+            <td data-label="Contract ID">
+              <span class="id-badge">#{{ contract.contractId }}</span>
+            </td>
+            <td data-label="Client Information">
+              <div class="client-info">
+                <div class="client-name">{{ contract.client?.firstName }} {{ contract.client?.lastName }}</div>
+                <div class="client-email">{{ contract.client?.email }}</div>
+              </div>
+            </td>
+            <td data-label="Product">
+              <span class="product-name">{{ contract.product?.name }}</span>
+            </td>
+            <td data-label="Premium Amount">
+              <div class="amount-wrapper">
+                <span class="amount">{{ contract.premium | number }}</span>
+                <span class="currency">DT</span>
+              </div>
+            </td>
+            <td data-label="Payment Status">
+              <div class="progress-wrapper">
+                <div class="progress-bar-container">
+                  <div class="progress-bar-fill" 
+                       [style.width.%]="getPaymentPercentage(contract)"
+                       [class.high-progress]="getPaymentPercentage(contract) >= 75"
+                       [class.medium-progress]="getPaymentPercentage(contract) >= 25 && getPaymentPercentage(contract) < 75"
+                       [class.low-progress]="getPaymentPercentage(contract) < 25">
                   </div>
                 </div>
-                <small>{{ contract.totalPaid | number }} / {{ contract.premium | number }} DT</small>
-              </td>
-              <td>
-                <span class="badge" [class]="getStatusBadgeClass(contract.status)">
-                  {{ getStatusLabel(contract.status) }}
-                </span>
-              </td>
-              <td>
-                <span *ngIf="contract.riskClaim" 
-                      class="badge" 
-                      [class.bg-danger]="contract.riskClaim.riskLevel === 'HIGH'"
-                      [class.bg-warning]="contract.riskClaim.riskLevel === 'MEDIUM'"
-                      [class.bg-success]="contract.riskClaim.riskLevel === 'LOW'">
-                  {{ contract.riskClaim.riskScore }}/100
-                </span>
-              </td>
-              <td>
-                <div class="btn-group btn-group-sm">
-                  <button class="btn btn-outline-primary" (click)="viewRisk(contract)">
-                    <i class="bi bi-shield"></i>
-                  </button>
-                  <button *ngIf="contract.status === 'INACTIVE'" 
-                          class="btn btn-outline-success" 
-                          (click)="activateContract(contract)">
-                    <i class="bi bi-check-lg"></i>
-                  </button>
-                  <button *ngIf="contract.status === 'INACTIVE'" 
-                          class="btn btn-outline-danger" 
-                          (click)="rejectContract(contract)">
-                    <i class="bi bi-x-lg"></i>
-                  </button>
-                  <button class="btn btn-outline-warning" (click)="simulateLatePayment(contract)">
-                    <i class="bi bi-clock-history"></i>
-                  </button>
+                <div class="payment-details">
+                  <span class="paid-amount">{{ contract.totalPaid | number }}</span>
+                  <span class="separator">/</span>
+                  <span class="total-amount">{{ contract.premium | number }} DT</span>
                 </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+              </div>
+            </td>
+            <td data-label="Contract Status">
+              <span class="status-badge" [class]="getStatusBadgeClass(contract.status)">
+                {{ getStatusLabel(contract.status) }}
+              </span>
+            </td>
+            <td data-label="Risk Score">
+              <div *ngIf="contract.riskClaim" class="risk-score" 
+                   [class.risk-high]="contract.riskClaim.riskLevel === 'HIGH'"
+                   [class.risk-medium]="contract.riskClaim.riskLevel === 'MEDIUM'"
+                   [class.risk-low]="contract.riskClaim.riskLevel === 'LOW'">
+                <span class="score-value">{{ contract.riskClaim.riskScore }}</span>
+                <span class="score-max">/100</span>
+              </div>
+              <span *ngIf="!contract.riskClaim" class="no-risk">Not assessed</span>
+            </td>
+            <td data-label="Actions">
+              <div class="action-buttons">
+                <button class="action-btn view-risk" (click)="viewRisk(contract)" title="View Risk Assessment">
+                  <i class="bi bi-shield-check"></i>
+                </button>
+                <button *ngIf="contract.status === 'INACTIVE'" 
+                        class="action-btn activate" 
+                        (click)="activateContract(contract)" 
+                        title="Activate Contract">
+                  <i class="bi bi-check-circle"></i>
+                </button>
+                <button *ngIf="contract.status === 'INACTIVE'" 
+                        class="action-btn reject" 
+                        (click)="rejectContract(contract)" 
+                        title="Reject Contract">
+                  <i class="bi bi-x-circle"></i>
+                </button>
+                <button class="action-btn simulate" 
+                        (click)="simulateLatePayment(contract)" 
+                        title="Simulate Late Payment">
+                  <i class="bi bi-clock-history"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      
+      <!-- Modern Pagination -->
+      <div class="pagination-container" *ngIf="totalPages > 1">
+        <div class="pagination-info">
+          Showing {{ (currentPage - 1) * itemsPerPage + 1 }} to 
+          {{ Math.min(currentPage * itemsPerPage, filteredContracts.length) }} of 
+          {{ filteredContracts.length }} contracts
+        </div>
+        <div class="pagination-controls">
+          <button class="pagination-btn" 
+                  (click)="previousPage()" 
+                  [disabled]="currentPage === 1"
+                  [class.disabled]="currentPage === 1">
+            <i class="bi bi-chevron-left"></i>
+          </button>
+          
+          <div class="pagination-pages">
+            <button *ngFor="let page of pages" 
+                    class="pagination-page" 
+                    [class.active]="currentPage === page"
+                    (click)="goToPage(page)">
+              {{ page }}
+            </button>
+          </div>
+          
+          <button class="pagination-btn" 
+                  (click)="nextPage()" 
+                  [disabled]="currentPage === totalPages"
+                  [class.disabled]="currentPage === totalPages">
+            <i class="bi bi-chevron-right"></i>
+          </button>
+        </div>
       </div>
+    </div>
 
-      <div *ngIf="!isLoading && filteredContracts.length === 0" class="alert alert-info text-center">
-        Aucun contrat trouvé
-      </div>
+    <!-- Empty State -->
+    <div *ngIf="!isLoading && filteredContracts.length === 0" class="empty-state">
+      <i class="bi bi-inbox empty-icon"></i>
+      <h3>No contracts found</h3>
+      <p>Try adjusting your filters or search criteria</p>
     </div>
   </div>
 </div>
 
-<!-- Modal Risque -->
-<div class="modal" [class.show]="showRiskModal" [style.display]="showRiskModal ? 'block' : 'none'" *ngIf="showRiskModal">
-  <div class="modal-dialog modal-lg">
-    <div class="modal-content">
-      <div class="modal-header bg-primary text-white">
-        <h5>Risque - Contrat #{{ selectedContract?.contractId }}</h5>
-        <button class="btn-close btn-close-white" (click)="closeModal()"></button>
+<!-- Risk Assessment Modal -->
+<div class="modal-overlay" *ngIf="showRiskModal" (click)="closeModal()">
+  <div class="modal-container modal-lg" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <div class="modal-title">
+        <i class="bi bi-shield-check"></i>
+        <span>Risk Assessment Details</span>
       </div>
-      <div class="modal-body">
-        <pre>{{ selectedContract?.riskClaim?.evaluationNote }}</pre>
+      <button class="modal-close" (click)="closeModal()">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="risk-assessment-content">
+        <div class="risk-header">
+          <h4>Contract #{{ selectedContract?.contractId }}</h4>
+          <div class="risk-score-large" 
+               [class.risk-high]="selectedContract?.riskClaim?.riskLevel === 'HIGH'"
+               [class.risk-medium]="selectedContract?.riskClaim?.riskLevel === 'MEDIUM'"
+               [class.risk-low]="selectedContract?.riskClaim?.riskLevel === 'LOW'">
+            Risk Score: {{ selectedContract?.riskClaim?.riskScore }}/100
+          </div>
+        </div>
+        <div class="evaluation-note">
+          <label>Evaluation Notes:</label>
+          <pre>{{ selectedContract?.riskClaim?.evaluationNote || 'No evaluation notes available' }}</pre>
+        </div>
       </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" (click)="closeModal()">Close</button>
     </div>
   </div>
 </div>
 
-<!-- Modal Simulation -->
-<div class="modal" [class.show]="showSimulateModal" [style.display]="showSimulateModal ? 'block' : 'none'" *ngIf="showSimulateModal">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5>Simuler des retards</h5>
-        <button class="btn-close" (click)="closeModal()"></button>
+<!-- Simulation Modal -->
+<div class="modal-overlay" *ngIf="showSimulateModal" (click)="closeModal()">
+  <div class="modal-container" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <div class="modal-title">
+        <i class="bi bi-clock-history"></i>
+        <span>Simulate Late Payment</span>
       </div>
-      <div class="modal-body">
-        <label>Nombre de mois de retard :</label>
-        <input type="number" class="form-control" [(ngModel)]="simulateMonths" min="1" max="12">
+      <button class="modal-close" (click)="closeModal()">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="simulation-form">
+        <label class="form-label">Number of months delayed:</label>
+        <input 
+          type="number" 
+          class="form-input" 
+          [(ngModel)]="simulateMonths" 
+          min="1" 
+          max="12"
+          placeholder="Enter months (1-12)">
+        <p class="form-hint">This will simulate the financial impact of delayed payments</p>
       </div>
-      <div class="modal-footer">
-        <button class="btn btn-secondary" (click)="closeModal()">Annuler</button>
-        <button class="btn btn-primary" (click)="confirmSimulate()">Simuler</button>
-      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" (click)="closeModal()">Cancel</button>
+      <button class="btn-primary" (click)="confirmSimulate()">Simulate</button>
     </div>
   </div>
 </div>
-<div class="modal-backdrop fade show" *ngIf="showRiskModal || showSimulateModal" (click)="closeModal()"></div>
