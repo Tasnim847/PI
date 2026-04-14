@@ -15,6 +15,7 @@ import { ContractService } from '../../../services/contract.service';
 export class ContractListComponent implements OnInit {
   contracts: any[] = [];
   filteredContracts: any[] = [];
+  paginatedContracts: any[] = [];
   selectedStatus: string = 'ALL';
   searchTerm: string = '';
   isLoading = false;
@@ -22,6 +23,14 @@ export class ContractListComponent implements OnInit {
   showRiskModal = false;
   showSimulateModal = false;
   simulateMonths: number = 1;
+
+  // Pagination properties
+  currentPage: number = 1;
+  itemsPerPage: number = 6;
+  totalPages: number = 1;
+  pages: number[] = [];
+
+  Math = Math;
 
   statuses = ['ALL', 'ACTIVE', 'INACTIVE', 'COMPLETED', 'CANCELLED', 'EXPIRED'];
 
@@ -58,17 +67,56 @@ export class ContractListComponent implements OnInit {
         contract.product?.name?.toLowerCase().includes(this.searchTerm.toLowerCase());
       return matchStatus && matchSearch;
     });
+    
+    // Reset to first page when filtering
+    this.currentPage = 1;
+    this.updatePagination();
+  }
+
+  updatePagination(): void {
+    this.totalPages = Math.ceil(this.filteredContracts.length / this.itemsPerPage);
+    this.pages = Array.from({ length: this.totalPages }, (_, i) => i + 1);
+    
+    const startIndex = (this.currentPage - 1) * this.itemsPerPage;
+    const endIndex = startIndex + this.itemsPerPage;
+    this.paginatedContracts = this.filteredContracts.slice(startIndex, endIndex);
+  }
+
+  goToPage(page: number): void {
+    if (page < 1 || page > this.totalPages) return;
+    this.currentPage = page;
+    this.updatePagination();
+  }
+
+  previousPage(): void {
+    if (this.currentPage > 1) {
+      this.goToPage(this.currentPage - 1);
+    }
+  }
+
+  nextPage(): void {
+    if (this.currentPage < this.totalPages) {
+      this.goToPage(this.currentPage + 1);
+    }
+  }
+
+  getPaymentPercentage(contract: any): number {
+    if (!contract || !contract.premium || contract.premium === 0) {
+      return 0;
+    }
+    const percentage = (contract.totalPaid / contract.premium) * 100;
+    return Math.min(Math.max(percentage, 0), 100);
   }
 
   getStatusBadgeClass(status: string): string {
     const classes: any = {
-      'ACTIVE': 'bg-success',
-      'INACTIVE': 'bg-warning',
-      'COMPLETED': 'bg-info',
-      'CANCELLED': 'bg-danger',
-      'EXPIRED': 'bg-secondary'
+      'ACTIVE': 'active',
+      'INACTIVE': 'inactive',
+      'COMPLETED': 'completed',
+      'CANCELLED': 'cancelled',
+      'EXPIRED': 'expired'
     };
-    return classes[status] || 'bg-secondary';
+    return classes[status] || 'inactive';
   }
 
   getStatusLabel(status: string): string {
@@ -152,6 +200,11 @@ export class ContractListComponent implements OnInit {
       },
       error: () => this.toastr.error('Erreur lors de la vérification')
     });
+  }
+
+  clearSearch(): void {
+    this.searchTerm = '';
+    this.filterContracts();
   }
 
   formatDate(date: Date | string): string {

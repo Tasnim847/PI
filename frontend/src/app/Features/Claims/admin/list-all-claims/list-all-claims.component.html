@@ -1,1 +1,304 @@
-<p>list-all-claims works!</p>
+<div class="claims-container">
+  <!-- Header -->
+  <div class="page-header">
+    <div class="header-title">
+      <h1>Claims Management</h1>
+      <p>View and manage all customer claims</p>
+    </div>
+    <div class="header-stats">
+      <div class="stat-card">
+        <span class="stat-value">{{ claims.length }}</span>
+        <span class="stat-label">Total Claims</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-value">{{ getDeclaredCount() }}</span>
+        <span class="stat-label">Pending</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-value">{{ getInReviewCount() }}</span>
+        <span class="stat-label">In Review</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Messages -->
+  <div *ngIf="successMessage" class="alert alert-success">
+    {{ successMessage }}
+  </div>
+  <div *ngIf="errorMessage" class="alert alert-error">
+    {{ errorMessage }}
+  </div>
+
+  <!-- Filters -->
+  <div class="filters-card">
+    <div class="filters-row">
+      <div class="filter-group">
+        <label>🔍 Search</label>
+        <input 
+          type="text" 
+          [(ngModel)]="searchTerm" 
+          (input)="applyFilters()"
+          placeholder="ID, description, client name..."
+          class="filter-input"
+        >
+      </div>
+      
+      <div class="filter-group">
+        <label>📊 Status</label>
+        <select [(ngModel)]="selectedStatus" (change)="applyFilters()" class="filter-select">
+          <option value="">All Statuses</option>
+          <option *ngFor="let status of statusOptions" [value]="status">
+            {{ getStatusLabel(status) }}
+          </option>
+        </select>
+      </div>
+      
+      <div class="filter-actions">
+        <button (click)="resetFilters()" class="btn-secondary">
+          🔄 Reset
+        </button>
+        <button (click)="loadClaims()" class="btn-primary">
+          🔄 Refresh
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading-container">
+    <div class="spinner"></div>
+    <p>Loading claims...</p>
+  </div>
+
+  <!-- Claims Table -->
+  <div *ngIf="!loading" class="table-container">
+    <table class="claims-table">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Client</th>
+          <th>Contract</th>
+          <th>Claimed Amount</th>
+          <th>Approved Amount</th>
+          <th>Status</th>
+          <th>Fraud</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let claim of paginatedClaims">
+          <td>{{ formatDate(claim.claimDate) }}</td>
+          <td class="client-cell">
+            <div class="client-info">
+              <span class="client-name">{{ getClientFullName(claim) }}</span>
+            </div>
+          </td>
+          <td>{{ claim.contractId }}</td>
+          <td class="amount">{{ formatAmount(claim.claimedAmount) }}</td>
+          <td class="amount">{{ formatAmount(claim.approvedAmount) }}</td>
+          <td>
+            <span class="status-badge" [class]="getStatusClass(claim.status)">
+              {{ getStatusIcon(claim.status) }} {{ getStatusLabel(claim.status) }}
+            </span>
+          </td>
+          <td>
+            <span *ngIf="claim.fraud" class="fraud-badge fraud-yes">
+              ⚠️ Suspect
+            </span>
+            <span *ngIf="!claim.fraud" class="fraud-badge fraud-no">
+              ✅ Normal
+            </span>
+          </td>
+          <td class="actions">
+            <button (click)="viewDetails(claim)" class="action-btn view-btn" title="View details">
+              👁️
+            </button>
+            <button (click)="viewCompensation(claim.claimId)" class="action-btn compensation-btn" title="Calculate compensation">
+              💰
+            </button>
+            <button (click)="autoDecision(claim.claimId)" class="action-btn auto-btn" title="Auto decision" [disabled]="autoDecisionLoading">
+              🤖
+            </button>
+          </td>
+        </tr>
+        <tr *ngIf="paginatedClaims.length === 0">
+          <td colspan="8" class="empty-state">
+            📭 No claims found
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Pagination -->
+    <div *ngIf="totalPages > 1" class="pagination">
+      <button (click)="changePage(currentPage - 1)" [disabled]="currentPage === 1" class="page-btn">
+        ◀ Previous
+      </button>
+      <span class="page-info">Page {{ currentPage }} of {{ totalPages }}</span>
+      <button (click)="changePage(currentPage + 1)" [disabled]="currentPage === totalPages" class="page-btn">
+        Next ▶
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Details Modal -->
+<div *ngIf="showDetailsModal" class="modal-overlay" (click)="closeModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>Claim Details #{{ selectedClaim?.claimId }}</h2>
+      <button class="modal-close" (click)="closeModal()">✕</button>
+    </div>
+    
+    <div class="modal-body" *ngIf="selectedClaim">
+      <div class="details-grid">
+        <div class="detail-item">
+          <label>Claim ID:</label>
+          <span>{{ selectedClaim.claimId }}</span>
+        </div>
+        <div class="detail-item">
+          <label>Date:</label>
+          <span>{{ formatDate(selectedClaim.claimDate) }}</span>
+        </div>
+        <div class="detail-item">
+          <label>Client Name:</label>
+          <span class="client-name-value">{{ getClientFullName(selectedClaim) }}</span>
+        </div>
+        <div class="detail-item">
+          <label>Client ID:</label>
+          <span>{{ selectedClaim.client?.id }}</span>
+        </div>
+        <div class="detail-item">
+          <label>Contract ID:</label>
+          <span>{{ selectedClaim.contractId }}</span>
+        </div>
+        <div class="detail-item">
+          <label>Claimed Amount:</label>
+          <span class="amount-highlight">{{ formatAmount(selectedClaim.claimedAmount) }}</span>
+        </div>
+        <div class="detail-item">
+          <label>Approved Amount:</label>
+          <span>{{ formatAmount(selectedClaim.approvedAmount) }}</span>
+        </div>
+        <div class="detail-item">
+          <label>Status:</label>
+          <span class="status-badge" [class]="getStatusClass(selectedClaim.status)">
+            {{ getStatusLabel(selectedClaim.status) }}
+          </span>
+        </div>
+        <div class="detail-item">
+          <label>Fraud:</label>
+          <span>{{ selectedClaim.fraud ? '⚠️ Suspect' : '✅ Normal' }}</span>
+        </div>
+        <div class="detail-item full-width">
+          <label>Description:</label>
+          <p class="description-text">{{ selectedClaim.description || 'No description' }}</p>
+        </div>
+        
+        <!-- Auto Details -->
+        <div *ngIf="selectedClaim.autoDetails" class="detail-item full-width">
+          <label>🚗 Auto Details:</label>
+          <div class="sub-details">
+            <p><strong>Driver A:</strong> {{ selectedClaim.autoDetails.driverA }}</p>
+            <p><strong>Driver B:</strong> {{ selectedClaim.autoDetails.driverB }}</p>
+            <p><strong>Vehicle A:</strong> {{ selectedClaim.autoDetails.vehicleA }}</p>
+            <p><strong>Vehicle B:</strong> {{ selectedClaim.autoDetails.vehicleB }}</p>
+            <p><strong>Accident Location:</strong> {{ selectedClaim.autoDetails.accidentLocation }}</p>
+            <p><strong>Accident Date:</strong> {{ formatDate(selectedClaim.autoDetails.accidentDate) }}</p>
+          </div>
+        </div>
+        
+        <!-- Health Details -->
+        <div *ngIf="selectedClaim.healthDetails" class="detail-item full-width">
+          <label>🏥 Health Details:</label>
+          <div class="sub-details">
+            <p><strong>Patient Name:</strong> {{ selectedClaim.healthDetails.patientName }}</p>
+            <p><strong>Hospital:</strong> {{ selectedClaim.healthDetails.hospitalName }}</p>
+            <p><strong>Doctor:</strong> {{ selectedClaim.healthDetails.doctorName }}</p>
+            <p><strong>Medical Cost:</strong> {{ formatAmount(selectedClaim.healthDetails.medicalCost) }}</p>
+            <p><strong>Illness Type:</strong> {{ selectedClaim.healthDetails.illnessType }}</p>
+          </div>
+        </div>
+        
+        <!-- Home Details -->
+        <div *ngIf="selectedClaim.homeDetails" class="detail-item full-width">
+          <label>🏠 Home Details:</label>
+          <div class="sub-details">
+            <p><strong>Damage Type:</strong> {{ selectedClaim.homeDetails.damageType }}</p>
+            <p><strong>Address:</strong> {{ selectedClaim.homeDetails.address }}</p>
+            <p><strong>Estimated Loss:</strong> {{ formatAmount(selectedClaim.homeDetails.estimatedLoss) }}</p>
+          </div>
+        </div>
+        
+        <!-- Documents -->
+        <div *ngIf="selectedClaim.documents && selectedClaim.documents.length > 0" class="detail-item full-width">
+          <label>📎 Attached Documents ({{ selectedClaim.documents.length }}):</label>
+          <ul class="documents-list">
+            <li *ngFor="let doc of selectedClaim.documents">
+              📄 {{ doc.name }} ({{ doc.type }})
+            </li>
+          </ul>
+        </div>
+        
+        <div *ngIf="selectedClaim.message" class="detail-item full-width">
+          <label>💬 Message:</label>
+          <p class="message-text">{{ selectedClaim.message }}</p>
+        </div>
+      </div>
+    </div>
+    
+    <div class="modal-footer">
+      <button (click)="closeModal()" class="btn-secondary">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- Compensation Modal -->
+<div *ngIf="showCompensationModal" class="modal-overlay" (click)="closeCompensationModal()">
+  <div class="modal-content modal-compensation" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>💰 Compensation Calculation</h2>
+      <button class="modal-close" (click)="closeCompensationModal()">✕</button>
+    </div>
+    
+    <div class="modal-body">
+      <div *ngIf="compensationLoading" class="loading-state">
+        <div class="spinner"></div>
+        <p>Calculating...</p>
+      </div>
+      
+      <div *ngIf="!compensationLoading && compensationDetails" class="compensation-details">
+        <div class="compensation-card">
+          <div class="compensation-row">
+            <span class="label">Claim Status:</span>
+            <span class="value">{{ getStatusLabel(compensationDetails.status) }}</span>
+          </div>
+          <div class="compensation-row">
+            <span class="label">Claimed Amount:</span>
+            <span class="value amount">{{ compensationDetails.claimedAmount }} DT</span>
+          </div>
+          <div class="compensation-row">
+            <span class="label">Approved Amount:</span>
+            <span class="value amount">{{ compensationDetails.approvedAmount }} DT</span>
+          </div>
+          <div class="compensation-row">
+            <span class="label">Client Deductible:</span>
+            <span class="value">{{ compensationDetails.franchise }} DT</span>
+          </div>
+          <div class="compensation-row highlight">
+            <span class="label">💰 Insurance Payment:</span>
+            <span class="value amount-highlight">{{ compensationDetails.insurancePayment }} DT</span>
+          </div>
+        </div>
+      </div>
+      
+      <div *ngIf="!compensationLoading && !compensationDetails" class="error-state">
+        <p>❌ Unable to calculate compensation</p>
+      </div>
+    </div>
+    
+    <div class="modal-footer">
+      <button (click)="closeCompensationModal()" class="btn-primary">Close</button>
+    </div>
+  </div>
+</div>

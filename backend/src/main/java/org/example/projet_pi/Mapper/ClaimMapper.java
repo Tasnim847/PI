@@ -1,6 +1,7 @@
 package org.example.projet_pi.Mapper;
 
 import org.example.projet_pi.Dto.ClaimDTO;
+import org.example.projet_pi.Dto.ClientDTO;
 import org.example.projet_pi.Dto.DocumentDTO;
 import org.example.projet_pi.entity.*;
 
@@ -23,13 +24,23 @@ public class ClaimMapper {
         dto.setApprovedAmount(claim.getApprovedAmount());
         dto.setDescription(claim.getDescription());
         dto.setStatus(claim.getStatus() != null ? claim.getStatus().name() : null);
+        dto.setMessage(claim.getMessage());
+
+        // ✅ CORRECTION: Set the client object instead of clientId
+        if (claim.getClient() != null) {
+            ClientDTO clientDTO = new ClientDTO();
+            clientDTO.setId(claim.getClient().getId());
+            clientDTO.setFirstName(claim.getClient().getFirstName());
+            clientDTO.setLastName(claim.getClient().getLastName());
+            clientDTO.setEmail(claim.getClient().getEmail());
+            clientDTO.setTelephone(claim.getClient().getTelephone());
+            dto.setClient(clientDTO);
+        }
 
         if (claim.getContract() != null) {
             dto.setContractId(claim.getContract().getContractId());
         }
-        if (claim.getClient() != null) {
-            dto.setClientId(claim.getClient().getId());
-        }
+
         if (claim.getCompensation() != null) {
             dto.setCompensationId(claim.getCompensation().getCompensationId());
         }
@@ -84,6 +95,8 @@ public class ClaimMapper {
         claim.setApprovedAmount(dto.getApprovedAmount());
         claim.setDescription(dto.getDescription());
         claim.setContract(contract);
+
+        // Use the client from parameter (passed from service)
         claim.setClient(client);
         claim.setDocuments(documents);
 

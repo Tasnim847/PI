@@ -20,9 +20,10 @@ public class ClaimDTO {
     private Double approvedAmount;
     private String description;
     private String status;
-    private String message;
+    private String message;  // ← Lombok @Setter génère setMessage()
+    private Boolean fraud;   // ← AJOUTEZ CE CHAMP (important pour l'affichage)
 
-    private Long clientId;
+    private ClientDTO client;
     private Long contractId;
     private Long compensationId;
     private List<Long> documentIds;
