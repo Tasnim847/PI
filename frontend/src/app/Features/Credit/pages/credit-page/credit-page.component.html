@@ -92,9 +92,13 @@
               <tr *ngFor="let credit of credits">
                 <td>#{{ credit.creditId }}</td>
                 <td>
-                  <strong>{{ credit.client?.firstName }} {{ credit.client?.lastName }}</strong>
+                  <strong *ngIf="credit.client">{{ credit.client.firstName }} {{ credit.client.lastName }}</strong>
+                  <span *ngIf="!credit.client" class="text-muted">-</span>
                 </td>
-                <td>{{ credit.client?.email }}</td>
+                <td>
+                  <span *ngIf="credit.client">{{ credit.client.email }}</span>
+                  <span *ngIf="!credit.client" class="text-muted">-</span>
+                </td>
                 <td>{{ formatAmount(credit.amount) }}</td>
                 <td>{{ credit.durationInMonths }} mois</td>
                 <td>{{ formatAmount(credit.monthlyPayment) }}</td>
