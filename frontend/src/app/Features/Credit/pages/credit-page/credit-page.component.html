@@ -1,0 +1,212 @@
+<div class="container mt-4">
+  
+  <!-- ========== EN-TÊTE ========== -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h2>
+        <i class="bi bi-credit-card"></i> 
+        Gestion des Crédits
+      </h2>
+      <p class="text-muted mb-0" *ngIf="isAdmin">
+        <i class="bi bi-table"></i> Vue administrateur - Tous les crédits
+      </p>
+      <p class="text-muted mb-0" *ngIf="!isAdmin">
+        <i class="bi bi-grid"></i> Vue client - Mes crédits
+      </p>
+    </div>
+    <button *ngIf="!isAdmin" class="btn btn-primary" (click)="showRequestForm = !showRequestForm">
+      <i class="bi bi-plus-lg"></i> Nouvelle demande
+    </button>
+  </div>
+
+  <!-- ========== MESSAGES ========== -->
+  <div *ngIf="successMessage" class="alert alert-success alert-dismissible fade show">
+    {{ successMessage }}
+    <button type="button" class="btn-close" (click)="successMessage = ''"></button>
+  </div>
+
+  <div *ngIf="errorMessage" class="alert alert-danger alert-dismissible fade show">
+    {{ errorMessage }}
+    <button type="button" class="btn-close" (click)="errorMessage = ''"></button>
+  </div>
+
+  <!-- ========== FORMULAIRE DE DEMANDE (CLIENT SEULEMENT) ========== -->
+  <div class="card mb-4" *ngIf="!isAdmin && showRequestForm && !isLoading">
+    <div class="card-header bg-primary text-white">
+      <h5 class="mb-0">Nouvelle demande de crédit</h5>
+    </div>
+    <div class="card-body">
+      <form (ngSubmit)="submitRequest()">
+        <div class="row">
+          <div class="col-md-4 mb-3">
+            <label class="form-label">Montant (TND)</label>
+            <input type="number" class="form-control" [(ngModel)]="creditRequest.amount" name="amount" required>
+          </div>
+          <div class="col-md-4 mb-3">
+            <label class="form-label">Durée (mois)</label>
+            <input type="number" class="form-control" [(ngModel)]="creditRequest.durationInMonths" name="duration" required>
+          </div>
+          <div class="col-md-4 mb-3">
+            <label class="form-label">Date d'échéance</label>
+            <input type="date" class="form-control" [(ngModel)]="creditRequest.dueDate" name="dueDate" [min]="today" required>
+          </div>
+        </div>
+        <div class="d-flex justify-content-end">
+          <button type="button" class="btn btn-secondary me-2" (click)="showRequestForm = false">Annuler</button>
+          <button type="submit" class="btn btn-success">Envoyer la demande</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ========== SPINNER ========== -->
+  <div *ngIf="isLoading" class="text-center py-5">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Chargement...</span>
+    </div>
+  </div>
+
+  <!-- ========== VUE ADMIN : TABLEAU ========== -->
+  <div *ngIf="!isLoading && isAdmin">
+    <div class="card">
+      <div class="card-header bg-dark text-white">
+        <h5 class="mb-0"><i class="bi bi-table"></i> Liste complète des crédits</h5>
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-striped table-hover mb-0">
+            <thead class="table-dark">
+              <tr>
+                <th>ID</th>
+                <th>Client</th>
+                <th>Email</th>
+                <th>Montant</th>
+                <th>Durée</th>
+                <th>Mensualité</th>
+                <th>Taux</th>
+                <th>Statut</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let credit of credits">
+                <td>#{{ credit.creditId }}</td>
+                <td>
+                  <strong>{{ credit.client?.firstName }} {{ credit.client?.lastName }}</strong>
+                </td>
+                <td>{{ credit.client?.email }}</td>
+                <td>{{ formatAmount(credit.amount) }}</td>
+                <td>{{ credit.durationInMonths }} mois</td>
+                <td>{{ formatAmount(credit.monthlyPayment) }}</td>
+                <td>{{ credit.interestRate }}%</td>
+                <td>
+                  <span class="badge" [ngClass]="getStatusClass(credit.status)">
+                    {{ getStatusLabel(credit.status) }}
+                  </span>
+                </td>
+                <td>
+                  <div class="d-flex gap-1 flex-wrap">
+                    <button class="btn btn-sm btn-info" 
+                            (click)="goToPayment(credit.creditId)"
+                            title="Voir les paiements">
+                      <i class="bi bi-credit-card"></i> Paiements
+                    </button>
+                    <ng-container *ngIf="credit.status === 'PENDING'">
+                      <input type="number" class="form-control form-control-sm" 
+                             style="width: 70px;" [(ngModel)]="approveInterestRate" 
+                             placeholder="Taux">
+                      <button class="btn btn-sm btn-success" (click)="approveCredit(credit.creditId)"
+                              title="Approuver">
+                        <i class="bi bi-check-lg"></i>
+                      </button>
+                      <button class="btn btn-sm btn-danger" (click)="rejectCredit(credit.creditId)"
+                              title="Rejeter">
+                        <i class="bi bi-x-lg"></i>
+                      </button>
+                    </ng-container>
+                  </div>
+                </td>
+              </tr>
+              <tr *ngIf="credits.length === 0">
+                <td colspan="9" class="text-center text-muted py-4">
+                  <i class="bi bi-inbox"></i> Aucun crédit trouvé
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== VUE CLIENT : GRILLE DE CARTES ========== -->
+  <div *ngIf="!isLoading && !isAdmin">
+    <div class="row" *ngIf="credits.length > 0">
+      <div class="col-md-6 col-lg-4" *ngFor="let credit of credits">
+        <div class="card credit-card mb-3">
+          
+          <div class="card-header" [ngClass]="getStatusClass(credit.status)">
+            <div class="d-flex justify-content-between align-items-center">
+              <span class="status-badge">{{ getStatusLabel(credit.status) }}</span>
+              <span class="credit-id">#CRD-{{ credit.creditId }}</span>
+            </div>
+          </div>
+          
+          <div class="card-body">
+            <div class="credit-details">
+              <div class="detail-item">
+                <span class="detail-label">Montant</span>
+                <span class="detail-value">{{ formatAmount(credit.amount) }}</span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-label">Durée</span>
+                <span class="detail-value">{{ credit.durationInMonths }} mois</span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-label">Mensualité</span>
+                <span class="detail-value">{{ formatAmount(credit.monthlyPayment) }}</span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-label">Échéance</span>
+                <span class="detail-value">{{ formatDate(credit.dueDate) }}</span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="card-footer bg-transparent">
+            <ng-container *ngIf="credit.status === 'APPROVED' || credit.status === 'IN_REPAYMENT'">
+              <button class="btn btn-primary w-100 mb-2" (click)="goToPayment(credit.creditId)">
+                <i class="bi bi-credit-card"></i> Effectuer un paiement
+              </button>
+            </ng-container>
+            
+            <button class="btn btn-outline-secondary w-100 btn-sm" 
+                    (click)="goToPayment(credit.creditId)">
+              <i class="bi bi-clock-history"></i> Voir historique des paiements
+            </button>
+            
+            <div *ngIf="credit.status === 'CLOSED'" class="text-center text-success mt-2">
+              <i class="bi bi-check-circle"></i> Crédit remboursé
+            </div>
+            
+            <div *ngIf="credit.status === 'REJECTED'" class="text-center text-danger mt-2">
+              <i class="bi bi-x-circle"></i> Demande rejetée
+            </div>
+            
+            <div *ngIf="credit.status === 'PENDING'" class="text-center text-warning mt-2">
+              <i class="bi bi-clock-history"></i> En attente d'approbation
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div *ngIf="credits.length === 0" class="text-center py-5">
+      <i class="bi bi-inbox" style="font-size: 48px;"></i>
+      <p class="mt-2">Aucun crédit trouvé</p>
+      <button class="btn btn-primary mt-2" (click)="showRequestForm = true">
+        <i class="bi bi-plus-lg"></i> Faire une demande
+      </button>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,528 @@
+/* ========== CONTAINER PRINCIPAL ========== */
+.credit-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 20px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* ========== EN-TÊTE ========== */
+.header-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.header-title h1 {
+  margin: 0;
+  font-size: 28px;
+  color: #2c3e50;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.header-title p {
+  margin: 5px 0 0 0;
+  color: #6c757d;
+}
+
+.btn-primary-custom {
+  background: linear-gradient(135deg, #007bff, #0056b3);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-primary-custom:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,123,255,0.3);
+}
+
+/* ========== ALERTES ========== */
+.alert-success-custom, .alert-error-custom {
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  animation: fadeIn 0.3s ease;
+}
+
+.alert-success-custom {
+  background-color: #d4edda;
+  color: #155724;
+  border-left: 4px solid #28a745;
+}
+
+.alert-error-custom {
+  background-color: #f8d7da;
+  color: #721c24;
+  border-left: 4px solid #dc3545;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  color: inherit;
+  opacity: 0.7;
+}
+
+.close-btn:hover {
+  opacity: 1;
+}
+
+/* ========== CARTE FORMULAIRE ========== */
+.card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  margin-bottom: 30px;
+  overflow: hidden;
+}
+
+.card-header-primary {
+  background: linear-gradient(135deg, #007bff, #0056b3);
+  color: white;
+  padding: 15px 20px;
+}
+
+.card-header-primary h3 {
+  margin: 0;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.card-body {
+  padding: 20px;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.form-group label {
+  font-weight: 600;
+  color: #333;
+}
+
+.form-control {
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 14px;
+  transition: border-color 0.3s;
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: #007bff;
+}
+
+.form-text {
+  font-size: 12px;
+  color: #6c757d;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.btn-secondary {
+  background: #6c757d;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.btn-secondary:hover {
+  background: #5a6268;
+}
+
+.btn-success {
+  background: linear-gradient(135deg, #28a745, #1e7e34);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-success:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(40,167,69,0.3);
+}
+
+.btn-success:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ========== SPINNER ========== */
+.spinner-container {
+  text-align: center;
+  padding: 50px;
+}
+
+.spinner-large {
+  width: 48px;
+  height: 48px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #007bff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 15px;
+}
+
+.spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid #fff;
+  border-top: 2px solid transparent;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+  margin-right: 8px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ========== GRILLE DES CRÉDITS ========== */
+.credits-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+  gap: 25px;
+}
+
+.credit-card {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  overflow: hidden;
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.credit-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+/* ========== STATUTS ========== */
+.status-pending { 
+  background: linear-gradient(135deg, #ffc107, #ffb300) !important; 
+  color: #000 !important; 
+}
+.status-approved { 
+  background: linear-gradient(135deg, #28a745, #20c997) !important; 
+  color: #fff !important; 
+}
+.status-rejected { 
+  background: linear-gradient(135deg, #dc3545, #c82333) !important; 
+  color: #fff !important; 
+}
+.status-repayment { 
+  background: linear-gradient(135deg, #17a2b8, #138496) !important; 
+  color: #fff !important; 
+}
+.status-closed { 
+  background: linear-gradient(135deg, #6c757d, #5a6268) !important; 
+  color: #fff !important; 
+}
+
+/* Classes Bootstrap pour les badges de statut */
+.badge.bg-warning { background: linear-gradient(135deg, #ffc107, #ffb300) !important; color: #000 !important; }
+.badge.bg-success { background: linear-gradient(135deg, #28a745, #20c997) !important; color: #fff !important; }
+.badge.bg-danger { background: linear-gradient(135deg, #dc3545, #c82333) !important; color: #fff !important; }
+.badge.bg-info { background: linear-gradient(135deg, #17a2b8, #138496) !important; color: #fff !important; }
+.badge.bg-secondary { background: linear-gradient(135deg, #6c757d, #5a6268) !important; color: #fff !important; }
+
+/* En-têtes de cartes avec couleurs selon le statut */
+.card-header.bg-warning { background: linear-gradient(135deg, #ffc107, #ffb300) !important; color: #000 !important; }
+.card-header.bg-success { background: linear-gradient(135deg, #28a745, #20c997) !important; color: #fff !important; }
+.card-header.bg-danger { background: linear-gradient(135deg, #dc3545, #c82333) !important; color: #fff !important; }
+.card-header.bg-info { background: linear-gradient(135deg, #17a2b8, #138496) !important; color: #fff !important; }
+.card-header.bg-secondary { background: linear-gradient(135deg, #6c757d, #5a6268) !important; color: #fff !important; }
+
+.card-header {
+  padding: 15px 20px;
+}
+
+.header-badge {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  background-color: rgba(255,255,255,0.25);
+}
+
+.credit-id {
+  font-size: 11px;
+  font-weight: 600;
+  background-color: rgba(0,0,0,0.15);
+  padding: 4px 10px;
+  border-radius: 20px;
+}
+
+/* ========== CORPS DE LA CARTE ========== */
+.card-body {
+  padding: 20px;
+}
+
+.client-info {
+  text-align: center;
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #eee;
+}
+
+.client-info h4 {
+  margin: 0 0 8px 0;
+  color: #2c3e50;
+}
+
+.client-info p {
+  margin: 5px 0;
+  color: #6c757d;
+  font-size: 13px;
+}
+
+.client-info i {
+  margin-right: 8px;
+}
+
+.credit-details {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 15px;
+  margin-top: 15px;
+}
+
+.detail-item {
+  text-align: center;
+  background: #f8f9fa;
+  padding: 15px 10px;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+}
+
+.detail-label {
+  display: block;
+  font-size: 11px;
+  color: #6c757d;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+
+.detail-value {
+  display: block;
+  font-size: 16px;
+  font-weight: 700;
+  color: #2c3e50;
+}
+
+/* ========== FOOTER DE LA CARTE ========== */
+.card-footer {
+  padding: 15px 20px;
+  background: #f8f9fa;
+  border-top: 1px solid #eee;
+}
+
+.admin-actions {
+  display: flex;
+  gap: 15px;
+  flex-wrap: wrap;
+  align-items: flex-end;
+}
+
+.rate-input {
+  flex: 1;
+  min-width: 100px;
+}
+
+.rate-input label {
+  display: block;
+  font-size: 11px;
+  color: #6c757d;
+  margin-bottom: 4px;
+}
+
+.input-small {
+  width: 100%;
+  padding: 6px 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 13px;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 8px;
+  flex: 2;
+}
+
+.btn-approve, .btn-reject, .btn-pay {
+  flex: 1;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+}
+
+.btn-approve {
+  background: #28a745;
+  color: white;
+}
+
+.btn-approve:hover {
+  background: #1e7e34;
+}
+
+.btn-reject {
+  background: #dc3545;
+  color: white;
+}
+
+.btn-reject:hover {
+  background: #bd2130;
+}
+
+.btn-pay {
+  background: linear-gradient(135deg, #007bff, #0056b3);
+  color: white;
+  width: 100%;
+}
+
+.btn-pay:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0,123,255,0.3);
+}
+
+.msg-closed, .msg-rejected {
+  text-align: center;
+  padding: 8px;
+  border-radius: 6px;
+  font-size: 13px;
+}
+
+.msg-closed {
+  background: #d4edda;
+  color: #155724;
+}
+
+.msg-rejected {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+/* ========== ÉTAT VIDE ========== */
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  background: #f8f9fa;
+  border-radius: 12px;
+}
+
+.empty-state i {
+  font-size: 64px;
+  color: #ccc;
+}
+
+.empty-state h3 {
+  margin: 15px 0 10px;
+  color: #6c757d;
+}
+
+.empty-state p {
+  color: #6c757d;
+}
+
+/* ========== RESPONSIVE ========== */
+@media (max-width: 768px) {
+  .credit-container {
+    padding: 15px;
+  }
+  
+  .credits-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+  
+  .header-section {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .admin-actions {
+    flex-direction: column;
+  }
+  
+  .action-buttons {
+    width: 100%;
+  }
+}
