@@ -1,0 +1,232 @@
+/* ========== GRILLE DES CRÉDITS ========== */
+.credit-card {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  overflow: hidden;
+  transition: all 0.3s ease;
+  border: 1px solid #e9ecef;
+}
+
+.credit-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 12px 30px rgba(0,0,0,0.15);
+}
+
+/* ========== STATUTS ========== */
+.status-pending { 
+  background: linear-gradient(135deg, #ffc107, #ffb300) !important; 
+  color: #000 !important; 
+}
+.status-approved { 
+  background: linear-gradient(135deg, #28a745, #20c997) !important; 
+  color: #fff !important; 
+}
+.status-rejected { 
+  background: linear-gradient(135deg, #dc3545, #c82333) !important; 
+  color: #fff !important; 
+}
+.status-repayment { 
+  background: linear-gradient(135deg, #17a2b8, #138496) !important; 
+  color: #fff !important; 
+}
+.status-closed { 
+  background: linear-gradient(135deg, #6c757d, #5a6268) !important; 
+  color: #fff !important; 
+}
+
+/* Classes Bootstrap pour les badges de statut */
+.badge.bg-warning { background: linear-gradient(135deg, #ffc107, #ffb300) !important; color: #000 !important; }
+.badge.bg-success { background: linear-gradient(135deg, #28a745, #20c997) !important; color: #fff !important; }
+.badge.bg-danger { background: linear-gradient(135deg, #dc3545, #c82333) !important; color: #fff !important; }
+.badge.bg-info { background: linear-gradient(135deg, #17a2b8, #138496) !important; color: #fff !important; }
+.badge.bg-secondary { background: linear-gradient(135deg, #6c757d, #5a6268) !important; color: #fff !important; }
+
+/* En-têtes de cartes avec couleurs selon le statut */
+.card-header.bg-warning { background: linear-gradient(135deg, #ffc107, #ffb300) !important; color: #000 !important; }
+.card-header.bg-success { background: linear-gradient(135deg, #28a745, #20c997) !important; color: #fff !important; }
+.card-header.bg-danger { background: linear-gradient(135deg, #dc3545, #c82333) !important; color: #fff !important; }
+.card-header.bg-info { background: linear-gradient(135deg, #17a2b8, #138496) !important; color: #fff !important; }
+.card-header.bg-secondary { background: linear-gradient(135deg, #6c757d, #5a6268) !important; color: #fff !important; }
+
+.card-header {
+  padding: 20px;
+  border-bottom: none;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 25px;
+  font-size: 13px;
+  font-weight: 700;
+  background-color: rgba(255,255,255,0.3);
+  backdrop-filter: blur(10px);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.credit-id {
+  font-size: 13px;
+  font-weight: 700;
+  background-color: rgba(0,0,0,0.2);
+  padding: 6px 14px;
+  border-radius: 25px;
+  letter-spacing: 0.8px;
+}
+
+/* ========== CORPS DE LA CARTE ========== */
+.card-body {
+  padding: 25px 20px;
+  background: linear-gradient(to bottom, #ffffff, #f8f9fa);
+}
+
+.credit-details {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 15px;
+}
+
+.detail-item {
+  text-align: center;
+  background: white;
+  padding: 18px 12px;
+  border-radius: 12px;
+  border: 2px solid #e9ecef;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.detail-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background: linear-gradient(90deg, #007bff, #0056b3);
+  transform: scaleX(0);
+  transition: transform 0.3s ease;
+}
+
+.detail-item:hover {
+  border-color: #007bff;
+  transform: translateY(-3px);
+  box-shadow: 0 6px 16px rgba(0,123,255,0.2);
+}
+
+.detail-item:hover::before {
+  transform: scaleX(1);
+}
+
+.detail-label {
+  display: block;
+  font-size: 11px;
+  color: #6c757d;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 10px;
+  font-weight: 700;
+}
+
+.detail-value {
+  display: block;
+  font-size: 18px;
+  font-weight: 800;
+  color: #2c3e50;
+  line-height: 1.2;
+}
+
+/* ========== FOOTER DE LA CARTE ========== */
+.card-footer {
+  padding: 20px;
+  background: #f8f9fa;
+  border-top: 1px solid #e9ecef;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #007bff, #0056b3);
+  border: none;
+  font-weight: 700;
+  padding: 14px 20px;
+  border-radius: 10px;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0,123,255,0.3);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-size: 14px;
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0,123,255,0.4);
+  background: linear-gradient(135deg, #0056b3, #004085);
+}
+
+.btn-outline-secondary {
+  border: 2px solid #6c757d;
+  color: #6c757d;
+  font-weight: 600;
+  padding: 10px 16px;
+  border-radius: 10px;
+  transition: all 0.3s ease;
+  background: white;
+  font-size: 13px;
+}
+
+.btn-outline-secondary:hover {
+  background: #6c757d;
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(108,117,125,0.3);
+}
+
+.text-success {
+  font-weight: 700;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.text-danger {
+  font-weight: 700;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.text-warning {
+  font-weight: 700;
+  font-size: 14px;
+  color: #ff9800 !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+/* ========== RESPONSIVE ========== */
+@media (max-width: 768px) {
+  .credit-card {
+    margin-bottom: 20px;
+  }
+  
+  .credit-details {
+    gap: 12px;
+  }
+  
+  .detail-item {
+    padding: 15px 10px;
+  }
+  
+  .detail-value {
+    font-size: 16px;
+  }
+}
