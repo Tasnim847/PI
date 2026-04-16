@@ -20,6 +20,7 @@ export class SidebarComponent {
     { label: 'Agents Finance', icon: '💰', link: '/backoffice/agents-finance' },
     { label: 'Administrateurs', icon: '👨‍💼', link: '/backoffice/admins' },
     { label: 'Credit', icon: '💳', link: '/backoffice/credit' },
+    { label: 'Repayment', icon: '💵', link: '/backoffice/repayment' },
     { label: 'Insurance', icon: '🛡️', link: '/backoffice/insurance' },
     { label: 'Account', icon: '👤', link: '/backoffice/account' },
     { label: 'Complaint', icon: '📄', link: '/backoffice/complaint' },

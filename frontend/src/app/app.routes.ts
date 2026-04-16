@@ -31,6 +31,7 @@ import { ListAllCompensationsComponent } from './Features/Compensation/admin/lis
 import { ContractRiskDetailsComponent } from './Features/Insurance/pages/admin/contract-risk-details/contract-risk-details.component';
 import { AdminDashboardComponent } from './Features/Insurance/pages/admin/admin-dashboard/admin-dashboard.component';
 import { ClientRepaymentComponent } from './Features/Credit/pages/repayment/client-repayment/client-repayment.component'; 
+import { AdminRepaymentComponent } from './Features/Credit/pages/repayment/admin-repayment/admin-repayment.component';
 
 
 export const routes: Routes = [
@@ -141,6 +142,7 @@ export const routes: Routes = [
       { path: 'profile', component: DashboardProfileComponent },
       { path: 'products', component: AdminProductListComponent },
       { path: 'credit', component: CreditPageComponent },
+      { path: 'repayment', component: AdminRepaymentComponent },
       { path: 'insurance', component: ContractListComponent },
       { path: 'insurance/contract-risk/:id', component: ContractRiskDetailsComponent }, // ✅ Ajoutez cette ligne
       { path: 'insurance/admin-dashboard', component: AdminDashboardComponent }, // ✅ Route dashboard

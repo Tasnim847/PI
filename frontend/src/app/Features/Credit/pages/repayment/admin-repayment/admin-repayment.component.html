@@ -1,1 +1,168 @@
-<p>admin-repayment works!</p>
+<div class="container-fluid mt-4">
+  <!-- ========== EN-TÊTE ========== -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h2 class="mb-0">
+        <i class="bi bi-cash-stack"></i> Gestion des Remboursements
+      </h2>
+      <p class="text-muted mb-0">Vue administrateur - Tous les remboursements</p>
+    </div>
+    <button class="btn btn-primary" (click)="loadAllRepayments()">
+      <i class="bi bi-arrow-clockwise"></i> Actualiser
+    </button>
+  </div>
+
+  <!-- ========== MESSAGES ========== -->
+  <div *ngIf="successMessage" class="alert alert-success alert-dismissible fade show">
+    <i class="bi bi-check-circle"></i> {{ successMessage }}
+    <button type="button" class="btn-close" (click)="successMessage = ''"></button>
+  </div>
+
+  <div *ngIf="errorMessage" class="alert alert-danger alert-dismissible fade show">
+    <i class="bi bi-exclamation-circle"></i> {{ errorMessage }}
+    <button type="button" class="btn-close" (click)="errorMessage = ''"></button>
+  </div>
+
+  <!-- ========== FILTRES ========== -->
+  <div class="card mb-4">
+    <div class="card-body">
+      <div class="row g-3">
+        <div class="col-md-4">
+          <label class="form-label">Rechercher</label>
+          <input
+            type="text"
+            class="form-control"
+            [(ngModel)]="searchTerm"
+            (ngModelChange)="applyFilters()"
+            placeholder="ID, Client, Montant..."
+          />
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Statut</label>
+          <select
+            class="form-select"
+            [(ngModel)]="filterStatus"
+            (ngModelChange)="applyFilters()"
+          >
+            <option value="">Tous</option>
+            <option value="COMPLETED">Complété</option>
+            <option value="SUCCESS">Succès</option>
+            <option value="PENDING">En attente</option>
+            <option value="FAILED">Échoué</option>
+          </select>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Méthode</label>
+          <select
+            class="form-select"
+            [(ngModel)]="filterMethod"
+            (ngModelChange)="applyFilters()"
+          >
+            <option value="">Toutes</option>
+            <option value="CASH">Espèces</option>
+            <option value="CARD">Carte</option>
+            <option value="BANK_TRANSFER">Virement</option>
+            <option value="STRIPE">Stripe</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== STATISTIQUES ========== -->
+  <div class="row mb-4">
+    <div class="col-md-4">
+      <div class="card bg-primary text-white">
+        <div class="card-body">
+          <h6 class="card-title">Total Remboursements</h6>
+          <h3 class="mb-0">{{ filteredRepayments.length }}</h3>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card bg-success text-white">
+        <div class="card-body">
+          <h6 class="card-title">Montant Total</h6>
+          <h3 class="mb-0">{{ formatAmount(getTotalAmount()) }}</h3>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card bg-info text-white">
+        <div class="card-body">
+          <h6 class="card-title">Tous les Remboursements</h6>
+          <h3 class="mb-0">{{ allRepayments.length }}</h3>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== SPINNER ========== -->
+  <div *ngIf="isLoading" class="text-center py-5">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Chargement...</span>
+    </div>
+  </div>
+
+  <!-- ========== TABLEAU DES REMBOURSEMENTS ========== -->
+  <div *ngIf="!isLoading" class="card">
+    <div class="card-header bg-dark text-white">
+      <h5 class="mb-0">
+        <i class="bi bi-table"></i> Liste des Remboursements
+      </h5>
+    </div>
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-striped table-hover mb-0">
+          <thead class="table-dark">
+            <tr>
+              <th>ID</th>
+              <th>Crédit ID</th>
+              <th>Montant</th>
+              <th>Date</th>
+              <th>Méthode</th>
+              <th>Statut</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let repayment of filteredRepayments">
+              <td>#{{ repayment.repaymentId || repayment.id }}</td>
+              <td>
+                <span *ngIf="repayment.creditId" class="badge bg-secondary">#{{ repayment.creditId }}</span>
+                <span *ngIf="!repayment.creditId" class="text-muted">-</span>
+              </td>
+              <td><strong>{{ formatAmount(repayment.amount) }}</strong></td>
+              <td>{{ formatDate(repayment.paymentDate) }}</td>
+              <td>
+                <span [ngClass]="'badge ' + getMethodBadgeClass(repayment.paymentMethod)">
+                  {{ repayment.paymentMethod }}
+                </span>
+              </td>
+              <td>
+                <span [ngClass]="'badge ' + getStatusBadgeClass(repayment.status)">
+                  {{ repayment.status }}
+                </span>
+              </td>
+              <td>
+                <button
+                  class="btn btn-sm btn-danger"
+                  (click)="deleteRepayment(repayment.repaymentId || repayment.id || 0)"
+                  [disabled]="!repayment.repaymentId && !repayment.id"
+                  title="Supprimer"
+                >
+                  <i class="bi bi-trash"></i>
+                </button>
+              </td>
+            </tr>
+            <tr *ngIf="filteredRepayments.length === 0 && !isLoading">
+              <td colspan="7" class="text-center text-muted py-4">
+                <i class="bi bi-inbox"></i> Aucun remboursement trouvé
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
