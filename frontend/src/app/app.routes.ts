@@ -30,6 +30,9 @@ import { ListMyCompensationsComponent } from './Features/Compensation/client/lis
 import { ListAllCompensationsComponent } from './Features/Compensation/admin/list-all-compensations/list-all-compensations.component';
 import { ContractRiskDetailsComponent } from './Features/Insurance/pages/admin/contract-risk-details/contract-risk-details.component';
 import { AdminDashboardComponent } from './Features/Insurance/pages/admin/admin-dashboard/admin-dashboard.component';
+import { ClientRepaymentComponent } from './Features/Credit/pages/repayment/client-repayment/client-repayment.component'; 
+
+
 export const routes: Routes = [
   // Landing page ouverte par défaut
   { path: '', component: LandingPageComponent },
@@ -56,6 +59,7 @@ export const routes: Routes = [
       { path: 'home', component: HomeComponent },
       { path: 'about', component: AboutComponent },
       { path: 'credit', component: CreditPageComponent },
+      { path: 'repayment/:id', component: ClientRepaymentComponent, canActivate: [authGuard] },
       { path: 'insurance', component: InsuranceRouterComponent }, // ✅ MODIFIÉ ICI
       { path: 'account', component: AccountPageComponent },
       { path: 'complaint', component: ComplaintPageComponent },

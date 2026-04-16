@@ -1,0 +1,222 @@
+<div class="container mt-4">
+  <!-- ========== EN-TÊTE ========== -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h2 class="mb-0">Remboursement de Crédit</h2>
+      <p class="text-muted mb-0">Gérez vos remboursements</p>
+    </div>
+    <button class="btn btn-outline-secondary" (click)="goBack()">
+      <i class="fas fa-arrow-left"></i> Retour
+    </button>
+  </div>
+
+  <!-- ========== MESSAGES ========== -->
+  <div *ngIf="successMessage" class="alert alert-success alert-dismissible fade show">
+    <i class="fas fa-check-circle"></i> {{ successMessage }}
+    <button type="button" class="btn-close" (click)="successMessage = ''"></button>
+  </div>
+
+  <div *ngIf="errorMessage" class="alert alert-danger alert-dismissible fade show">
+    <i class="fas fa-exclamation-circle"></i> {{ errorMessage }}
+    <button type="button" class="btn-close" (click)="errorMessage = ''"></button>
+  </div>
+
+  <!-- ========== SPINNER ========== -->
+  <div *ngIf="isLoading" class="text-center py-5">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Chargement...</span>
+    </div>
+  </div>
+
+  <!-- ========== CONTENU PRINCIPAL ========== -->
+  <div *ngIf="!isLoading && credit" class="row">
+    <!-- DÉTAILS DU CRÉDIT -->
+    <div class="col-lg-6 mb-4">
+      <div class="card">
+        <div class="card-header bg-primary text-white">
+          <h5 class="mb-0">Détails du Crédit</h5>
+        </div>
+        <div class="card-body">
+          <div class="row mb-3">
+            <div class="col-6">
+              <label class="text-muted small">Montant Total</label>
+              <p class="h6">{{ formatAmount(credit.amount) }}</p>
+            </div>
+            <div class="col-6">
+              <label class="text-muted small">Taux d'Intérêt</label>
+              <p class="h6">{{ credit.interestRate }}%</p>
+            </div>
+          </div>
+
+          <div class="row mb-3">
+            <div class="col-6">
+              <label class="text-muted small">Durée</label>
+              <p class="h6">{{ credit.durationInMonths }} mois</p>
+            </div>
+            <div class="col-6">
+              <label class="text-muted small">Paiement Mensuel</label>
+              <p class="h6">{{ formatAmount(credit.monthlyPayment) }}</p>
+            </div>
+          </div>
+
+          <div class="row mb-3">
+            <div class="col-6">
+              <label class="text-muted small">Date de Début</label>
+              <p class="h6">{{ formatDate(credit.startDate) }}</p>
+            </div>
+            <div class="col-6">
+              <label class="text-muted small">Date de Fin</label>
+              <p class="h6">{{ formatDate(credit.endDate) }}</p>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-12">
+              <label class="text-muted small">Statut</label>
+              <p class="h6">
+                <span [ngClass]="'badge bg-' + (credit.status === 'APPROVED' ? 'success' : credit.status === 'PENDING' ? 'warning' : 'danger')">
+                  {{ credit.status }}
+                </span>
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FORMULAIRE DE REMBOURSEMENT -->
+    <div class="col-lg-6 mb-4">
+      <div class="card">
+        <div class="card-header bg-success text-white">
+          <h5 class="mb-0">Effectuer un Remboursement</h5>
+        </div>
+        <div class="card-body">
+          <form (ngSubmit)="submitRepayment()">
+            <!-- Montant -->
+            <div class="mb-3">
+              <label for="amount" class="form-label">Montant à Rembourser</label>
+              <div class="input-group">
+                <span class="input-group-text">TND</span>
+                <input
+                  type="number"
+                  class="form-control"
+                  id="amount"
+                  [(ngModel)]="repaymentAmount"
+                  name="amount"
+                  step="0.01"
+                  min="0"
+                  [max]="credit.monthlyPayment * 1.5"
+                  required
+                  [disabled]="isSubmitting"
+                />
+              </div>
+              <small class="text-muted d-block mt-1">
+                Montant mensuel: {{ formatAmount(credit.monthlyPayment) }}
+              </small>
+              <small class="text-muted d-block">
+                Maximum: {{ formatAmount(credit.monthlyPayment * 1.5) }}
+              </small>
+            </div>
+
+            <!-- Méthode de Paiement -->
+            <div class="mb-3">
+              <label for="method" class="form-label">Méthode de Paiement</label>
+              <select
+                class="form-select"
+                id="method"
+                [(ngModel)]="paymentMethod"
+                name="method"
+                [disabled]="isSubmitting"
+              >
+                <option value="CASH">Espèces</option>
+                <option value="CARD">Carte Bancaire</option>
+                <option value="BANK_TRANSFER">Virement Bancaire</option>
+              </select>
+            </div>
+
+            <!-- Résumé -->
+            <div class="alert alert-info mb-3">
+              <small>
+                <strong>Montant à payer:</strong> {{ formatAmount(repaymentAmount) }}<br>
+                <strong>Reste après paiement:</strong> {{ formatAmount(getRemainingAmount()) }}
+              </small>
+            </div>
+
+            <!-- Boutons -->
+            <div class="d-grid gap-2">
+              <button
+                type="submit"
+                class="btn btn-success"
+                [disabled]="!isRepaymentValid() || isSubmitting"
+              >
+                <span *ngIf="!isSubmitting">
+                  <i class="fas fa-check"></i> Confirmer le Remboursement
+                </span>
+                <span *ngIf="isSubmitting">
+                  <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                  Traitement...
+                </span>
+              </button>
+              <button
+                type="button"
+                class="btn btn-outline-secondary"
+                (click)="goBack()"
+                [disabled]="isSubmitting"
+              >
+                Annuler
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== HISTORIQUE DES REMBOURSEMENTS ========== -->
+  <div *ngIf="!isLoading && myRepayments.length > 0" class="row mt-4">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header bg-info text-white">
+          <h5 class="mb-0">
+            <i class="fas fa-history"></i> Historique de mes Remboursements
+          </h5>
+        </div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-striped table-hover mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th>Date</th>
+                  <th>Montant</th>
+                  <th>Méthode</th>
+                  <th>Statut</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let repayment of myRepayments">
+                  <td>{{ formatDate(repayment.paymentDate) }}</td>
+                  <td><strong>{{ formatAmount(repayment.amount) }}</strong></td>
+                  <td>{{ repayment.paymentMethod }}</td>
+                  <td>
+                    <span [ngClass]="'badge ' + getStatusBadgeClass(repayment.status)">
+                      {{ repayment.status }}
+                    </span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MESSAGE VIDE -->
+  <div *ngIf="!isLoading && !credit" class="alert alert-warning">
+    <i class="fas fa-info-circle"></i> Aucun crédit trouvé
+  </div>
+
+  <div *ngIf="!isLoading && myRepayments.length === 0 && credit" class="alert alert-info mt-4">
+    <i class="fas fa-info-circle"></i> Aucun remboursement effectué pour le moment
+  </div>
+</div>
