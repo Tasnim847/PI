@@ -269,8 +269,9 @@ public class CreditService implements ICreditService {
 
     @Override
     public List<Credit> getAllCredits() {
-        return creditRepository.findAll();
+        return creditRepository.findAllWithClient();  // ← Remplace findAll()
     }
+
 
     @Override
     public List<Credit> getCreditsByClientEmail(String email) {

@@ -10,6 +10,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface CreditRepository extends JpaRepository<Credit, Long> {
@@ -54,4 +55,11 @@ public interface CreditRepository extends JpaRepository<Credit, Long> {
      * Trouver tous les crédits actifs (APPROVED ou IN_REPAYMENT)
      */
     List<Credit> findByStatusIn(List<CreditStatus> statuses);
+    // ✅ AJOUT : Récupérer tous les crédits avec leurs clients
+    @Query("SELECT c FROM Credit c LEFT JOIN FETCH c.client")
+    List<Credit> findAllWithClient();
+
+    // ✅ AJOUT : Récupérer un crédit spécifique avec son client
+    @Query("SELECT c FROM Credit c LEFT JOIN FETCH c.client WHERE c.creditId = :creditId")
+    Optional<Credit> findByIdWithClient(@Param("creditId") Long creditId);
 }
