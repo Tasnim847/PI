@@ -302,4 +302,88 @@ export class AdminRepaymentComponent implements OnInit {
   getTotalAmount(): number {
     return this.filteredRepayments.reduce((sum, r) => sum + r.amount, 0);
   }
+
+  // ========== TÉLÉCHARGER LE PDF D'AMORTISSEMENT ==========
+  downloadAmortissementPdf(creditId: number | undefined): void {
+    if (!creditId) {
+      this.errorMessage = 'ID de crédit invalide';
+      this.toastr.error(this.errorMessage);
+      return;
+    }
+
+    this.http.get(`${this.apiUrl}/credits/${creditId}/amortissement/pdf`, {
+      headers: this.getHeaders(),
+      responseType: 'blob'
+    }).subscribe({
+      next: (blob) => {
+        // Créer un lien de téléchargement
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `amortissement_credit_${creditId}.pdf`;
+        link.click();
+        window.URL.revokeObjectURL(url);
+        
+        this.successMessage = 'PDF téléchargé avec succès';
+        this.toastr.success(this.successMessage);
+      },
+      error: (err) => {
+        this.errorMessage = err.error?.message || 'Erreur lors du téléchargement du PDF';
+        this.toastr.error(this.errorMessage);
+      }
+    });
+  }
+
+  // ========== ENVOYER LE PDF PAR EMAIL ==========
+  sendAmortissementPdfByEmail(creditId: number | undefined): void {
+    if (!creditId) {
+      this.errorMessage = 'ID de crédit invalide';
+      this.toastr.error(this.errorMessage);
+      return;
+    }
+
+    // Trouver le remboursement correspondant pour afficher l'email du client
+    const repayment = this.allRepayments.find(r => r.creditId === creditId);
+    const clientEmail = repayment?.client?.email || 'Email non trouvé';
+    
+    const confirmMessage = `Êtes-vous sûr de vouloir envoyer le PDF d'amortissement par email au client ?\n\nEmail: ${clientEmail}`;
+    
+    if (!confirm(confirmMessage)) {
+      return;
+    }
+
+    console.log(`Envoi du PDF pour le crédit ID: ${creditId}`);
+    console.log(`Email du client: ${clientEmail}`);
+    console.log(`URL: ${this.apiUrl}/credits/${creditId}/send-pdf-email`);
+
+    this.http.post(`${this.apiUrl}/credits/${creditId}/send-pdf-email`, {}, {
+      headers: this.getHeaders()
+    }).subscribe({
+      next: (response: any) => {
+        console.log('Réponse du serveur:', response);
+        this.successMessage = `PDF envoyé par email avec succès à ${clientEmail}`;
+        this.toastr.success(this.successMessage);
+      },
+      error: (err) => {
+        console.error('Erreur complète:', err);
+        console.error('Status:', err.status);
+        console.error('Error body:', err.error);
+        
+        let errorMsg = 'Erreur lors de l\'envoi du PDF';
+        
+        if (err.status === 403) {
+          errorMsg = 'Accès refusé - Vous devez être admin pour envoyer des emails';
+        } else if (err.status === 404) {
+          errorMsg = 'Crédit non trouvé';
+        } else if (err.error?.error) {
+          errorMsg = err.error.error;
+        } else if (err.error?.message) {
+          errorMsg = err.error.message;
+        }
+        
+        this.errorMessage = errorMsg;
+        this.toastr.error(this.errorMessage);
+      }
+    });
+  }
 }

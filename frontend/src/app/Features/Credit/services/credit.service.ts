@@ -23,7 +23,13 @@ export interface Credit {
   endDate: string;
   dueDate: string;
   status: CreditStatus;
-  client: Client;
+  client?: Client;
+  clientId: number | null;
+  clientFirstName?: string;
+  clientLastName?: string;
+  clientFullName?: string;
+  clientEmail?: string;
+  clientPhone?: string;
 }
 
 export interface CreditRequest {
@@ -33,16 +39,12 @@ export interface CreditRequest {
 }
 
 export interface CreditHistoryDTO {
-  creditId: number;
-  amount: number;
-  durationInMonths: number;
-  totalRepayments: number;
-  lateRepayments: number;
-  latePercentage: number;
+  credit: Credit;
+  lateRepaymentPercentage: number;
 }
 
 export interface CreditHistoryWithAverageDTO {
-  closedCredits: CreditHistoryDTO[];
+  credits: CreditHistoryDTO[];
   averageLatePercentage: number;
 }
 

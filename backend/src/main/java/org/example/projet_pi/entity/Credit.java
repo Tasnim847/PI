@@ -2,6 +2,7 @@ package org.example.projet_pi.entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 
 import java.time.LocalDate;
@@ -43,6 +44,12 @@ public class Credit {
     @JsonManagedReference("credit-repayment")
     @OneToMany(mappedBy = "credit", cascade = CascadeType.ALL)
     private List<Repayment> repayments;
+    // ✅ AJOUT : getter pour clientId (pour la sérialisation JSON)
+    @JsonProperty("clientId")
+    public Long getClientId() {
+        return client != null ? client.getId() : null;
+    }
+
 
 
     public Long getCreditId() {

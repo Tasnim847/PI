@@ -44,6 +44,10 @@ export class CreditPageComponent implements OnInit {
   successMessage: string = '';
   today: string = new Date().toISOString().split('T')[0];
 
+  // Historique des crédits - Map pour stocker l'historique par clientId
+  clientHistoryMap: Map<number, any> = new Map();
+  historyLoadingMap: Map<number, boolean> = new Map();
+
   // Formulaire de demande
   creditRequest: CreditRequest = {
     amount: 0,
@@ -56,6 +60,16 @@ export class CreditPageComponent implements OnInit {
 
   // Crédit en cours de modification
   editingCredit: Credit | null = null;
+
+  // ========== FILTRES ET PAGINATION ==========
+  searchTerm: string = '';
+  filterStatus: string = '';
+  filteredCredits: Credit[] = [];
+  
+  // Pagination
+  currentPage: number = 1;
+  itemsPerPage: number = 10;
+  totalPages: number = 1;
 
   // Exposer les constantes au template
   statusLabels = STATUS_LABELS;
@@ -70,7 +84,6 @@ export class CreditPageComponent implements OnInit {
 
   ngOnInit(): void {
     this.checkUserRole();
-    // Attendre un peu pour que le localStorage soit rempli
     setTimeout(() => {
       this.loadCredits();
     }, 500);
@@ -80,16 +93,10 @@ export class CreditPageComponent implements OnInit {
   checkUserRole(): void {
     if (isPlatformBrowser(this.platformId)) {
       try {
-        // Récupérer le rôle directement depuis localStorage
         const role = localStorage.getItem('role');
-        const firstName = localStorage.getItem('firstName');
-        const lastName = localStorage.getItem('lastName');
-        const userEmail = localStorage.getItem('userEmail');
         
         console.log('Role from localStorage:', role);
-        console.log('User info:', { firstName, lastName, userEmail });
         
-        // Vérifier si c'est un ADMIN
         if (role === 'ADMIN') {
           this.isAdmin = true;
         } else {
@@ -118,12 +125,19 @@ export class CreditPageComponent implements OnInit {
     observable.subscribe({
       next: (data) => {
         this.credits = data;
+        console.log('Crédits chargés:', data);
+        this.applyFilters();
         this.isLoading = false;
+        
+        // Si admin, charger l'historique pour chaque client unique
+        if (this.isAdmin) {
+          console.log('Admin détecté, chargement de l\'historique');
+          this.loadHistoryForAllClients();
+        }
       },
       error: (err) => {
         console.error('Erreur complète:', err);
         
-        // Gestion spécifique pour "Failed to fetch"
         if (err.status === 0 || err.statusText === 'Unknown Error') {
           this.errorMessage = '❌ Impossible de se connecter au serveur. Vérifiez que le backend est démarré sur le port 8081.';
         } else if (err.status === 403) {
@@ -137,6 +151,104 @@ export class CreditPageComponent implements OnInit {
         this.isLoading = false;
       }
     });
+  }
+
+  // ========== CHARGER L'HISTORIQUE POUR TOUS LES CLIENTS ==========
+  loadHistoryForAllClients(): void {
+    // Récupérer les IDs clients uniques
+    const uniqueClientIds = [...new Set(this.credits
+      .filter(c => c.clientId)
+      .map(c => c.clientId as number))];
+    
+    console.log('IDs clients uniques:', uniqueClientIds);
+    
+    // Charger l'historique pour chaque client
+    uniqueClientIds.forEach(clientId => {
+      this.loadClientHistory(clientId);
+    });
+  }
+
+  // ========== CHARGER L'HISTORIQUE D'UN CLIENT ==========
+  loadClientHistory(clientId: number): void {
+    this.historyLoadingMap.set(clientId, true);
+    
+    console.log(`Chargement historique pour client ${clientId}`);
+    
+    this.creditService.getClosedCreditsWithAverage(clientId).subscribe({
+      next: (data) => {
+        console.log(`Historique reçu pour client ${clientId}:`, data);
+        console.log(`Nombre de crédits fermés: ${data.credits?.length}`);
+        console.log(`Moyenne de retard: ${data.averageLatePercentage}`);
+        this.clientHistoryMap.set(clientId, data);
+        this.historyLoadingMap.set(clientId, false);
+      },
+      error: (err) => {
+        console.error(`Erreur chargement historique client ${clientId}:`, err);
+        console.error(`Status: ${err.status}`);
+        console.error(`Message: ${err.message}`);
+        this.historyLoadingMap.set(clientId, false);
+      }
+    });
+  }
+
+  // ========== OBTENIR L'HISTORIQUE D'UN CLIENT ==========
+  getClientHistory(clientId: number | undefined): any {
+    if (!clientId) return null;
+    return this.clientHistoryMap.get(clientId);
+  }
+
+  // ========== OBTENIR LA MOYENNE DE RETARD D'UN CLIENT ==========
+  getClientAverageLatePercentage(clientId: number | undefined): number {
+    if (!clientId) return 0;
+    const history = this.clientHistoryMap.get(clientId);
+    return history?.averageLatePercentage || 0;
+  }
+
+  // ========== VÉRIFIER SI L'HISTORIQUE EST EN COURS DE CHARGEMENT ==========
+  isHistoryLoading(clientId: number | undefined): boolean {
+    if (!clientId) return false;
+    return this.historyLoadingMap.get(clientId) || false;
+  }
+
+  // ========== APPLIQUER LES FILTRES ==========
+  applyFilters(): void {
+    this.filteredCredits = this.credits.filter(credit => {
+      const matchesSearch = !this.searchTerm || 
+        credit.creditId.toString().includes(this.searchTerm) ||
+        credit.clientId?.toString().includes(this.searchTerm) ||
+        credit.amount.toString().includes(this.searchTerm);
+      
+      const matchesStatus = !this.filterStatus || credit.status === this.filterStatus;
+      
+      return matchesSearch && matchesStatus;
+    });
+    
+    // Recalculer la pagination
+    this.totalPages = Math.ceil(this.filteredCredits.length / this.itemsPerPage);
+    this.currentPage = 1;
+  }
+
+  // ========== OBTENIR LES CRÉDITS PAGINÉS ==========
+  getPaginatedCredits(): Credit[] {
+    const startIndex = (this.currentPage - 1) * this.itemsPerPage;
+    const endIndex = startIndex + this.itemsPerPage;
+    return this.filteredCredits.slice(startIndex, endIndex);
+  }
+
+  // ========== CHANGER DE PAGE ==========
+  goToPage(page: number): void {
+    if (page >= 1 && page <= this.totalPages) {
+      this.currentPage = page;
+    }
+  }
+
+  // ========== GÉNÉRER LES NUMÉROS DE PAGE ==========
+  getPageNumbers(): number[] {
+    const pages: number[] = [];
+    for (let i = 1; i <= this.totalPages; i++) {
+      pages.push(i);
+    }
+    return pages;
   }
 
   // ========== DEMANDE DE CRÉDIT (CLIENT) ==========
@@ -222,7 +334,6 @@ export class CreditPageComponent implements OnInit {
   // ========== ACTIONS ADMIN - MODIFIER ==========
   editCredit(credit: Credit): void {
     this.editingCredit = { ...credit };
-    // Ouvrir le modal Bootstrap
     const modalElement = document.getElementById('editModal');
     if (modalElement) {
       const modal = new (window as any).bootstrap.Modal(modalElement);
@@ -239,7 +350,6 @@ export class CreditPageComponent implements OnInit {
         this.loadCredits();
         this.editingCredit = null;
         
-        // Fermer le modal
         const modalElement = document.getElementById('editModal');
         if (modalElement) {
           const modal = (window as any).bootstrap.Modal.getInstance(modalElement);
@@ -277,6 +387,24 @@ export class CreditPageComponent implements OnInit {
     this.router.navigate(['/public/repayment', creditId]);
   }
 
+  // ========== MÉTHODES POUR LES INFOS CLIENT ==========
+  
+  getClientId(credit: Credit): number | string {
+    return credit.client?.id || credit.clientId || '-';
+  }
+
+  getClientName(credit: Credit): string {
+    if (credit.clientFullName) return credit.clientFullName;
+    if (credit.client?.firstName) {
+      return `${credit.client.firstName} ${credit.client.lastName}`;
+    }
+    return '-';
+  }
+
+  getClientEmail(credit: Credit): string {
+    return credit.client?.email || credit.clientEmail || '-';
+  }
+
   // ========== UTILITAIRES ==========
   getStatusLabel(status: CreditStatus): string {
     return STATUS_LABELS[status] || status;
@@ -310,5 +438,46 @@ export class CreditPageComponent implements OnInit {
   formatAmount(amount: number): string {
     if (!amount && amount !== 0) return '-';
     return amount.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' TND';
+  }
+
+  // ========== CALCUL MONTANT TOTAL ==========
+  getTotalAmount(): number {
+    return this.filteredCredits.reduce((sum, credit) => sum + credit.amount, 0);
+  }
+
+  // ========== OBTENIR LE NOMBRE DE CRÉDITS EN REMBOURSEMENT ==========
+  getInRepaymentCount(): number {
+    return this.filteredCredits.filter(c => c.status === 'IN_REPAYMENT').length;
+  }
+
+  // ========== HELPER POUR VÉRIFIER SI CLIENT ID EXISTE ==========
+  hasClientId(credit: Credit): boolean {
+    return credit.clientId !== null && credit.clientId !== undefined && credit.clientId > 0;
+  }
+
+  // ========== OBTENIR CLIENT ID POUR AFFICHAGE ==========
+  getClientIdForDisplay(credit: Credit): number {
+    return credit.clientId || 0;
+  }
+
+  // ========== OBTENIR CLIENT ID SÉCURISÉ POUR LES MÉTHODES ==========
+  getClientIdForMethods(credit: Credit): number | undefined {
+    return credit.clientId || undefined;
+  }
+
+  // ========== FORMATER LE POURCENTAGE DE RETARD ==========
+  formatLatePercentage(credit: Credit): string {
+    if (!this.hasClientId(credit)) return '0.00';
+    const clientId = this.getClientIdForMethods(credit);
+    const percentage = this.getClientAverageLatePercentage(clientId);
+    return percentage.toFixed(2);
+  }
+
+  // ========== OBTENIR LA CLASSE CSS POUR LE POURCENTAGE ==========
+  getLatePercentageClass(credit: Credit): string {
+    if (!this.hasClientId(credit)) return 'text-success';
+    const clientId = this.getClientIdForMethods(credit);
+    const percentage = this.getClientAverageLatePercentage(clientId);
+    return percentage > 20 ? 'text-danger' : 'text-success';
   }
 }

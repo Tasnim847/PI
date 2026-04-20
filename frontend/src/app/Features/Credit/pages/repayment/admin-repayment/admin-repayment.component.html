@@ -145,14 +145,32 @@
                 </span>
               </td>
               <td>
-                <button
-                  class="btn btn-sm btn-danger"
-                  (click)="deleteRepayment(repayment.repaymentId || repayment.id || 0)"
-                  [disabled]="!repayment.repaymentId && !repayment.id"
-                  title="Supprimer"
-                >
-                  <i class="bi bi-trash"></i>
-                </button>
+                <div class="d-flex gap-1 flex-wrap">
+                  <button
+                    class="btn btn-sm btn-info"
+                    *ngIf="repayment.creditId"
+                    (click)="downloadAmortissementPdf(repayment.creditId)"
+                    title="Télécharger le PDF d'amortissement"
+                  >
+                    <i class="bi bi-download"></i>
+                  </button>
+                  <button
+                    class="btn btn-sm btn-success"
+                    *ngIf="repayment.creditId"
+                    (click)="sendAmortissementPdfByEmail(repayment.creditId)"
+                    title="Envoyer le PDF par email"
+                  >
+                    <i class="bi bi-envelope"></i>
+                  </button>
+                  <button
+                    class="btn btn-sm btn-danger"
+                    (click)="deleteRepayment(repayment.repaymentId || repayment.id || 0)"
+                    [disabled]="!repayment.repaymentId && !repayment.id"
+                    title="Supprimer"
+                  >
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </div>
               </td>
             </tr>
             <tr *ngIf="filteredRepayments.length === 0 && !isLoading">
