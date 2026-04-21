@@ -19,12 +19,31 @@ public class SmsServiceYosr {
     private String fromNumber;
 
     public void sendSms(String to, String message) {
-        Twilio.init(accountSid, authToken);
+        if (to == null || to.isEmpty() || to.isBlank()) {
+            System.out.println("⚠️ SMS ignoré - numéro absent");
+            return;
+        }
 
-        Message.creator(
-                new PhoneNumber(to),
-                new PhoneNumber(fromNumber),
-                message
-        ).create();
+        if (!to.matches("^\\+216\\d{8}$")) {
+            System.out.println("⚠️ SMS ignoré - format invalide: " + to);
+            return;
+        }
+
+        if (message == null || message.isEmpty()) {
+            System.out.println("⚠️ SMS ignoré - message vide");
+            return;
+        }
+
+        try {
+            Twilio.init(accountSid, authToken);
+            Message.creator(
+                    new PhoneNumber(to),
+                    new PhoneNumber(fromNumber),
+                    message
+            ).create();
+            System.out.println("✅ SMS envoyé à: " + to);
+        } catch (Exception e) {
+            System.err.println("⚠️ Erreur SMS pour " + to + ": " + e.getMessage());
+        }
     }
 }

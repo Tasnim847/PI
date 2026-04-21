@@ -1,0 +1,57 @@
+<div class="face-register-container">
+  <div class="face-card">
+    <div class="card-header-custom">
+      <button class="btn-back" (click)="goBack()">
+        ← Retour
+      </button>
+      <h2>📸 Enregistrement facial</h2>
+      <p>Enregistrez votre visage pour vous connecter facilement</p>
+    </div>
+
+    <div *ngIf="statusMessage" class="status" [class.success]="isSuccess" [class.error]="!isSuccess">
+      {{ statusMessage }}
+    </div>
+
+    <div class="camera-section">
+      <!-- CHANGEMENT IMPORTANT : Toujours afficher la vidéo, masquer avec CSS si besoin -->
+      <video #video autoplay playsinline class="camera-preview" [style.display]="!previewImage && isCameraActive ? 'block' : 'none'"></video>
+
+      <canvas #canvas style="display: none;"></canvas>
+
+      <img *ngIf="previewImage" [src]="previewImage" class="face-preview" alt="Preview">
+
+      <div *ngIf="!isCameraActive && !previewImage" class="placeholder">
+        <i class="fas fa-camera"></i>
+        <p>Cliquez sur "Activer la caméra" pour commencer</p>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button *ngIf="!isCameraActive && !previewImage" (click)="startCamera()" class="btn-start">
+        Activer la caméra
+      </button>
+      <button *ngIf="isCameraActive && !previewImage" (click)="capture()" class="btn-capture">
+        Capturer mon visage
+      </button>
+      <button *ngIf="previewImage" (click)="retake()" class="btn-retake">
+        Recommencer
+      </button>
+      <button *ngIf="previewImage" (click)="registerFace()" class="btn-register" [disabled]="isLoading">
+        {{ isLoading ? 'Enregistrement...' : 'Enregistrer mon visage' }}
+      </button>
+    </div>
+
+    <div class="info">
+      <i class="fas fa-info-circle"></i>
+      <div>
+        <strong>Conseils pour une bonne capture :</strong>
+        <ul>
+          <li>Assurez-vous d'être bien éclairé(e)</li>
+          <li>Regardez directement la caméra</li>
+          <li>Enlevez vos lunettes si possible</li>
+          <li>Votre visage doit être bien centré</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>

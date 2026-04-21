@@ -9,38 +9,38 @@ import lombok.Setter;
 import java.util.Date;
 
 @Entity
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Table(name = "login_history") // optionnel, pour nommer explicitement la table
+@Getter @Setter @NoArgsConstructor @AllArgsConstructor
 public class LoginHistory {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // Relation Many-to-One vers User
-    @ManyToOne(fetch = FetchType.LAZY) // lazy loading pour éviter de charger tous les users à chaque login
-    @JoinColumn(name = "user_id", nullable = false) // clé étrangère user_id
+    // ✅ Relation avec User
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = true)
     private User user;
 
-    @Temporal(TemporalType.TIMESTAMP)
-    @Column(name = "login_time", nullable = false)
+    // ✅ Garder email aussi pour les cas OAuth2
+    @Column(nullable = true)
+    private String email;
+
+    // ✅ loginTime (renommé depuis loginDate)
+    @Column(name = "login_time")
     private Date loginTime;
 
-    @Column(name = "ip_address", length = 50)
     private String ipAddress;
 
-    @Column(length = 100)
-    private String city;
-
-    @Column(length = 100)
-    private String country;
-
-
+    // Géolocalisation
+    @Column(nullable = true)
     private Double latitude;
 
-
+    @Column(nullable = true)
     private Double longitude;
+
+    @Column(nullable = true)
+    private String city;
+
+    @Column(nullable = true)
+    private String country;
 }

@@ -1,0 +1,18 @@
+<div class="map-card">
+  <div class="map-header">
+    <h3>🗺️ Connection Locations</h3>
+    <div class="map-badge" *ngIf="locations.length > 0">
+      📍 {{ locations.length }} connections tracked
+    </div>
+  </div>
+
+  <div *ngIf="loading" class="map-loading">
+    🔄 Loading map...
+  </div>
+
+  <div *ngIf="error" class="map-error">
+    ❌ {{ error }}
+  </div>
+
+  <div id="connectionMap" [class.hidden]="loading || error"></div>
+</div>

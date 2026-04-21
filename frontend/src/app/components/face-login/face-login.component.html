@@ -1,0 +1,87 @@
+<div class="face-login-container">
+  <div class="face-login-card">
+    <!-- Logo -->
+    <div class="logo-wrapper">
+      <img src="assets/images/logo.png" alt="SurFinity" class="logo">
+    </div>
+
+    <!-- Choix de méthode -->
+    <div class="method-selector">
+      <button
+        [class.active]="loginMethod === 'classic'"
+        (click)="setMethod('classic')"
+        class="method-btn">
+        <i class="fas fa-envelope"></i> Email/Mot de passe
+      </button>
+      <button
+        [class.active]="loginMethod === 'face'"
+        (click)="setMethod('face')"
+        class="method-btn">
+        <i class="fas fa-face-smile"></i> Reconnaissance faciale
+      </button>
+    </div>
+
+    <!-- Login Classique -->
+    <div *ngIf="loginMethod === 'classic'" class="classic-login">
+      <h2>Connexion</h2>
+
+      <div *ngIf="errorMessage" class="alert error">
+        {{ errorMessage }}
+      </div>
+
+      <form (ngSubmit)="onClassicLogin()">
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" [(ngModel)]="email" name="email" class="form-control">
+        </div>
+
+        <div class="form-group">
+          <label>Mot de passe</label>
+          <input type="password" [(ngModel)]="password" name="password" class="form-control">
+        </div>
+
+        <button type="submit" [disabled]="isLoading" class="btn-login">
+          {{ isLoading ? 'Connexion...' : 'Se connecter' }}
+        </button>
+      </form>
+    </div>
+
+    <!-- Login Reconnaissance Faciale -->
+    <div *ngIf="loginMethod === 'face'" class="face-login">
+      <h2>Reconnaissance Faciale</h2>
+
+      <div *ngIf="faceCheckEmail" class="face-email-info">
+        <i class="fas fa-envelope"></i>
+        <span>Compte: {{ faceCheckEmail }}</span>
+      </div>
+
+      <p class="face-hint">Regardez la caméra et capturez votre visage</p>
+
+      <div *ngIf="faceErrorMessage" class="alert error">
+        {{ faceErrorMessage }}
+      </div>
+
+      <div *ngIf="!faceRegistered && faceCheckEmail" class="face-warning">
+        <i class="fas fa-info-circle"></i>
+        <p>⚠️ Aucun visage enregistré pour {{ faceCheckEmail }}.</p>
+      </div>
+
+      <app-webcam (onCapture)="onFaceCapture($event)"></app-webcam>
+
+      <div class="face-actions">
+        <button
+          *ngIf="capturedFace && faceRegistered"
+          (click)="submitFaceLogin()"
+          [disabled]="isLoading"
+          class="btn-submit-face">
+          {{ isLoading ? 'Vérification...' : 'Vérifier mon identité' }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Lien d'inscription -->
+    <div class="signup-link">
+      <p>Pas encore de compte ? <a (click)="goRegister()">S'inscrire</a></p>
+    </div>
+  </div>
+</div>

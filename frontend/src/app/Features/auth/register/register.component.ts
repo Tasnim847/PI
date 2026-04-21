@@ -7,7 +7,7 @@ import { CommonModule } from '@angular/common';
 @Component({
   selector: 'app-register',
   standalone: true,
-  imports: [FormsModule, CommonModule, RouterModule], // Ajout de RouterModule pour routerLink
+  imports: [FormsModule, CommonModule, RouterModule],
   templateUrl: './register.component.html',
   styleUrls: ['./register.component.css']
 })
@@ -19,9 +19,9 @@ export class RegisterComponent {
   password = '';
   telephone = '';
   imagePreview: string | ArrayBuffer | null = null;
-  selectedFile: File | null = null; // Changé de selectedFile! à selectedFile: File | null = null
-  errorMessage: string = ''; // Changé de protected errorMessage: any à string = ''
-  isLoading: boolean = false; // Ajouté pour gérer le chargement
+  selectedFile: File | null = null;
+  errorMessage: string = '';
+  isLoading: boolean = false;
 
   constructor(private auth: AuthService, private router: Router) {}
 
@@ -41,29 +41,29 @@ export class RegisterComponent {
   }
 
   onRegister() {
-    // Validation des champs
-    if (!this.firstName || !this.lastName || !this.email || !this.password || !this.telephone) {
-      this.errorMessage = 'Please fill in all fields';
+    // ✅ Validation champs obligatoires
+    if (!this.firstName || !this.lastName || !this.email || !this.password) {
+      this.errorMessage = 'Please fill in all required fields';
       return;
     }
 
-    // Validation email
+    // ✅ Validation email
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(this.email)) {
       this.errorMessage = 'Please enter a valid email address';
       return;
     }
 
-    // Validation téléphone
-    const phoneRegex = /^\+216[0-9]{8}$/;
-    if (!phoneRegex.test(this.telephone)) {
-      this.errorMessage = 'Please enter a valid phone number (+216XXXXXXXX)';
+    // ✅ Validation téléphone optionnel
+    if (this.telephone && !this.telephone.match(/^\+216[0-9]{8}$/)) {
+      this.errorMessage = 'Phone number must be in format +216XXXXXXXX or leave empty';
       return;
     }
 
-    // Validation mot de passe (minimum 6 caractères)
-    if (this.password.length < 6) {
-      this.errorMessage = 'Password must be at least 6 characters';
+    // ✅ Validation mot de passe
+    const passwordRegex = /^(?=.*[A-Z])(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}$/;
+    if (!passwordRegex.test(this.password)) {
+      this.errorMessage = 'Password must be at least 8 characters, 1 uppercase and 1 symbol';
       return;
     }
 
@@ -75,7 +75,11 @@ export class RegisterComponent {
     formData.append('lastName', this.lastName);
     formData.append('email', this.email);
     formData.append('password', this.password);
-    formData.append('telephone', this.telephone);
+
+    // ✅ Téléphone optionnel
+    if (this.telephone && this.telephone.trim() !== '') {
+      formData.append('telephone', this.telephone);
+    }
 
     if (this.selectedFile) {
       formData.append('photo', this.selectedFile);
@@ -83,14 +87,24 @@ export class RegisterComponent {
 
     this.auth.register(formData).subscribe({
       next: (res) => {
-        console.log("REGISTER RESPONSE:", res);
-        localStorage.setItem('token', res.token); // si backend renvoie token
-        this.router.navigate(['/public/home']);
+        console.log('✅ Register success:', res);
+        this.isLoading = false;
+        // ✅ Rediriger vers login après inscription
+        this.router.navigate(['/login']);
       },
       error: (err) => {
         this.isLoading = false;
-        this.errorMessage = err.error?.message || 'Registration failed. Please try again.';
-        console.error('Registration error:', err);
+        console.error('❌ Register error - Status:', err.status);
+        console.error('❌ Register error - Body:', err.error);
+
+        if (err.status === 400) {
+          this.errorMessage = typeof err.error === 'string' ?
+            err.error : 'Email already exists';
+        } else if (err.status === 500) {
+          this.errorMessage = 'Server error. Please try again.';
+        } else {
+          this.errorMessage = `Error ${err.status}: Please try again`;
+        }
       }
     });
   }
@@ -100,5 +114,9 @@ export class RegisterComponent {
     if (fileInput) {
       fileInput.click();
     }
+  }
+
+  loginWithGoogle() {
+    window.location.href = 'http://localhost:8081/oauth2/authorization/google';
   }
 }

@@ -62,7 +62,15 @@
           <input id="telephone" class="form-control" type="tel" [(ngModel)]="telephone" name="telephone" placeholder="+216XXXXXXXX" required>
         </div>
       </div>
+      <div class="divider">
+        <span>or</span>
+      </div>
 
+      <button type="button" class="btn-google" (click)="loginWithGoogle()">
+        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
+             alt="Google" width="20" height="20">
+        Continue with Google
+      </button>
       <button type="submit" class="btn-register">Sign up</button>
       <div class="login-link">Already have an account? <a routerLink="/login">Login</a></div>
     </form>

@@ -6,11 +6,12 @@ import {
   provideHttpClient,
   withFetch,
   withInterceptors,
-  HttpInterceptorFn
+  HttpInterceptorFn, withInterceptorsFromDi
 } from '@angular/common/http';
 
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { provideToastr } from 'ngx-toastr';
+import { provideCharts, withDefaultRegisterables } from 'ng2-charts';
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
 
@@ -37,6 +38,8 @@ export const appConfig: ApplicationConfig = {
     provideZoneChangeDetection({ eventCoalescing: true }),
     provideRouter(routes),
     provideClientHydration(),
+    provideCharts(withDefaultRegisterables()),
+    provideHttpClient(withInterceptorsFromDi()),
 
     // ✅ HTTP + interceptor
     provideHttpClient(

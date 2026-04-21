@@ -388,4 +388,40 @@ label {
     padding: 1.2rem;
     font-size: 1.1rem;
   }
+  .divider {
+    width: 100%;
+    text-align: center;
+    border-bottom: 1px solid #c5d9e8;
+    line-height: 0.1em;
+    margin: 1.5rem 0;
+  }
+  .divider span {
+    background: #fff;
+    padding: 0 10px;
+    color: #8baec9;
+    font-size: 0.85rem;
+  }
+
+  .btn-google {
+    width: 100%;
+    padding: 0.9rem;
+    background: #fff;
+    color: #0e3d5c;
+    border: 2px solid #c5d9e8;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    transition: all 0.3s ease;
+    margin-bottom: 1rem;
+  }
+  .btn-google:hover {
+    border-color: #0e3d5c;
+    box-shadow: 0 4px 12px rgba(14, 61, 92, 0.15);
+    transform: translateY(-1px);
+  }
 }

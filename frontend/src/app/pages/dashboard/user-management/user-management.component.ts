@@ -1,7 +1,7 @@
-// pages/dashboard/user-management/user-management.component.ts
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { ActivatedRoute } from '@angular/router';
 import { AdminService, User } from '../../../services/admin.service';
 
 @Component({
@@ -12,7 +12,7 @@ import { AdminService, User } from '../../../services/admin.service';
   styleUrls: ['./user-management.component.css']
 })
 export class UserManagementComponent implements OnInit {
-  @Input() type: 'clients' | 'agents-assurance' | 'agents-finance' | 'admins' = 'clients';
+  type: 'clients' | 'agents-assurance' | 'agents-finance' | 'admins' = 'clients';
 
   users: User[] = [];
   filteredUsers: User[] = [];
@@ -25,28 +25,43 @@ export class UserManagementComponent implements OnInit {
   loading = false;
   error: string | null = null;
 
-  constructor(private adminService: AdminService) {}
+  constructor(
+    private adminService: AdminService,
+    private route: ActivatedRoute
+  ) {}
 
   ngOnInit() {
-    this.loadUsers();
+    this.route.data.subscribe(data => {
+      this.type = data['type'] || 'clients';
+      this.users = [];
+      this.filteredUsers = [];
+      this.loadUsers();
+    });
+
+    // ✅ Ouvrir le modal si queryParam openAdd=true
+    this.route.queryParams.subscribe(params => {
+      if (params['openAdd'] === 'true') {
+        this.openAddModal();
+      }
+    });
   }
 
   getTitle(): string {
-    const titles = {
-      'clients': 'Gestion des Clients',
-      'agents-assurance': 'Gestion des Agents Assurance',
-      'agents-finance': 'Gestion des Agents Finance',
-      'admins': 'Gestion des Administrateurs'
+    const titles: any = {
+      'clients': 'Client Management',
+      'agents-assurance': 'Insurance Agent Management',
+      'agents-finance': 'Finance Agent Management',
+      'admins': 'Administrator Management'
     };
     return titles[this.type];
   }
 
   getTypeLabel(): string {
-    const labels = {
+    const labels: any = {
       'clients': 'Client',
-      'agents-assurance': 'Agent Assurance',
-      'agents-finance': 'Agent Finance',
-      'admins': 'Administrateur'
+      'agents-assurance': 'Insurance Agent',
+      'agents-finance': 'Finance Agent',
+      'admins': 'Administrator'
     };
     return labels[this.type];
   }
@@ -54,30 +69,26 @@ export class UserManagementComponent implements OnInit {
   loadUsers() {
     this.loading = true;
     this.error = null;
-    console.log(`🔄 Chargement des ${this.type}...`);
 
-    const methods = {
-      'clients': () => this.adminService.getClients(),
+    const methods: any = {
+      'clients':          () => this.adminService.getClients(),
       'agents-assurance': () => this.adminService.getAgentsAssurance(),
-      'agents-finance': () => this.adminService.getAgentsFinance(),
-      'admins': () => this.adminService.getAdmins()
+      'agents-finance':   () => this.adminService.getAgentsFinance(),
+      'admins':           () => this.adminService.getAdmins()
     };
 
     methods[this.type]().subscribe({
-      next: (data) => {
-        console.log(`✅ ${this.type} reçus du backend:`, data);
+      next: (data: User[]) => {
         this.users = data;
         this.filteredUsers = [...data];
         this.loading = false;
       },
-      error: (err) => {
+      error: (err: any) => {
         console.error(`❌ Erreur chargement ${this.type}:`, err);
-        this.error = err.message || 'Erreur de chargement';
+        this.error = err.status === 403
+          ? 'Access denied. Please log in again.'
+          : err.message || 'Loading error';
         this.loading = false;
-
-        if (err.status === 403) {
-          this.error = 'Accès non autorisé. Veuillez vous reconnecter.';
-        }
       }
     });
   }
@@ -124,69 +135,57 @@ export class UserManagementComponent implements OnInit {
 
   saveUser() {
     const formData = new FormData();
-
     Object.keys(this.formData).forEach(key => {
       if (this.formData[key] && key !== 'photo') {
         formData.append(key, this.formData[key]);
       }
     });
-
     if (this.selectedFile) {
       formData.append('photo', this.selectedFile);
     }
 
     this.loading = true;
 
-    const methods = {
-      'clients': () => this.isEditMode
-        ? this.adminService.updateClient(this.selectedUserId!, formData)
-        : this.adminService.addClient(formData),
-      'agents-assurance': () => this.isEditMode
-        ? this.adminService.updateAgentAssurance(this.selectedUserId!, formData)
-        : this.adminService.addAgentAssurance(formData),
-      'agents-finance': () => this.isEditMode
-        ? this.adminService.updateAgentFinance(this.selectedUserId!, formData)
-        : this.adminService.addAgentFinance(formData),
-      'admins': () => this.isEditMode
-        ? this.adminService.updateAdmin(this.selectedUserId!, formData)
-        : this.adminService.addAdmin(formData)
+    const methods: any = {
+      'clients':          () => this.isEditMode ? this.adminService.updateClient(this.selectedUserId!, formData)        : this.adminService.addClient(formData),
+      'agents-assurance': () => this.isEditMode ? this.adminService.updateAgentAssurance(this.selectedUserId!, formData) : this.adminService.addAgentAssurance(formData),
+      'agents-finance':   () => this.isEditMode ? this.adminService.updateAgentFinance(this.selectedUserId!, formData)   : this.adminService.addAgentFinance(formData),
+      'admins':           () => this.isEditMode ? this.adminService.updateAdmin(this.selectedUserId!, formData)          : this.adminService.addAdmin(formData)
     };
 
     methods[this.type]().subscribe({
       next: () => {
-        console.log('✅ Utilisateur sauvegardé avec succès');
         this.loadUsers();
         this.closeModal();
         this.loading = false;
       },
-      error: (err) => {
+      error: (err: any) => {
         console.error('❌ Error saving user', err);
         this.loading = false;
-        alert(`Erreur: ${err.message || 'Erreur lors de l\'enregistrement'}`);
+        alert(`Error: ${err.message || 'Save failed'}`);
       }
     });
   }
 
   deleteUser(id: number) {
-    if (confirm(`Êtes-vous sûr de vouloir supprimer cet utilisateur ?`)) {
+    if (confirm('Are you sure you want to delete this user?')) {
       this.loading = true;
-      const methods = {
-        'clients': () => this.adminService.deleteClient(id),
+      const methods: any = {
+        'clients':          () => this.adminService.deleteClient(id),
         'agents-assurance': () => this.adminService.deleteAgentAssurance(id),
-        'agents-finance': () => this.adminService.deleteAgentFinance(id),
-        'admins': () => this.adminService.deleteAdmin(id)
+        'agents-finance':   () => this.adminService.deleteAgentFinance(id),
+        'admins':           () => this.adminService.deleteAdmin(id)
       };
 
       methods[this.type]().subscribe({
         next: () => {
-          console.log('✅ Utilisateur supprimé avec succès');
           this.loadUsers();
           this.loading = false;
         },
-        error: (err) => {
+        error: (err: any) => {
           console.error('❌ Error deleting user', err);
           this.loading = false;
-          alert(`Erreur: ${err.message || 'Erreur lors de la suppression'}`);
+          alert(`Error: ${err.message || 'Delete failed'}`);
         }
       });
     }

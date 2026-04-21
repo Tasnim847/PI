@@ -161,6 +161,61 @@
           </div>
         </div>
       </div>
+      <!-- Section Reconnaissance Faciale - À AJOUTER APRÈS CHANGE PASSWORD -->
+      <div class="face-card mt-4">
+        <div class="card-header-custom">
+          <h5 class="mb-0"><i class="fas fa-face-smile me-2"></i>Reconnaissance Faciale</h5>
+        </div>
+        <div class="card-body p-4">
+          <!-- Message de statut -->
+          <div *ngIf="faceStatusMessage" class="alert" [ngClass]="faceStatusMessage.includes('✅') ? 'alert-success' : 'alert-danger'">
+            {{ faceStatusMessage }}
+          </div>
+
+          <!-- Si visage déjà enregistré -->
+          <div *ngIf="hasFaceRegistered" class="face-success">
+            <div class="success-icon">
+              <i class="fas fa-check-circle"></i>
+            </div>
+            <div class="success-text">
+              <h6 class="mb-1">✓ Visage enregistré</h6>
+              <p class="text-muted small mb-0">Vous pouvez vous connecter par reconnaissance faciale</p>
+            </div>
+            <button
+              (click)="deleteFace()"
+              class="btn-face-delete"
+              [disabled]="faceStatusLoading">
+              <i class="fas fa-trash-alt me-1"></i>
+              {{ faceStatusLoading ? 'Suppression...' : 'Supprimer' }}
+            </button>
+          </div>
+
+          <!-- Si visage non enregistré -->
+          <div *ngIf="!hasFaceRegistered" class="face-empty">
+            <div class="empty-icon">
+              <i class="fas fa-camera"></i>
+            </div>
+            <div class="empty-text">
+              <h6 class="mb-1">Enregistrez votre visage</h6>
+              <p class="text-muted small mb-0">
+                Connectez-vous plus rapidement avec la reconnaissance faciale
+              </p>
+            </div>
+            <button (click)="goToFaceRegister()" class="btn-face-register">
+              <i class="fas fa-plus-circle me-1"></i>
+              Enregistrer mon visage
+            </button>
+          </div>
+
+          <div class="face-info mt-3">
+            <i class="fas fa-info-circle"></i>
+            <small>
+              La reconnaissance faciale vous permet de vous connecter sans mot de passe.
+              Votre visage est sécurisé et ne sera pas partagé.
+            </small>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </div>

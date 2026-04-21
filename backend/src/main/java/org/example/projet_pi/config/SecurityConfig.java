@@ -1,6 +1,9 @@
 package org.example.projet_pi.config;
 
 import lombok.RequiredArgsConstructor;
+import org.example.projet_pi.entity.Client;
+import org.example.projet_pi.entity.Role;
+import org.example.projet_pi.entity.User;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -12,14 +15,17 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.multipart.support.MultipartFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Arrays;
+import java.util.UUID;
 
 @RequiredArgsConstructor
 @Configuration
@@ -29,11 +35,12 @@ import java.util.Arrays;
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthFilter;
+    private final org.example.projet_pi.Repository.UserRepository userRepository;  // ADD THIS
+    private final JwtUtils jwtUtils;
+    private final CustomOAuth2UserService customOAuth2UserService;
+    private final PasswordEncoder passwordEncoder;
 
-    @Bean
-    public PasswordEncoder passwordEncoder(){
-        return new BCryptPasswordEncoder();
-    }
+
 
     @Bean
     public AuthenticationManager authenticationManager(
@@ -77,7 +84,9 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
 
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-
+                        .requestMatchers("/api/auth/face/login").permitAll()      // Login facial sans token
+                        .requestMatchers("/api/auth/face/check/**").permitAll()  // Vérifier si visage existe
+                        .requestMatchers("/api/auth/face/register").authenticated() // Enregistrement nécessite auth
                         //  Endpoints publics
                         .requestMatchers("/api/auth/login", "/api/auth/register").permitAll()
                         .requestMatchers("/api/otp/**").permitAll()
@@ -86,11 +95,16 @@ public class SecurityConfig {
                         .requestMatchers("/uploads/**").permitAll()
                         .requestMatchers("/products/images/**").permitAll()
                         .requestMatchers("/api/auth/me").authenticated()
-                        .requestMatchers("/agents/**").hasRole("AGENT_FINANCE")
+                        // ✅ REMPLACER par des règles précises
+                        .requestMatchers("/agents/finance/**").hasAnyRole("AGENT_FINANCE", "ADMIN")  // finance
+                        .requestMatchers("/agents-assurance/**").hasAnyRole("AGENT_ASSURANCE", "ADMIN")  // assurance (déjà OK)
+                        .requestMatchers("/api/clients/**").hasRole("ADMIN")
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        // Dans authorizeHttpRequests — ajouter avec les routes publiques
+                        .requestMatchers("/api/auth/google/**").permitAll()
+                        .requestMatchers("/login/oauth2/**").permitAll()
+                        .requestMatchers("/oauth2/**").permitAll()
 
-                        .requestMatchers("/api/clients/**").hasAnyRole("ADMIN", "AGENT_ASSURANCE", "AGENT_FINANCE")
-                        .requestMatchers("/api/clients/{id}").hasAnyRole("ADMIN", "AGENT_ASSURANCE", "AGENT_FINANCE")
-                        .requestMatchers("/api/clients/email/{email}").hasAnyRole("ADMIN", "AGENT_ASSURANCE", "AGENT_FINANCE")
 
                         // 👑 ADMIN uniquement
                         .requestMatchers("/products/addProduct").hasRole("ADMIN")
@@ -140,7 +154,6 @@ public class SecurityConfig {
                         .requestMatchers("/documents/claim/**").hasAnyRole("CLIENT", "AGENT_ASSURANCE", "ADMIN")
 
                         // 💰 Paiements
-                        .requestMatchers("/payments/payments").hasAnyRole("CLIENT", "AGENT_ASSURANCE", "ADMIN")
                         .requestMatchers("/payments/addPayment").hasAnyRole("CLIENT", "AGENT_ASSURANCE", "ADMIN")
                         .requestMatchers("/payments/getPayment/**").hasAnyRole("CLIENT", "AGENT_ASSURANCE", "ADMIN")
                         .requestMatchers("/payments/allPayments").hasAnyRole("CLIENT","AGENT_ASSURANCE","ADMIN")
@@ -230,9 +243,42 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session ->
-                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                        session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
                 )
-                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+                // SUPPRIMEZ la ligne duplicate addFilterBefore et corrigez oauth2Login
+                .oauth2Login(oauth2 -> oauth2
+                        .userInfoEndpoint(userInfo -> userInfo
+                                .userService(customOAuth2UserService)
+                        )
+                        .successHandler((request, response, authentication) -> {
+                            OAuth2User oauthUser = (OAuth2User) authentication.getPrincipal();
+                            String email = oauthUser.getAttribute("email");
+                            String firstName = oauthUser.getAttribute("given_name");
+                            String lastName = oauthUser.getAttribute("family_name");
+                            String picture = oauthUser.getAttribute("picture");
+
+                            // Find OR create — never throws
+                            User dbUser = userRepository.findByEmail(email).orElseGet(() -> {
+                                Client newClient = new Client();
+                                newClient.setEmail(email);
+                                newClient.setFirstName(firstName != null ? firstName : "");
+                                newClient.setLastName(lastName != null ? lastName : "");
+                                newClient.setPhoto(picture);
+                                newClient.setRole(Role.CLIENT);
+                                newClient.setPassword(passwordEncoder.encode(UUID.randomUUID().toString()));
+                                newClient.setTelephone("");
+                                return userRepository.save(newClient);
+                            });
+
+                            String token = jwtUtils.generateToken(dbUser);
+                            response.sendRedirect("http://localhost:4200/oauth2/callback?token=" + token);
+                        })
+                        .failureHandler((request, response, exception) -> {
+                            System.err.println("OAuth2 failed: " + exception.getMessage());
+                            response.sendRedirect("http://localhost:4200/?error=oauth_failed");
+                        })
+                );
 
         return http.build();
-    }}
+    }
+}

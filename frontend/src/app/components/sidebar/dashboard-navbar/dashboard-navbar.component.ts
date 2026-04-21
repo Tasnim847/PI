@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit, Inject, PLATFORM_ID } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../../services/auth.service';
 
@@ -21,17 +21,27 @@ export class DashboardNavbarComponent implements OnInit {
   lastName: string = '';
   profilePhoto: string = '';
 
+  private isBrowser: boolean;
+
   constructor(
     private auth: AuthService,
-    private router: Router
-  ) {}
+    private router: Router,
+    @Inject(PLATFORM_ID) private platformId: Object
+  ) {
+    this.isBrowser = typeof window !== 'undefined' && typeof localStorage !== 'undefined';
+  }
 
   ngOnInit() {
-    this.loadUserData();
-    this.loadProfilePhoto();
+    if (this.isBrowser) {
+      this.loadUserData();
+      this.loadProfilePhoto();
+    }
   }
 
   loadUserData() {
+    // ✅ Only access localStorage in browser
+    if (!this.isBrowser) return;
+
     // Récupérer les données depuis localStorage
     const firstName = localStorage.getItem('firstName') || '';
     const lastName = localStorage.getItem('lastName') || '';
@@ -49,6 +59,9 @@ export class DashboardNavbarComponent implements OnInit {
   }
 
   loadProfilePhoto() {
+    // ✅ Only run in browser
+    if (!this.isBrowser) return;
+
     const savedPhoto = localStorage.getItem('profilePhoto');
     if (savedPhoto && savedPhoto.startsWith('http')) {
       this.profilePhoto = savedPhoto;
@@ -56,10 +69,12 @@ export class DashboardNavbarComponent implements OnInit {
     } else {
       this.auth.getMe().subscribe({
         next: (user) => {
-          if (user.photo) {
-            this.profilePhoto = `http://localhost:8083/uploads/${user.photo}`;
+          if (user && user.photo) {
+            this.profilePhoto = `http://localhost:8081/uploads/${user.photo}`;
             this.userAvatar = this.profilePhoto;
-            localStorage.setItem('profilePhoto', this.profilePhoto);
+            if (this.isBrowser) {
+              localStorage.setItem('profilePhoto', this.profilePhoto);
+            }
           } else {
             this.updateDefaultAvatar();
           }
@@ -91,8 +106,10 @@ export class DashboardNavbarComponent implements OnInit {
     event.stopPropagation();
     this.auth.logout();
     this.router.navigate(['/']);
-    setTimeout(() => {
-      window.location.reload();
-    }, 100);
+    if (this.isBrowser) {
+      setTimeout(() => {
+        window.location.reload();
+      }, 100);
+    }
   }
 }

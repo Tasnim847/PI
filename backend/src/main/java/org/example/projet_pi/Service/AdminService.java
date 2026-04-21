@@ -108,15 +108,30 @@ public class AdminService implements IAdminService {
     }
     @Override
     public void changePassword(Long adminId, String oldPassword, String newPassword) {
+        System.out.println("=== CHANGE PASSWORD SERVICE ===");
+        System.out.println("Admin ID: " + adminId);
+        System.out.println("Old password provided: " + oldPassword);
+        System.out.println("New password: " + newPassword);
+
         Admin admin = adminRepository.findById(adminId)
-                .orElseThrow(() -> new RuntimeException("Admin not found"));
+                .orElseThrow(() -> new RuntimeException("Admin not found with ID: " + adminId));
+
+        System.out.println("Found admin: " + admin.getEmail());
+        System.out.println("Stored password hash: " + admin.getPassword());
+        System.out.println("Password encoder matches: " + passwordEncoder.matches(oldPassword, admin.getPassword()));
 
         if (!passwordEncoder.matches(oldPassword, admin.getPassword())) {
-            throw new RuntimeException("Old password incorrect");
+            System.err.println("Password mismatch for admin: " + adminId);
+            throw new RuntimeException("Current password is incorrect");
         }
 
-        admin.setPassword(passwordEncoder.encode(newPassword));
+        String encodedNewPassword = passwordEncoder.encode(newPassword);
+        System.out.println("New encoded password: " + encodedNewPassword);
+
+        admin.setPassword(encodedNewPassword);
         adminRepository.save(admin);
+
+        System.out.println("Password changed successfully for admin: " + adminId);
     }
 
 }

@@ -10,6 +10,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/clients")
 @RequiredArgsConstructor
@@ -89,5 +91,10 @@ public class ClientController {
     public Client getClientById(@PathVariable Long id){
         return clientService.getClientById(id);
     }
-
+    // Ajouter UNIQUEMENT cette méthode dans ClientController.java
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/all")
+    public List<Client> getAllClients() {
+        return clientService.getAllClients();
+    }
 }
