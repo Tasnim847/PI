@@ -1,5 +1,5 @@
-import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit, Inject, PLATFORM_ID } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
@@ -22,22 +22,26 @@ export class DashboardProfileComponent implements OnInit {
 
   isEditing: boolean = false;
 
-  // Password change
   currentPassword: string = '';
   newPassword: string = '';
   confirmPassword: string = '';
 
-  // Backup for cancel
   private backupData: any = {};
+  private isBrowser: boolean;
 
   constructor(
     private auth: AuthService,
-    private router: Router
-  ) {}
+    private router: Router,
+    @Inject(PLATFORM_ID) private platformId: Object
+  ) {
+    this.isBrowser = isPlatformBrowser(this.platformId);
+  }
 
   ngOnInit() {
-    this.checkAuth();
-    this.loadUserData();
+    if (this.isBrowser) {
+      this.checkAuth();
+      this.loadUserData();
+    }
   }
 
   checkAuth() {
@@ -48,21 +52,35 @@ export class DashboardProfileComponent implements OnInit {
   }
 
   loadUserData() {
+    if (!this.isBrowser) return;
+
+    if (!this.auth.getToken()) {
+      console.log('No token found, skipping user data load');
+      return;
+    }
+
     this.auth.getMe().subscribe({
       next: (user) => {
+        console.log('User data loaded:', user);
         this.firstName = user.firstName;
         this.lastName = user.lastName;
         this.email = user.email;
         this.telephone = user.telephone;
         this.role = user.role;
+
+        if (user.id && this.isBrowser) {
+          localStorage.setItem('userId', user.id.toString());
+        }
+
         if (user.photo) {
           this.profilePhoto = `http://localhost:8083/uploads/${user.photo}`;
-        } else {
-          this.profilePhoto = '';
         }
       },
       error: (err) => {
         console.error('Error loading user data:', err);
+        if (err.status === 401) {
+          this.router.navigate(['/public/login']);
+        }
       }
     });
   }
@@ -92,7 +110,6 @@ export class DashboardProfileComponent implements OnInit {
     this.backupData = {
       firstName: this.firstName,
       lastName: this.lastName,
-      email: this.email,
       telephone: this.telephone
     };
   }
@@ -101,11 +118,12 @@ export class DashboardProfileComponent implements OnInit {
     this.isEditing = false;
     this.firstName = this.backupData.firstName;
     this.lastName = this.backupData.lastName;
-    this.email = this.backupData.email;
     this.telephone = this.backupData.telephone;
   }
 
   changePassword() {
+    if (!this.isBrowser) return;
+
     if (this.newPassword !== this.confirmPassword) {
       alert('❌ Passwords do not match');
       return;
@@ -116,8 +134,19 @@ export class DashboardProfileComponent implements OnInit {
       return;
     }
 
+    if (!this.currentPassword) {
+      alert('❌ Please enter your current password');
+      return;
+    }
+
     const role = this.auth.getRole();
     const userId = this.auth.getUserId();
+
+    if (!userId) {
+      alert('❌ User ID not found. Please login again.');
+      this.router.navigate(['/public/login']);
+      return;
+    }
 
     const request = {
       id: userId,
@@ -126,53 +155,101 @@ export class DashboardProfileComponent implements OnInit {
     };
 
     this.auth.changePassword(role, request).subscribe({
-      next: () => {
+      next: (response: any) => {
+        // ✅ Backend retourne une string, pas un objet {success, message}
+        console.log('Password change response:', response);
         alert('✅ Password changed successfully');
         this.currentPassword = '';
         this.newPassword = '';
         this.confirmPassword = '';
       },
-      error: () => {
-        alert('❌ Error or incorrect current password');
+      error: (err) => {
+        console.error('Password change error:', err);
+        if (err.error && typeof err.error === 'string') {
+          alert('❌ ' + err.error);
+        } else if (err.status === 400) {
+          alert('❌ Current password is incorrect');
+        } else if (err.status === 403) {
+          alert('❌ You don\'t have permission to change this password');
+        } else {
+          alert('❌ Error changing password. Please try again.');
+        }
       }
     });
   }
 
   onPhotoSelected(event: any) {
+    if (!this.isBrowser) return;
+
     const file = event.target.files[0];
-    if (file) {
-      // Here you would typically upload the file to your backend
-      const reader = new FileReader();
-      reader.onload = (e: any) => {
-        this.profilePhoto = e.target.result;
-        localStorage.setItem('profilePhoto', this.profilePhoto);
-        alert('✅ Profile photo updated!');
-      };
-      reader.readAsDataURL(file);
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      alert('❌ File size must be less than 5MB');
+      return;
     }
+
+    if (!file.type.startsWith('image/')) {
+      alert('❌ Please select an image file');
+      return;
+    }
+
+    const userId = this.auth.getUserId();
+    if (!userId) {
+      alert('❌ User ID not found');
+      return;
+    }
+
+    this.auth.uploadPhoto(userId, file).subscribe({
+      next: (response: any) => {
+        console.log('Photo upload response:', response);
+        alert('✅ Profile photo updated!');
+        this.loadUserData();
+      },
+      error: (err) => {
+        console.error('Photo upload error:', err);
+        alert('❌ Error uploading photo');
+      }
+    });
   }
 
   logout() {
-    this.auth.logout();
+    if (this.isBrowser) {
+      this.auth.logout();
+    }
     this.router.navigate(['/']);
   }
 
   updateProfile() {
-    const data = {
-      firstName: this.firstName,
-      lastName: this.lastName,
-      telephone: this.telephone
-    };
+    if (!this.isBrowser) return;
 
-    this.auth.updateMe(data).subscribe({
-      next: () => {
+    const userId = this.auth.getUserId();
+    if (!userId) {
+      alert('❌ User ID not found');
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('firstName', this.firstName);
+    formData.append('lastName', this.lastName);
+    formData.append('telephone', this.telephone);
+
+    this.auth.updateProfile(userId, formData).subscribe({
+      next: (response: any) => {
+        console.log('Profile update response:', response);
         alert('✅ Profile updated successfully');
         this.loadUserData();
         this.isEditing = false;
       },
       error: (err) => {
-        console.error(err);
-        alert('❌ Error updating profile');
+        console.error('Profile update error:', err);
+        if (err.status === 403) {
+          alert('❌ You don\'t have permission to update this profile');
+        } else if (err.error && typeof err.error === 'string') {
+          alert(`❌ ${err.error}`);
+        } else {
+          alert('❌ Error updating profile');
+        }
       }
     });
   }

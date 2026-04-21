@@ -1,68 +1,103 @@
 <!-- login.component.html -->
 <div class="container mt-5">
   <div>
-    <!-- Logo GRAND -->
+    <!-- Logo -->
     <div class="logo-wrapper">
       <img src="assets/images/logo.png" alt="SurFinity" class="logo">
     </div>
 
-    <!-- Titre -->
     <h2>Login</h2>
 
-    <!-- Messages -->
     <div class="welcome-message">
       <p>Welcome back</p>
       <p>Access your account securely</p>
     </div>
 
-    <!-- Message d'erreur -->
-    <div *ngIf="errorMessage" class="alert">
+    <div *ngIf="errorMessage" class="alert error">
       <i class="fas fa-exclamation-circle"></i>
       {{ errorMessage }}
     </div>
 
-    <!-- Formulaire -->
+    <!-- Formulaire classique -->
     <form (ngSubmit)="onLogin()">
       <div class="form-group">
         <label for="email">Email address</label>
-        <input
-          id="email"
-          class="form-control"
-          type="email"
-          [(ngModel)]="email"
-          name="email"
-          placeholder="your@email.com"
-          required>
+        <input id="email" class="form-control" type="email" [(ngModel)]="email" name="email" placeholder="your@email.com" required>
       </div>
 
       <div class="form-group">
         <label for="password">Password</label>
-        <input
-          id="password"
-          class="form-control"
-          type="password"
-          [(ngModel)]="password"
-          name="password"
-          placeholder="Enter your password"
-          required>
+        <input id="password" class="form-control" type="password" [(ngModel)]="password" name="password" placeholder="Enter your password" required>
       </div>
 
       <div class="forgot-link">
-        <a (click)="goForgotPassword()" class="forgot-link">
-          Forgot password?
-        </a>
+        <a (click)="goForgotPassword()">Forgot password?</a>
       </div>
 
-      <button type="submit" class="btn-login">
-        Login
+      <button type="submit" class="btn-login" [disabled]="isLoading">
+        {{ isLoading ? 'Connexion...' : 'Login' }}
       </button>
-      <!-- Sign up link -->
-      <div class="signup-link">
-        <p>
-          Don't have an account ?
-          <a (click)="goRegister()">Sign up</a>
-        </p>
-      </div>
     </form>
+
+    <!-- SEPARATEUR -->
+    <div class="separator">
+      <span>OR</span>
+    </div>
+
+    <!-- BOUTON RECONNAISSANCE FACIALE -->
+    <button type="button" class="btn-face-login" (click)="openFaceModal()">
+      <i class="fas fa-face-smile"></i>
+      Login with Face Recognition
+    </button>
+
+    <div class="signup-link">
+      <p>Don't have an account? <a (click)="goRegister()">Sign up</a></p>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL RECONNAISSANCE FACIALE -->
+<div class="modal-overlay" *ngIf="showFaceModal" (click)="closeFaceModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>🔐 Face Recognition Login</h3>
+      <button class="modal-close" (click)="closeFaceModal()">&times;</button>
+    </div>
+
+    <div class="modal-body">
+      <div *ngIf="faceErrorMessage" class="alert error">
+        {{ faceErrorMessage }}
+      </div>
+
+      <!-- Zone vidéo ou preview -->
+      <div class="camera-container">
+        <video *ngIf="!facePreview && isCameraActive" id="faceVideo" autoplay playsinline class="camera-video"></video>
+        <canvas id="faceCanvas" style="display: none;"></canvas>
+        <img *ngIf="facePreview" [src]="facePreview" alt="Preview" class="face-preview">
+
+        <div *ngIf="!isCameraActive && !facePreview" class="camera-placeholder">
+          <i class="fas fa-camera"></i>
+          <p>Camera not active</p>
+        </div>
+      </div>
+
+      <!-- Boutons d'action -->
+      <div class="modal-actions">
+        <button *ngIf="!facePreview && isCameraActive" (click)="captureFace()" class="btn-capture">
+          📸 Capture
+        </button>
+        <button *ngIf="facePreview" (click)="retakeFace()" class="btn-retake">
+          🔄 Retake
+        </button>
+        <button *ngIf="!isCameraActive && !facePreview" (click)="startCamera()" class="btn-camera-start">
+          🎥 Start Camera
+        </button>
+      </div>
+
+      <!-- Bouton de validation -->
+      <button *ngIf="facePreview" (click)="submitFaceLogin()" [disabled]="faceLoading" class="btn-submit-face">
+        {{ faceLoading ? 'Verification...' : 'Verify my identity' }}
+      </button>
+    </div>
   </div>
 </div>

@@ -4,11 +4,16 @@ import lombok.RequiredArgsConstructor;
 import org.example.projet_pi.Service.IAdminService;
 import org.example.projet_pi.entity.Admin;
 import org.example.projet_pi.entity.Role;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/admins")
@@ -16,6 +21,7 @@ import java.util.List;
 public class AdminController {
 
     private final IAdminService adminService;
+    private final PasswordEncoder passwordEncoder;  // ✅ Add this line
 
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping(value = "/add", consumes = "multipart/form-data")
@@ -78,13 +84,74 @@ public class AdminController {
     }
 
     @PreAuthorize("hasRole('ADMIN')")
-    @PostMapping("/change-password")
-    public void changePassword(
+    @PostMapping("/change-password/{id}")
+    public ResponseEntity<?> changePassword(
             @PathVariable Long id,
             @RequestParam String oldPassword,
             @RequestParam String newPassword
     ) {
-        adminService.changePassword(id, oldPassword, newPassword);
+        Map<String, Object> response = new HashMap<>();
+
+        try {
+            System.out.println("=== PASSWORD CHANGE REQUEST ===");
+            System.out.println("Admin ID: " + id);
+            System.out.println("Old Password Length: " + oldPassword.length());
+            System.out.println("New Password Length: " + newPassword.length());
+
+            adminService.changePassword(id, oldPassword, newPassword);
+
+            response.put("success", true);
+            response.put("message", "Password changed successfully");
+            return ResponseEntity.ok(response);
+
+        } catch (RuntimeException e) {
+            System.err.println("Error changing password: " + e.getMessage());
+            response.put("success", false);
+            response.put("message", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        } catch (Exception e) {
+            System.err.println("Unexpected error: " + e.getMessage());
+            e.printStackTrace();
+            response.put("success", false);
+            response.put("message", "An unexpected error occurred");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
     }
 
+    // ✅ Temporary debug endpoint to check stored password
+    @GetMapping("/debug-password/{id}")
+    public ResponseEntity<?> debugPassword(@PathVariable Long id) {
+        try {
+            Admin admin = adminService.getAdminById(id);
+            Map<String, Object> debug = new HashMap<>();
+            debug.put("adminId", admin.getId());
+            debug.put("email", admin.getEmail());
+            debug.put("storedPasswordHash", admin.getPassword());
+            debug.put("passwordEncoderType", passwordEncoder.getClass().getSimpleName());
+            return ResponseEntity.ok(debug);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error: " + e.getMessage());
+        }
+    }
+
+    // ✅ Temporary endpoint to force reset password
+    @PostMapping("/force-reset-password/{id}")
+    public ResponseEntity<?> forceResetPassword(
+            @PathVariable Long id,
+            @RequestParam String newPassword
+    ) {
+        try {
+            Admin admin = adminService.getAdminById(id);
+            admin.setPassword(passwordEncoder.encode(newPassword));
+            adminService.updateAdminById(id, admin, null);
+            Map<String, String> response = new HashMap<>();
+            response.put("message", "Password has been reset to: " + newPassword);
+            response.put("encodedPassword", admin.getPassword());
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error: " + e.getMessage());
+        }
+    }
 }

@@ -3,11 +3,12 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
+import { FaceAuthService } from '../../services/face-auth.service';  // ✅ À AJOUTER
 
 @Component({
   selector: 'app-profile',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule],
   templateUrl: './profile.component.html',
   styleUrls: ['./profile.component.css']
 })
@@ -30,14 +31,21 @@ export class ProfileComponent implements OnInit {
   // Backup for cancel
   private backupData: any = {};
 
+  // ✅ AJOUTER CES VARIABLES POUR LA RECONNAISSANCE FACIALE
+  hasFaceRegistered: boolean = false;
+  faceStatusMessage: string = '';
+  faceStatusLoading: boolean = false;
+
   constructor(
     private auth: AuthService,
+    private faceAuth: FaceAuthService,  // ✅ À AJOUTER
     private router: Router
   ) {}
 
   ngOnInit() {
     this.checkAuth();
     this.loadUserData();
+    this.checkFaceStatus();  // ✅ À AJOUTER
   }
 
   checkAuth() {
@@ -57,10 +65,48 @@ export class ProfileComponent implements OnInit {
       if (user.photo) {
         this.profilePhoto = `http://localhost:8083/uploads/${user.photo}`;
       } else {
-        this.profilePhoto = ''; // pas d'image
+        this.profilePhoto = '';
       }
     });
   }
+
+  // ✅ AJOUTER CETTE MÉTHODE
+  checkFaceStatus() {
+    this.faceAuth.getFaceStatus().subscribe({
+      next: (res) => {
+        this.hasFaceRegistered = res.hasFaceRegistered;
+      },
+      error: () => {
+        this.hasFaceRegistered = false;
+      }
+    });
+  }
+
+  // ✅ AJOUTER CETTE MÉTHODE
+  goToFaceRegister() {
+    this.router.navigate(['/face-register']);
+  }
+
+  // ✅ AJOUTER CETTE MÉTHODE
+  deleteFace() {
+    if (confirm('Êtes-vous sûr de vouloir supprimer votre visage enregistré ?')) {
+      this.faceStatusLoading = true;
+      this.faceAuth.deleteFace().subscribe({
+        next: () => {
+          this.hasFaceRegistered = false;
+          this.faceStatusMessage = '✅ Visage supprimé avec succès';
+          setTimeout(() => this.faceStatusMessage = '', 3000);
+          this.faceStatusLoading = false;
+        },
+        error: (err) => {
+          this.faceStatusMessage = '❌ Erreur lors de la suppression';
+          setTimeout(() => this.faceStatusMessage = '', 3000);
+          this.faceStatusLoading = false;
+        }
+      });
+    }
+  }
+
   getRoleName(): string {
     const roles: { [key: string]: string } = {
       'CLIENT': 'Client',
@@ -89,9 +135,7 @@ export class ProfileComponent implements OnInit {
     this.telephone = this.backupData.telephone;
   }
 
-
   changePassword() {
-
     if (this.newPassword !== this.confirmPassword) {
       alert('❌ Les mots de passe ne correspondent pas');
       return;
@@ -109,7 +153,6 @@ export class ProfileComponent implements OnInit {
     this.auth.changePassword(role, request).subscribe({
       next: () => {
         alert('✅ Mot de passe modifié avec succès');
-
         this.currentPassword = '';
         this.newPassword = '';
         this.confirmPassword = '';
@@ -148,10 +191,7 @@ export class ProfileComponent implements OnInit {
     this.auth.updateMe(data).subscribe({
       next: () => {
         alert("Profil mis à jour");
-
-        // refresh data from backend
         this.loadUserData();
-
         this.isEditing = false;
       },
       error: (err) => {
@@ -160,5 +200,4 @@ export class ProfileComponent implements OnInit {
       }
     });
   }
-
 }

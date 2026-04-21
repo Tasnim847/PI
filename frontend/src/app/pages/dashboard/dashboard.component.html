@@ -1,96 +1,201 @@
+<!-- dashboard.component.html -->
 <div class="dashboard-container">
   <div class="dashboard-header">
     <h1>Administrator Dashboard</h1>
     <p>Welcome to your administration space</p>
   </div>
 
-  <!-- Statistics Cards -->
-  <div class="stats-grid">
-    <div class="stat-card">
-      <div class="stat-icon">👥</div>
-      <div class="stat-info">
-        <h3>Total Users</h3>
-        <p class="stat-value">{{ stats.totalUsers }}</p>
-        <small>All roles combined</small>
-      </div>
-    </div>
-
-    <div class="stat-card client">
-      <div class="stat-icon">👤</div>
-      <div class="stat-info">
-        <h3>Clients</h3>
-        <p class="stat-value">{{ stats.totalClients }}</p>
-        <a routerLink="/backoffice/clients" class="stat-link">Manage →</a>
-      </div>
-    </div>
-
-    <div class="stat-card agent-assurance">
-      <div class="stat-icon">🛡️</div>
-      <div class="stat-info">
-        <h3>Insurance Agents</h3>
-        <p class="stat-value">{{ stats.totalAgentsAssurance }}</p>
-        <a routerLink="/backoffice/agents-assurance" class="stat-link">Manage →</a>
-      </div>
-    </div>
-
-    <div class="stat-card agent-finance">
-      <div class="stat-icon">💰</div>
-      <div class="stat-info">
-        <h3>Finance Agents</h3>
-        <p class="stat-value">{{ stats.totalAgentsFinance }}</p>
-        <a routerLink="/backoffice/agents-finance" class="stat-link">Manage →</a>
-      </div>
-    </div>
-
-    <div class="stat-card admin">
-      <div class="stat-icon">👨‍💼</div>
-      <div class="stat-info">
-        <h3>Administrators</h3>
-        <p class="stat-value">{{ stats.totalAdmins }}</p>
-        <a routerLink="/backoffice/admins" class="stat-link">Manage →</a>
-      </div>
-    </div>
+  <!-- Loading & Error States -->
+  <div *ngIf="loading" class="loading-spinner">
+    Loading dashboard statistics...
   </div>
 
-  <!-- Role Distribution Chart -->
-  <div class="charts-row">
-    <div class="chart-card">
-      <h3>User Distribution by Role</h3>
-      <div class="progress-bars">
-        <div class="progress-item">
-          <span>Clients</span>
-          <div class="progress-bar">
-            <div class="progress-fill client-fill"
-                 [style.width.%]="(stats.totalClients / stats.totalUsers) * 100">
-              {{ (stats.totalClients / stats.totalUsers * 100).toFixed(1) }}%
+  <div *ngIf="error" class="error-alert">
+    <p>❌ {{ error }}</p>
+    <button class="retry-btn" (click)="retry()">Retry</button>
+  </div>
+
+  <div *ngIf="!loading && !error">
+    <!-- Statistics Cards -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon">👥</div>
+        <div class="stat-info">
+          <h3>Total Users</h3>
+          <p class="stat-value">{{ stats.totalUsers }}</p>
+          <small>All roles combined</small>
+        </div>
+      </div>
+
+      <div class="stat-card client">
+        <div class="stat-icon">👤</div>
+        <div class="stat-info">
+          <h3>Clients</h3>
+          <p class="stat-value">{{ stats.totalClients }}</p>
+          <a routerLink="/backoffice/clients" class="stat-link">Manage →</a>
+        </div>
+      </div>
+
+      <div class="stat-card agent-assurance">
+        <div class="stat-icon">🛡️</div>
+        <div class="stat-info">
+          <h3>Insurance Agents</h3>
+          <p class="stat-value">{{ stats.totalAgentsAssurance }}</p>
+          <a routerLink="/backoffice/agents-assurance" class="stat-link">Manage →</a>
+        </div>
+      </div>
+
+      <div class="stat-card agent-finance">
+        <div class="stat-icon">💰</div>
+        <div class="stat-info">
+          <h3>Finance Agents</h3>
+          <p class="stat-value">{{ stats.totalAgentsFinance }}</p>
+          <a routerLink="/backoffice/agents-finance" class="stat-link">Manage →</a>
+        </div>
+      </div>
+
+      <div class="stat-card admin">
+        <div class="stat-icon">👨‍💼</div>
+        <div class="stat-info">
+          <h3>Administrators</h3>
+          <p class="stat-value">{{ stats.totalAdmins }}</p>
+          <a routerLink="/backoffice/admins" class="stat-link">Manage →</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Charts Section avec CSS pur (sans librairie externe) -->
+    <div class="charts-section">
+      <!-- Role Distribution - Circular Chart CSS -->
+      <div class="chart-card">
+        <h3>
+          <span class="chart-icon">📊</span>
+          User Distribution by Role
+        </h3>
+
+        <!-- CSS Circular Chart pour les rôles -->
+        <div class="circular-charts-container">
+          <div class="circular-chart" *ngFor="let role of getRoleDistribution()">
+            <div class="circular-chart-wrapper">
+              <svg viewBox="0 0 36 36" class="circular-chart-svg">
+                <path class="circular-chart-bg"
+                      d="M18 2.0845
+                    a 15.9155 15.9155 0 0 1 0 31.831
+                    a 15.9155 15.9155 0 0 1 0 -31.831"
+                />
+                <path class="circular-chart-progress"
+                      [attr.stroke]="role.color"
+                      stroke-dasharray="0, 100"
+                      [attr.stroke-dasharray]="role.percentage + ', 100'"
+                      d="M18 2.0845
+                    a 15.9155 15.9155 0 0 1 0 31.831
+                    a 15.9155 15.9155 0 0 1 0 -31.831"
+                />
+                <text x="18" y="20.35" class="circular-chart-text">{{ role.percentage.toFixed(1) }}%</text>
+              </svg>
+            </div>
+            <div class="circular-chart-label">
+              <span class="label-dot" [style.backgroundColor]="role.color"></span>
+              <span class="label-name">{{ role.name }}</span>
+              <span class="label-value">{{ role.count }}</span>
             </div>
           </div>
         </div>
-        <div class="progress-item">
-          <span>Insurance Agents</span>
-          <div class="progress-bar">
-            <div class="progress-fill assurance-fill"
-                 [style.width.%]="(stats.totalAgentsAssurance / stats.totalUsers) * 100">
-              {{ (stats.totalAgentsAssurance / stats.totalUsers * 100).toFixed(1) }}%
+
+        <!-- Barres de progression alternatives -->
+        <div class="progress-bars">
+          <div class="progress-item" *ngFor="let role of getRoleDistribution()">
+            <div class="progress-header">
+              <span>
+                <span class="stat-color" [style.backgroundColor]="role.color"></span>
+                {{ role.name }}
+              </span>
+              <span class="progress-percentage">{{ role.percentage.toFixed(1) }}% ({{ role.count }})</span>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-fill"
+                   [style.width.%]="role.percentage"
+                   [style.backgroundColor]="role.color">
+              </div>
             </div>
           </div>
         </div>
-        <div class="progress-item">
-          <span>Finance Agents</span>
-          <div class="progress-bar">
-            <div class="progress-fill finance-fill"
-                 [style.width.%]="(stats.totalAgentsFinance / stats.totalUsers) * 100">
-              {{ (stats.totalAgentsFinance / stats.totalUsers * 100).toFixed(1) }}%
+      </div>
+
+      <!-- Connections Statistics - CSS Doughnut Chart -->
+      <div class="chart-card">
+        <h3>
+          <span class="chart-icon">📈</span>
+          User Connections: Weekend vs Weekday
+        </h3>
+
+        <!-- Period Selector -->
+        <div class="period-selector">
+          <button [class.active]="selectedPeriod === 7" (click)="changePeriod(7)">
+            📅 Last 7 Days
+          </button>
+          <button [class.active]="selectedPeriod === 30" (click)="changePeriod(30)">
+            📆 Last 30 Days
+          </button>
+          <button [class.active]="selectedPeriod === 0" (click)="changePeriod(0)">
+            📊 Current Month
+          </button>
+        </div>
+
+        <!-- Period Info -->
+        <div class="period-info" *ngIf="stats.connectionStats.startDate">
+          📅 From {{ stats.connectionStats.startDate | date:'dd/MM/yyyy' }}
+          to {{ stats.connectionStats.endDate | date:'dd/MM/yyyy' }}
+        </div>
+
+        <div class="doughnut-chart-container">
+          <div class="doughnut-chart">
+            <svg viewBox="0 0 100 100" class="doughnut-svg">
+              <!-- Weekday portion -->
+              <circle cx="50" cy="50" r="45"
+                      fill="none"
+                      [attr.stroke]="getConnectionDistribution()[0].color"
+                      stroke-width="15"
+                      stroke-dasharray="0, 283"
+                      [attr.stroke-dasharray]="(getWeekdayPercentage() * 2.83) + ', 283'"
+                      stroke-linecap="round"
+                      transform="rotate(-90 50 50)"/>
+              <!-- Weekend portion -->
+              <circle cx="50" cy="50" r="45"
+                      fill="none"
+                      [attr.stroke]="getConnectionDistribution()[1].color"
+                      stroke-width="15"
+                      stroke-dasharray="0, 283"
+                      [attr.stroke-dasharray]="(getWeekendPercentage() * 2.83) + ', 283'"
+                      stroke-linecap="round"
+                      transform="rotate(-90 50 50)"
+                      [attr.stroke-dashoffset]="-(getWeekdayPercentage() * 2.83)"/>
+            </svg>
+            <div class="doughnut-center">
+              <div class="total-count">{{ getTotalConnections() }}</div>
+              <div class="total-label">Total Connections</div>
+            </div>
+          </div>
+
+          <div class="doughnut-legend">
+            <div class="legend-item" *ngFor="let item of getConnectionDistribution()">
+              <span class="legend-color" [style.backgroundColor]="item.color"></span>
+              <span class="legend-label">{{ item.name }}</span>
+              <span class="legend-value">{{ item.count }} ({{ item.percentage.toFixed(1) }}%)</span>
             </div>
           </div>
         </div>
-        <div class="progress-item">
-          <span>Administrators</span>
-          <div class="progress-bar">
-            <div class="progress-fill admin-fill"
-                 [style.width.%]="(stats.totalAdmins / stats.totalUsers) * 100">
-              {{ (stats.totalAdmins / stats.totalUsers * 100).toFixed(1) }}%
-            </div>
+
+        <div class="chart-insights">
+          <div class="insight-card">
+            <div class="insight-title">📅 Weekday Activity</div>
+            <div class="insight-value">{{ stats.connectionStats.weekdayConnections }}</div>
+            <div class="insight-trend">Monday - Friday ({{ getWeekdayPercentage().toFixed(1) }}%)</div>
+          </div>
+          <div class="insight-card">
+            <div class="insight-title">🎉 Weekend Activity</div>
+            <div class="insight-value">{{ stats.connectionStats.weekendConnections }}</div>
+            <div class="insight-trend">Saturday - Sunday ({{ getWeekendPercentage().toFixed(1) }}%)</div>
           </div>
         </div>
       </div>
@@ -98,21 +203,23 @@
 
     <!-- Quick Actions -->
     <div class="quick-actions-card">
-      <h3>Quick Actions</h3>
+      <h3>
+        <span class="chart-icon">⚡</span>
+        Quick Actions
+      </h3>
       <div class="actions-grid">
-        <button class="action-btn" routerLink="/backoffice/clients/add">
+        <button class="action-btn client-btn" (click)="navigateTo('clients')">
           ➕ New Client
         </button>
-        <button class="action-btn" routerLink="/backoffice/agents-assurance/add">
+        <button class="action-btn assurance-btn" (click)="navigateTo('agents-assurance')">
           🛡️ New Insurance Agent
         </button>
-        <button class="action-btn" routerLink="/backoffice/agents-finance/add">
+        <button class="action-btn finance-btn" (click)="navigateTo('agents-finance')">
           💰 New Finance Agent
-        </button>
-        <button class="action-btn" routerLink="/backoffice/admins/add">
-          👨‍💼 New Admin
         </button>
       </div>
     </div>
   </div>
+  <!-- À la fin du dashboard, après quick-actions-card -->
+  <app-connection-map></app-connection-map>
 </div>

@@ -1,0 +1,86 @@
+/* connection-map.component.css */
+.map-card {
+  background: white;
+  border-radius: 20px;
+  padding: 25px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+  margin-top: 25px;
+}
+
+.map-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.map-header h3 {
+  font-size: 18px;
+  color: #2c3e50;
+  margin: 0;
+}
+
+.map-badge {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  padding: 5px 15px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+/* ✅ Fix carte Leaflet */
+#connectionMap {
+  height: 450px;
+  width: 100%;           /* ✅ forcer largeur 100% */
+  border-radius: 12px;
+  z-index: 1;
+  display: block;        /* ✅ pas flex */
+}
+
+#connectionMap.hidden {
+  display: none;
+}
+
+.map-loading, .map-error {
+  text-align: center;
+  padding: 50px;
+  font-size: 16px;
+  color: #7f8c8d;
+  background: #f8f9fa;
+  border-radius: 12px;
+  height: 450px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.map-error {
+  color: #e74c3c;
+}
+/* ✅ Style cluster personnalisé */
+:host ::ng-deep .custom-cluster {
+  background: transparent;
+}
+
+:host ::ng-deep .cluster-icon {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 14px;
+  border: 3px solid white;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+}
+#connectionMap {
+  height: 550px;  /* ✅ Plus grand pour voir toute la Tunisie */
+  width: 100%;
+  border-radius: 12px;
+  z-index: 1;
+  display: block;
+}

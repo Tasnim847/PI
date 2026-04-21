@@ -23,22 +23,25 @@ import { AddClaimComponent } from './Features/Claims/client/add-claim/add-claim.
 import {ForgotPasswordComponent} from './Features/auth/forgot-password/forgot-password.component';
 import { UserManagementComponent } from './pages/dashboard/user-management/user-management.component';
 import {DashboardProfileComponent} from './pages/dashboard-profile/dashboard-profile.component';
+import { OauthCallbackComponent } from './Features/auth/oauth-callback.component';
+import { ClientRepaymentComponent } from './Features/Credit/pages/repayment/client-repayment/client-repayment.component';
 import { InsuranceRouterComponent } from './Features/Insurance/insurance-router';
-import { AgentClaimsComponent } from './Features/Claims/agent/agent-claims/agent-claims.component';
+import { ProductDetailComponent } from './Features/Produit/pages/product-detail/product-detail.component';
+import { DashboardInsuranceComponent } from './Features/Insurance/pages/client/dashboard-insurance/dashboard-insurance.component';
+import { PaymentPageComponent } from './Features/Insurance/pages/client/payment-page/payment-page.component';
 import { AgentContractsComponent } from './Features/Insurance/pages/agent/agent-contracts/agent-contracts.component';
+import { AgentClaimsComponent } from './Features/Claims/agent/agent-claims/agent-claims.component';
 import { ListMyCompensationsComponent } from './Features/Compensation/client/list-my-compensations/list-my-compensations.component';
-import { ListAllCompensationsComponent } from './Features/Compensation/admin/list-all-compensations/list-all-compensations.component';
+import { AdminRepaymentComponent } from './Features/Credit/pages/repayment/admin-repayment/admin-repayment.component';
 import { ContractRiskDetailsComponent } from './Features/Insurance/pages/admin/contract-risk-details/contract-risk-details.component';
 import { AdminDashboardComponent } from './Features/Insurance/pages/admin/admin-dashboard/admin-dashboard.component';
-import { ClientRepaymentComponent } from './Features/Credit/pages/repayment/client-repayment/client-repayment.component'; 
-import { AdminRepaymentComponent } from './Features/Credit/pages/repayment/admin-repayment/admin-repayment.component';
 import { ClaimsDashboardComponent } from './Features/Claims/admin/claims-dashboard/claims-dashboard.component';
-import { PaymentPageComponent } from './Features/Insurance/pages/client/payment-page/payment-page.component';
-import { DashboardInsuranceComponent } from './Features/Insurance/pages/client/dashboard-insurance/dashboard-insurance.component';
-import { ProductDetailComponent } from './Features/Produit/pages/product-detail/product-detail.component';
+import { ListAllCompensationsComponent } from './Features/Compensation/admin/list-all-compensations/list-all-compensations.component';
+
 
 
 export const routes: Routes = [
+
   // Landing page ouverte par défaut
   { path: '', component: LandingPageComponent },
 
@@ -54,6 +57,21 @@ export const routes: Routes = [
   {
     path: 'forgot-password',
     component: LandingPageComponent
+  },
+  // Route OAuth2 Callback - UNE SEULE FOIS
+  {
+    path: 'oauth2/callback',
+    component: OauthCallbackComponent
+  },
+  {
+    path: 'face-login',
+    loadComponent: () => import('./components/face-login/face-login.component')
+      .then(m => m.FaceLoginComponent)
+  },
+  {
+    path: 'face-register',
+    loadComponent: () => import('./components/face-register/face-register.component')
+      .then(m => m.FaceRegisterComponent)
   },
 
   // Pages publiques sous NavbarFooterLayout
