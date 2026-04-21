@@ -22,11 +22,21 @@ export class ListAllCompensationsComponent implements OnInit {
   
   // Pour le filtrage
   filterStatus: string = '';
+  filterRiskLevel: string = '';
   searchTerm: string = '';
+  
+  // Pour la modal de détails
+  selectedCompensation: Compensation | null = null;
+  showDetailsModal = false;
+  scoringDetails: any = null;
+  loadingScoring = false;
   
   // Pagination
   currentPage = 1;
   itemsPerPage = 10;
+  
+  // Niveaux de risque disponibles
+  riskLevels = ['TRES_FAIBLE', 'FAIBLE', 'MODERE', 'ELEVE', 'TRES_ELEVE'];
   
   constructor(
     private compensationService: CompensationService,
@@ -76,6 +86,42 @@ export class ListAllCompensationsComponent implements OnInit {
     return classMap[status] || 'badge-secondary';
   }
   
+  // Obtenir la classe CSS pour le niveau de risque
+  getRiskClass(riskLevel: string): string {
+    const classMap: { [key: string]: string } = {
+      'TRES_FAIBLE': 'badge-success',
+      'FAIBLE': 'badge-info',
+      'MODERE': 'badge-warning',
+      'ELEVE': 'badge-orange',
+      'TRES_ELEVE': 'badge-danger'
+    };
+    return classMap[riskLevel] || 'badge-secondary';
+  }
+  
+  // Obtenir le libellé du niveau de risque en français
+  getRiskLabel(riskLevel: string): string {
+    const labelMap: { [key: string]: string } = {
+      'TRES_FAIBLE': 'Très faible',
+      'FAIBLE': 'Faible',
+      'MODERE': 'Modéré',
+      'ELEVE': 'Élevé',
+      'TRES_ELEVE': 'Très élevé'
+    };
+    return labelMap[riskLevel] || riskLevel;
+  }
+  
+  // Obtenir l'icône du niveau de risque
+  getRiskIcon(riskLevel: string): string {
+    const iconMap: { [key: string]: string } = {
+      'TRES_FAIBLE': '🟢',
+      'FAIBLE': '🟢',
+      'MODERE': '🟡',
+      'ELEVE': '🟠',
+      'TRES_ELEVE': '🔴'
+    };
+    return iconMap[riskLevel] || '⚪';
+  }
+  
   // Formater la date
   formatDate(date: Date | string): string {
     if (!date) return 'N/A';
@@ -90,7 +136,7 @@ export class ListAllCompensationsComponent implements OnInit {
   }
   
   // Formater le montant
-  formatAmount(amount: number): string {
+  formatAmount(amount: number | undefined | null): string {
     if (amount === undefined || amount === null) return '0,00 DT';
     return new Intl.NumberFormat('fr-TN', {
       minimumFractionDigits: 2,
@@ -106,12 +152,17 @@ export class ListAllCompensationsComponent implements OnInit {
       filtered = filtered.filter(c => c.status === this.filterStatus);
     }
     
+    if (this.filterRiskLevel) {
+      filtered = filtered.filter(c => c.riskLevel === this.filterRiskLevel);
+    }
+    
     if (this.searchTerm) {
       const term = this.searchTerm.toLowerCase();
       filtered = filtered.filter(c => 
         c.compensationId.toString().includes(term) ||
         c.message?.toLowerCase().includes(term) ||
-        c.riskLevel?.toLowerCase().includes(term)
+        c.riskLevel?.toLowerCase().includes(term) ||
+        c.claim?.claimId?.toString().includes(term)
       );
     }
     
@@ -135,23 +186,32 @@ export class ListAllCompensationsComponent implements OnInit {
     }
   }
   
-  // Actions admin
-  viewDetails(compensation: Compensation): void {
-    // Utiliser Toastr pour afficher les détails ou ouvrir un modal
-    this.toastr.info(`Compensation #${compensation.compensationId}
-    Montant: ${this.formatAmount(compensation.amount)}
-    Reste à charge: ${this.formatAmount(compensation.clientOutOfPocket)}
-    Statut: ${compensation.status}
-    Risque: ${compensation.riskLevel || 'N/A'}`, 'Détails', {
-      timeOut: 5000,
-      enableHtml: true
-    });
+  // Afficher les détails complets avec scoring
+  async viewDetails(compensation: Compensation): Promise<void> {
+    this.selectedCompensation = compensation;
+    this.showDetailsModal = true;
+    this.loadingScoring = true;
+    
+    try {
+      // Charger les détails avec scoring
+      this.scoringDetails = await this.compensationService.getCompensationWithScoring(compensation.compensationId).toPromise();
+      this.loadingScoring = false;
+    } catch (error) {
+      console.error('Erreur chargement scoring:', error);
+      this.loadingScoring = false;
+      this.toastr.error('Impossible de charger les détails du scoring');
+    }
   }
   
-  // ✅ CORRIGÉ: Utiliser la bonne méthode pour marquer comme payée
+  closeModal(): void {
+    this.showDetailsModal = false;
+    this.selectedCompensation = null;
+    this.scoringDetails = null;
+  }
+  
+  // Marquer comme payée
   markAsPaid(compensation: Compensation): void {
     if (confirm(`Confirmer le paiement de la compensation #${compensation.compensationId} ?`)) {
-      // Utiliser l'endpoint existant /{id}/pay
       this.compensationService.markAsPaid(compensation.compensationId).subscribe({
         next: (response) => {
           this.successMessage = `Compensation #${compensation.compensationId} marquée comme payée`;
@@ -169,6 +229,7 @@ export class ListAllCompensationsComponent implements OnInit {
     }
   }
   
+  // Recalculer la compensation
   recalculate(compensation: Compensation): void {
     if (compensation.claim?.claimId) {
       if (confirm(`Recalculer la compensation #${compensation.compensationId} ?`)) {
@@ -204,5 +265,9 @@ export class ListAllCompensationsComponent implements OnInit {
   
   getCountByStatus(status: string): number {
     return this.filteredCompensations.filter(c => c.status === status).length;
+  }
+  
+  getCountByRiskLevel(riskLevel: string): number {
+    return this.filteredCompensations.filter(c => c.riskLevel === riskLevel).length;
   }
 }

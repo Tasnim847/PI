@@ -53,7 +53,11 @@
 
         <!-- Claims - visible pour CLIENT et AGENT_ASSURANCE seulement -->
         <li class="nav-item" *ngIf="isClaimsVisible()">
-          <a class="nav-link" routerLink="/public/claims" routerLinkActive="active">Claims</a>
+          <a class="nav-link" 
+            [routerLink]="getClaimsLink()" 
+            routerLinkActive="active">
+            Claims
+          </a>
         </li>
 
         <!-- Compensation - visible pour CLIENT et AGENT_ASSURANCE seulement -->

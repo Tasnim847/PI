@@ -136,6 +136,16 @@ export class NavbarComponent implements OnInit, OnDestroy {
     return this.userRole === 'CLIENT' || this.userRole === 'AGENT_ASSURANCE';
   }
 
+  // Ajoutez cette méthode dans la classe NavbarComponent
+  getClaimsLink(): string {
+    if (this.userRole === 'AGENT_ASSURANCE') {
+      return '/public/agent/claims';  // Route pour l'agent
+    } else if (this.userRole === 'CLIENT') {
+      return '/public/claims';         // Route pour le client
+    }
+    return '/public/claims'; // Fallback
+  }
+
   isCompensationVisible(): boolean {
     return this.userRole === 'CLIENT' || this.userRole === 'AGENT_ASSURANCE';
   }
