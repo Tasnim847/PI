@@ -1,6 +1,7 @@
 package org.example.projet_pi.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 
 import java.time.LocalDate;
@@ -57,8 +58,9 @@ public class Transaction {
 
     private String type;
 
-    @JsonIgnore
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "account_id")
+    @JsonIgnoreProperties({"transactions", "client", "hibernateLazyInitializer"})
     private Account account;
 
 

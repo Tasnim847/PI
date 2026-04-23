@@ -11,8 +11,8 @@ import { environment } from '../../../../environments/environment';
   providedIn: 'root'
 })
 export class ContractService {
-  private apiUrl = 'http://localhost:8081/contrats';
-  private agentApiUrl = 'http://localhost:8081/agent';
+  private apiUrl = 'http://localhost:8082/contrats';
+  private agentApiUrl = 'http://localhost:8082/agent';
   private baseUrl = environment.apiUrl; // MODIFIER: utiliser environment.apiUrl
 
 
@@ -257,7 +257,7 @@ export class ContractService {
     }
   
     return this.http.get<{ success: boolean; evaluation: RiskEvaluationDTO }>(
-      `http://localhost:8081/api/risk/evaluation/${contractId}`, 
+      `http://localhost:8082/api/risk/evaluation/${contractId}`, 
       { headers: headers }
     ).pipe(
       map(response => response.evaluation),

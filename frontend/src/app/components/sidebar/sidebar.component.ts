@@ -22,13 +22,15 @@ export class SidebarComponent {
     { label: 'Credit', icon: '💳', link: '/backoffice/credit' },
     { label: 'Repayment', icon: '💵', link: '/backoffice/repayment' },
     { label: 'Insurance', icon: '🛡️', link: '/backoffice/insurance' },
-    { label: 'Account', icon: '👤', link: '/backoffice/account' },
+   { label: 'Account', icon: '👤', link: '/backoffice/account' },
     { label: 'Complaint', icon: '📄', link: '/backoffice/complaint' },
     { label: 'KPIs', icon: '📊', link: '/backoffice/complaint/kpi' },  // ⭐ AJOUT KPI ⭐
     { label: 'News', icon: '📰', link: '/backoffice/news' },
     { label: 'Products', icon: '📦', link: '/backoffice/products' },
     { label: 'Claims', icon: '📋', link: '/backoffice/claims' },
-    { label: 'Compensation', icon: '💰', link: '/backoffice/compensation' }
+    { label: 'Compensation', icon: '💰', link: '/backoffice/compensation' },
+   { label: 'Transaction', icon: '💸', link: '/backoffice/transaction' }
+
   ];
 
   isCollapsed = false;

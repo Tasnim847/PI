@@ -38,6 +38,7 @@ import { AdminDashboardComponent } from './Features/Insurance/pages/admin/admin-
 import { ClaimsDashboardComponent } from './Features/Claims/admin/claims-dashboard/claims-dashboard.component';
 import { ListAllCompensationsComponent } from './Features/Compensation/admin/list-all-compensations/list-all-compensations.component';
 import { ComplaintKpiComponent } from './Features/Complaint/pages/complaint-kpi/complaint-kpi.component';
+import { TransactionPageComponent } from './Features/Transaction/pages/transaction-page/transaction-page.component';
 
 
 
@@ -192,7 +193,8 @@ export const routes: Routes = [
         canActivate: [roleGuard],
         data: { roles: ['ADMIN'] }
       },
-      { path: 'compensation', component: ListAllCompensationsComponent }
+      { path: 'compensation', component: ListAllCompensationsComponent },
+      { path: 'transaction', component: TransactionPageComponent}
 
     ]
   },

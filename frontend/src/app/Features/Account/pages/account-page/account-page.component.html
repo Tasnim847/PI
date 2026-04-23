@@ -1,1 +1,92 @@
-<p>account-page works!</p>
+<div class="account-container">
+
+  <div class="header">
+    <h2>Account Management</h2>
+    <button class="btn-add" (click)="openCreateForm()">+ New Account</button>
+  </div>
+
+  <!-- Table -->
+  <table class="account-table" *ngIf="!isFormVisible">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Type</th>
+        <th>Balance</th>
+        <th>Status</th>
+        <th>Daily Limit</th>
+        <th>Monthly Limit</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let account of accounts">
+        <td>{{ account.accountId }}</td>
+        <td>{{ account.type }}</td>
+        <td>{{ account.balance | currency:'TND' }}</td>
+        <td>
+          <span [class]="'badge badge-' + account.status.toLowerCase()">
+            {{ account.status }}
+          </span>
+        </td>
+        <td>{{ account.dailyLimit }}</td>
+        <td>{{ account.monthlyLimit }}</td>
+        <td class="actions">
+          <button class="btn-edit"   (click)="openEditForm(account)">✏️ Edit</button>
+          <button class="btn-limits" (click)="setLimits(account)">⚙️ Limits</button>
+          <button class="btn-delete" (click)="deleteAccount(account.accountId)">🗑️ Delete</button>
+        </td>
+      </tr>
+      <tr *ngIf="accounts.length === 0">
+        <td colspan="7" style="text-align:center; padding:20px">
+          No accounts found
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- Form -->
+  <div class="form-card" *ngIf="isFormVisible">
+    <h3>{{ isEditMode ? 'Edit Account' : 'New Account' }}</h3>
+
+    <div class="form-group">
+      <label>Type</label>
+      <select [(ngModel)]="formData.type">
+        <option [value]="AccountType.SAVINGS">SAVINGS</option>
+        <option [value]="AccountType.CURRENT">CURRENT</option>
+        <option [value]="AccountType.BLOCKED">BLOCKED</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label>Balance</label>
+      <input type="number" [(ngModel)]="formData.balance" min="0" />
+    </div>
+
+    <div class="form-group">
+      <label>Status</label>
+      <select [(ngModel)]="formData.status">
+        <option value="ACTIVE">ACTIVE</option>
+        <option value="BLOCKED">BLOCKED</option>
+        <option value="CLOSED">CLOSED</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label>Daily Limit</label>
+      <input type="number" [(ngModel)]="formData.dailyLimit" min="0" />
+    </div>
+
+    <div class="form-group">
+      <label>Monthly Limit</label>
+      <input type="number" [(ngModel)]="formData.monthlyLimit" min="0" />
+    </div>
+
+    <div class="form-actions">
+      <button class="btn-save" (click)="submitForm()">
+        {{ isEditMode ? 'Save' : 'Create' }}
+      </button>
+      <button class="btn-cancel" (click)="cancelForm()">Cancel</button>
+    </div>
+  </div>
+
+</div>

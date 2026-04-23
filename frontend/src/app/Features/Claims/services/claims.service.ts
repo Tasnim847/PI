@@ -9,8 +9,8 @@ import { ClaimScoreDTO, ClientScoreResult, DetailedAnalysis } from '../../../sha
   providedIn: 'root'
 })
 export class ClaimsService {
-  private apiUrl = 'http://localhost:8081/claims';
-  private scoringApiUrl = 'http://localhost:8081/api/scoring';
+  private apiUrl = 'http://localhost:8082/claims';
+  private scoringApiUrl = 'http://localhost:8082/api/scoring';
 
 
   constructor(private http: HttpClient) { }

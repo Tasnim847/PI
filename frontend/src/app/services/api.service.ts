@@ -5,7 +5,7 @@ import { Injectable } from '@angular/core';
   providedIn: 'root'
 })
 export class ApiService {
-  private baseUrl = 'http://localhost:8081'; // Spring Boot
+  private baseUrl = 'http://localhost:8082'; // Spring Boot
 
   constructor(private http: HttpClient) {}
 

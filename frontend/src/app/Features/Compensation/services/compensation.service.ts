@@ -7,7 +7,7 @@ import { Compensation } from '../../../shared';
   providedIn: 'root'
 })
 export class CompensationService {
-  private apiUrl = 'http://localhost:8081/compensations';
+  private apiUrl = 'http://localhost:8082/compensations';
 
   constructor(private http: HttpClient) { }
 
