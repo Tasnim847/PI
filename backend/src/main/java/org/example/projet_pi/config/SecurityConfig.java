@@ -217,28 +217,37 @@ public class SecurityConfig {
 
 
                         // ========== NEWS ENDPOINTS ==========
-                        // CRUD - Admin uniquement
-                        .requestMatchers(HttpMethod.POST, "/api/v1/news").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PUT, "/api/v1/news/update/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/api/v1/news/delete/**").hasRole("ADMIN")
+                        // GET - Tout le monde peut voir les actualités
+                        .requestMatchers(HttpMethod.GET, "/api/v1/news", "/api/v1/news/**").permitAll()
 
-                        // ✅ Upload image - Admin uniquement (CORRIGÉ)
-                        .requestMatchers(HttpMethod.POST, "/api/v1/news/*/upload-image")
-                        .hasAnyRole("ADMIN", "AGENT_ASSURANCE")
-                        .requestMatchers(HttpMethod.DELETE, "/api/v1/news/*/image")
-                        .hasRole("ADMIN")
+                        // POST - Créer une news (ADMIN uniquement)
+                        .requestMatchers(HttpMethod.POST, "/api/v1/news").permitAll()
 
+                        // PUT - Modifier une news (ADMIN uniquement)
+                        .requestMatchers(HttpMethod.PUT, "/api/v1/news/**").hasRole("ADMIN")
+
+                        // DELETE - Supprimer une news (ADMIN uniquement)
+                        .requestMatchers(HttpMethod.DELETE, "/api/v1/news/**").hasRole("ADMIN")
+
+                        // PATCH - Publier/Archiver (ADMIN uniquement)
+                        .requestMatchers(HttpMethod.PATCH, "/api/v1/news/**").hasRole("ADMIN")
+
+                        // Upload image (ADMIN ou AGENT_ASSURANCE)
+                        .requestMatchers(HttpMethod.POST, "/api/v1/news/*/upload-image").hasAnyRole("ADMIN", "AGENT_ASSURANCE")
+
+                        // Delete image (ADMIN uniquement)
+                        .requestMatchers(HttpMethod.DELETE, "/api/v1/news/*/image").hasRole("ADMIN")
 
                         // ========== COMPLAINT ENDPOINTS ==========
-                        // ========== COMPLAINT ENDPOINTS ==========
-
                         .requestMatchers("/complaints/addComplaint").hasRole("CLIENT")
-                        .requestMatchers("/complaints/updateComplaint/**").hasAnyRole("AGENT_ASSURANCE","AGENT_FINANCE","ADMIN")
+                        .requestMatchers("/complaints/updateComplaint/**").hasAnyRole("AGENT_ASSURANCE", "AGENT_FINANCE", "ADMIN", "CLIENT")
                         .requestMatchers("/complaints/deleteComplaint/**").hasRole("ADMIN")
-                        .requestMatchers("/complaints/*").hasAnyRole("CLIENT","AGENT_ASSURANCE","AGENT_FINANCE","ADMIN")
-                        .requestMatchers("/complaints/all").hasAnyRole("AGENT_ASSURANCE","AGENT_FINANCE","ADMIN")
-                        .requestMatchers("/complaints/search").hasAnyRole("AGENT_ASSURANCE","AGENT_FINANCE","ADMIN")
-                        .requestMatchers("/complaints/kpi/**").hasAnyRole("AGENT_ASSURANCE","AGENT_FINANCE","ADMIN")
+                        .requestMatchers("/complaints/*").hasAnyRole("CLIENT", "AGENT_ASSURANCE", "AGENT_FINANCE", "ADMIN")
+                        .requestMatchers("/complaints/all").hasAnyRole("AGENT_ASSURANCE", "AGENT_FINANCE", "ADMIN", "CLIENT")
+                        .requestMatchers("/complaints/search").hasAnyRole("AGENT_ASSURANCE", "AGENT_FINANCE", "ADMIN", "CLIENT")
+                        .requestMatchers("/complaints/kpi/**").hasAnyRole("AGENT_ASSURANCE", "AGENT_FINANCE", "ADMIN")
+
+
                         // Toute autre requête nécessite une authentification
                         .anyRequest().authenticated()
                 )

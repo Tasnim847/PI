@@ -1,13 +1,14 @@
-﻿import { User } from './user.model';
-
-export interface Complaint {
-    id: number;
-    status: string;
-    message: string;
-    claimDate: Date;
-    resolutionDate: Date;
-    phone: string;
-    client?: User;
-    agentAssurance?: User;
-    agentFinance?: User;
+﻿export interface Complaint {
+  id: number;
+  title: string;
+  description: string;
+  customerName: string;
+  email: string;
+  status: 'open' | 'in-progress' | 'resolved' | 'closed';
+  priority: 'low' | 'medium' | 'high';
+  createdAt: Date;
+  updatedAt?: Date;
 }
+
+export type CreateComplaint = Omit<Complaint, 'id' | 'createdAt'>;
+export type UpdateComplaint = Partial<Omit<Complaint, 'id'>>;

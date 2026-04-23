@@ -4,6 +4,7 @@ import org.example.projet_pi.Dto.ComplaintDTO;
 import org.example.projet_pi.Dto.ComplaintSearchDTO;
 import org.example.projet_pi.Repository.ComplaintRepository;
 import org.example.projet_pi.entity.Complaint;
+import org.example.projet_pi.entity.User;
 import org.springframework.stereotype.Service;
 
 import java.time.ZoneId;
@@ -29,6 +30,7 @@ public class ComplaintService implements IComplaintService {
         c.setId(dto.getId());
         c.setStatus(dto.getStatus());
         c.setMessage(dto.getMessage());
+        c.setPhone(dto.getPhone());
 
         if (dto.getClaimDate() != null)
             c.setClaimDate(java.sql.Timestamp.valueOf(dto.getClaimDate()));
@@ -45,6 +47,7 @@ public class ComplaintService implements IComplaintService {
         dto.setId(c.getId());
         dto.setStatus(c.getStatus());
         dto.setMessage(c.getMessage());
+        dto.setPhone(c.getPhone());
 
         if (c.getClaimDate() != null)
             dto.setClaimDate(c.getClaimDate().toInstant()
@@ -73,11 +76,15 @@ public class ComplaintService implements IComplaintService {
         Complaint complaint = mapToEntity(dto);
         Complaint saved = complaintRepository.save(complaint);
 
-        if (saved.getPhone() != null) {
-            smsService3.sendSms(
-                    saved.getPhone(),
-                    "Votre réclamation est bien envoyée."
-            );
+        if (saved.getPhone() != null && !saved.getPhone().isEmpty()) {
+            try {
+                smsService3.sendSms(
+                        saved.getPhone(),
+                        "Votre réclamation a été enregistrée avec succès. Elle sera traitée dans les plus brefs délais."
+                );
+            } catch (Exception e) {
+                System.err.println("Erreur lors de l'envoi du SMS: " + e.getMessage());
+            }
         }
 
         return mapToDTO(saved);
@@ -86,10 +93,16 @@ public class ComplaintService implements IComplaintService {
     @Override
     public ComplaintDTO updateComplaint(Long id, ComplaintDTO dto) {
         Complaint existing = complaintRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Complaint not found"));
+                .orElseThrow(() -> new RuntimeException("Complaint not found with id: " + id));
 
-        existing.setStatus(dto.getStatus());
-        existing.setMessage(dto.getMessage());
+        if (dto.getStatus() != null)
+            existing.setStatus(dto.getStatus());
+
+        if (dto.getMessage() != null)
+            existing.setMessage(dto.getMessage());
+
+        if (dto.getPhone() != null)
+            existing.setPhone(dto.getPhone());
 
         Complaint updated = complaintRepository.save(existing);
         return mapToDTO(updated);
@@ -97,13 +110,16 @@ public class ComplaintService implements IComplaintService {
 
     @Override
     public void deleteComplaint(Long id) {
+        if (!complaintRepository.existsById(id)) {
+            throw new RuntimeException("Complaint not found with id: " + id);
+        }
         complaintRepository.deleteById(id);
     }
 
     @Override
     public ComplaintDTO getComplaintById(Long id) {
         Complaint c = complaintRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Not found"));
+                .orElseThrow(() -> new RuntimeException("Complaint not found with id: " + id));
         return mapToDTO(c);
     }
 
@@ -136,6 +152,10 @@ public class ComplaintService implements IComplaintService {
     public double calculateAverageProcessingTime() {
         List<Complaint> closed = complaintRepository.findByStatus("CLOSED");
 
+        if (closed.isEmpty()) {
+            return 0.0;
+        }
+
         long totalDays = 0;
         int count = 0;
 
@@ -150,35 +170,90 @@ public class ComplaintService implements IComplaintService {
             }
         }
 
-        return count == 0 ? 0 : totalDays / (double) count;
+        return count == 0 ? 0.0 : totalDays / (double) count;
     }
 
     @Override
     public double resolutionRate() {
         long total = complaintRepository.count();
+        if (total == 0) {
+            return 0.0;
+        }
         long resolved = complaintRepository.countByStatus("APPROVED");
-        return total == 0 ? 0 : (resolved * 100.0) / total;
+        return (resolved * 100.0) / total;
     }
 
     @Override
     public double rejectionRate() {
         long total = complaintRepository.count();
+        if (total == 0) {
+            return 0.0;
+        }
         long rejected = complaintRepository.countByStatus("REJECTED");
-        return total == 0 ? 0 : (rejected * 100.0) / total;
+        return (rejected * 100.0) / total;
     }
 
     @Override
     public String findTopAgent() {
-        return "TODO"; // tu peux garder ton code existant
+        List<Complaint> allComplaints = complaintRepository.findAll();
+
+        if (allComplaints.isEmpty()) {
+            return "Aucun agent";
+        }
+
+        Map<String, Integer> agentCount = new HashMap<>();
+
+        for (Complaint c : allComplaints) {
+            if (c.getAgentAssurance() != null) {
+                User agent = c.getAgentAssurance();
+                String fullName = agent.getFirstName() + " " + agent.getLastName() + " (Assurance)";
+                agentCount.put(fullName, agentCount.getOrDefault(fullName, 0) + 1);
+            }
+            if (c.getAgentFinance() != null) {
+                User agent = c.getAgentFinance();
+                String fullName = agent.getFirstName() + " " + agent.getLastName() + " (Finance)";
+                agentCount.put(fullName, agentCount.getOrDefault(fullName, 0) + 1);
+            }
+        }
+
+        if (agentCount.isEmpty()) {
+            return "Aucun agent";
+        }
+
+        return agentCount.entrySet().stream()
+                .max(Map.Entry.comparingByValue())
+                .map(Map.Entry::getKey)
+                .orElse("Aucun agent");
     }
 
     @Override
     public Map<String, Object> getDashboardKpi() {
-        Map<String, Object> map = new HashMap<>();
-        map.put("averageProcessingTime", calculateAverageProcessingTime());
-        map.put("resolutionRate", resolutionRate());
-        map.put("rejectionRate", rejectionRate());
-        map.put("topAgent", findTopAgent());
-        return map;
+        Map<String, Object> dashboard = new HashMap<>();
+
+        // KPIs principaux
+        dashboard.put("averageProcessingTime", calculateAverageProcessingTime());
+        dashboard.put("resolutionRate", resolutionRate());
+        dashboard.put("rejectionRate", rejectionRate());
+        dashboard.put("topAgent", findTopAgent());
+
+        // Statistiques par statut
+        Map<String, Object> statistics = new HashMap<>();
+        long total = complaintRepository.count();
+        long pending = complaintRepository.countByStatus("PENDING");
+        long inProgress = complaintRepository.countByStatus("IN_PROGRESS");
+        long approved = complaintRepository.countByStatus("APPROVED");
+        long rejected = complaintRepository.countByStatus("REJECTED");
+        long closed = complaintRepository.countByStatus("CLOSED");
+
+        statistics.put("total", total);
+        statistics.put("pending", pending);
+        statistics.put("inProgress", inProgress);
+        statistics.put("approved", approved);
+        statistics.put("rejected", rejected);
+        statistics.put("closed", closed);
+
+        dashboard.put("statistics", statistics);
+
+        return dashboard;
     }
 }

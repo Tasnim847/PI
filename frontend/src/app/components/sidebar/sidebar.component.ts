@@ -24,6 +24,7 @@ export class SidebarComponent {
     { label: 'Insurance', icon: '🛡️', link: '/backoffice/insurance' },
     { label: 'Account', icon: '👤', link: '/backoffice/account' },
     { label: 'Complaint', icon: '📄', link: '/backoffice/complaint' },
+    { label: 'KPIs', icon: '📊', link: '/backoffice/complaint/kpi' },  // ⭐ AJOUT KPI ⭐
     { label: 'News', icon: '📰', link: '/backoffice/news' },
     { label: 'Products', icon: '📦', link: '/backoffice/products' },
     { label: 'Claims', icon: '📋', link: '/backoffice/claims' },

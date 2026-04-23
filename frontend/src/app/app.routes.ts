@@ -37,6 +37,7 @@ import { ContractRiskDetailsComponent } from './Features/Insurance/pages/admin/c
 import { AdminDashboardComponent } from './Features/Insurance/pages/admin/admin-dashboard/admin-dashboard.component';
 import { ClaimsDashboardComponent } from './Features/Claims/admin/claims-dashboard/claims-dashboard.component';
 import { ListAllCompensationsComponent } from './Features/Compensation/admin/list-all-compensations/list-all-compensations.component';
+import { ComplaintKpiComponent } from './Features/Complaint/pages/complaint-kpi/complaint-kpi.component';
 
 
 
@@ -86,6 +87,7 @@ export const routes: Routes = [
       { path: 'insurance', component: InsuranceRouterComponent }, // ✅ MODIFIÉ ICI
       { path: 'account', component: AccountPageComponent },
       { path: 'complaint', component: ComplaintPageComponent },
+      { path: 'complaint/kpi', component: ComplaintKpiComponent },
       { path: 'news', component: NewsPageComponent },
       { path: 'products', component: ProductListComponent },
       { path: 'product-detail/:id', component: ProductDetailComponent },
@@ -181,6 +183,7 @@ export const routes: Routes = [
       { path: 'insurance/admin-dashboard', component: AdminDashboardComponent }, // ✅ Route dashboard
       { path: 'account', component: AccountPageComponent },
       { path: 'complaint', component: ComplaintPageComponent },
+      { path: 'complaint/kpi', component: ComplaintKpiComponent },
       { path: 'news', component: NewsPageComponent },
       { path: 'claims', component: ListAllClaimsComponent },
       {

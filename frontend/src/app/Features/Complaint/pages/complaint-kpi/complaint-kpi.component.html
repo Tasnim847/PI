@@ -1,0 +1,151 @@
+<!-- src/app/Feature/Complaint/pages/complaint-kpi/complaint-kpi.component.html -->
+
+<div class="kpi-container">
+  
+  <div class="kpi-header">
+    <div class="header-left">
+      <button class="back-btn" (click)="goBack()">← Retour</button>
+      <h1>📊 Tableau de bord des performances</h1>
+    </div>
+    <button class="refresh-btn" (click)="refresh()" [disabled]="isLoading">
+      🔄 {{ isLoading ? 'Chargement...' : 'Rafraîchir' }}
+    </button>
+  </div>
+
+  <div class="error-message" *ngIf="errorMessage">
+    ⚠️ {{ errorMessage }}
+    <button (click)="errorMessage = ''">✖</button>
+  </div>
+
+  <div class="loading-overlay" *ngIf="isLoading">
+    <div class="spinner"></div>
+    <p>Chargement des indicateurs...</p>
+  </div>
+
+  <div class="kpi-grid">
+    
+    <!-- Temps moyen -->
+    <div class="kpi-card">
+      <div class="kpi-card-header">
+        <span class="kpi-icon">⏱️</span>
+        <h3>Temps moyen de traitement</h3>
+      </div>
+      <div class="kpi-card-body">
+        <div class="kpi-value" [class.success]="getAverageTimeClass() === 'success'"
+                                   [class.warning]="getAverageTimeClass() === 'warning'"
+                                   [class.danger]="getAverageTimeClass() === 'danger'">
+          {{ getFormattedAverageTime() }}
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill" 
+               [style.width.%]="averageProcessingTime > 30 ? 100 : (averageProcessingTime / 30) * 100"
+               [class.bg-success]="getAverageTimeClass() === 'success'"
+               [class.bg-warning]="getAverageTimeClass() === 'warning'"
+               [class.bg-danger]="getAverageTimeClass() === 'danger'">
+          </div>
+        </div>
+        <div class="kpi-subtitle">Délai création → résolution</div>
+      </div>
+    </div>
+
+    <!-- Taux résolution -->
+    <div class="kpi-card">
+      <div class="kpi-card-header">
+        <span class="kpi-icon">✅</span>
+        <h3>Taux de résolution</h3>
+      </div>
+      <div class="kpi-card-body">
+        <div class="kpi-value" [class.success]="getResolutionRateClass() === 'success'"
+                                   [class.warning]="getResolutionRateClass() === 'warning'"
+                                   [class.danger]="getResolutionRateClass() === 'danger'">
+          {{ getFormattedRate(resolutionRate) }}
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill" 
+               [style.width.%]="resolutionRate"
+               [class.bg-success]="resolutionRate >= 80"
+               [class.bg-warning]="resolutionRate >= 50 && resolutionRate < 80"
+               [class.bg-danger]="resolutionRate < 50">
+          </div>
+        </div>
+        <div class="kpi-subtitle">Réclamations approuvées</div>
+      </div>
+    </div>
+
+    <!-- Taux rejet -->
+    <div class="kpi-card">
+      <div class="kpi-card-header">
+        <span class="kpi-icon">❌</span>
+        <h3>Taux de rejet</h3>
+      </div>
+      <div class="kpi-card-body">
+        <div class="kpi-value" [class.success]="getRejectionRateClass() === 'success'"
+                                   [class.warning]="getRejectionRateClass() === 'warning'"
+                                   [class.danger]="getRejectionRateClass() === 'danger'">
+          {{ getFormattedRate(rejectionRate) }}
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill" 
+               [style.width.%]="rejectionRate"
+               [class.bg-success]="rejectionRate <= 20"
+               [class.bg-warning]="rejectionRate > 20 && rejectionRate <= 40"
+               [class.bg-danger]="rejectionRate > 40">
+          </div>
+        </div>
+        <div class="kpi-subtitle">Réclamations rejetées</div>
+      </div>
+    </div>
+
+    <!-- Top agent -->
+    <div class="kpi-card">
+      <div class="kpi-card-header">
+        <span class="kpi-icon">🏆</span>
+        <h3>Agent le plus actif</h3>
+      </div>
+      <div class="kpi-card-body">
+        <div class="kpi-value agent-name">{{ topAgent }}</div>
+        <div class="kpi-subtitle">Plus grand nombre de réclamations traitées</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Statistiques -->
+  <div class="statistics-section">
+    <h2>📈 Répartition des réclamations</h2>
+    
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-value">{{ statistics.total }}</div>
+        <div class="stat-label">Total</div>
+      </div>
+      <div class="stat-card pending">
+        <div class="stat-value">{{ statistics.pending }}</div>
+        <div class="stat-label">En attente</div>
+      </div>
+      <div class="stat-card progress">
+        <div class="stat-value">{{ statistics.inProgress }}</div>
+        <div class="stat-label">En cours</div>
+      </div>
+      <div class="stat-card approved">
+        <div class="stat-value">{{ statistics.approved }}</div>
+        <div class="stat-label">Approuvées</div>
+      </div>
+      <div class="stat-card rejected">
+        <div class="stat-value">{{ statistics.rejected }}</div>
+        <div class="stat-label">Rejetées</div>
+      </div>
+      <div class="stat-card closed">
+        <div class="stat-value">{{ statistics.closed }}</div>
+        <div class="stat-label">Fermées</div>
+      </div>
+    </div>
+
+    <div class="distribution-bar" *ngIf="statistics.total > 0">
+      <div class="segment pending" [style.width.%]="getPercentage(statistics.pending, statistics.total)"></div>
+      <div class="segment progress" [style.width.%]="getPercentage(statistics.inProgress, statistics.total)"></div>
+      <div class="segment approved" [style.width.%]="getPercentage(statistics.approved, statistics.total)"></div>
+      <div class="segment rejected" [style.width.%]="getPercentage(statistics.rejected, statistics.total)"></div>
+      <div class="segment closed" [style.width.%]="getPercentage(statistics.closed, statistics.total)"></div>
+    </div>
+  </div>
+</div>

@@ -1,1 +1,249 @@
-<p>news-page works!</p>
+<!-- src/app/Features/News/pages/news-page/news-page.component.html -->
+
+<div class="news-container">
+    
+    <!-- HEADER -->
+    <div class="page-header">
+        <div>
+            <h1>📰 Gestion des Actualités</h1>
+            <p class="subtitle">
+                <span class="badge-count">{{ filteredNews.length }}</span> actualité(s) au total
+            </p>
+        </div>
+        <button class="btn btn-primary" (click)="openAddForm()">
+            <span>➕</span>
+            Nouvelle Actualité
+        </button>
+    </div>
+
+    <!-- MESSAGES -->
+    <div *ngIf="successMessage" class="alert alert-success">
+        <span>✅ {{ successMessage }}</span>
+        <button class="alert-close" (click)="successMessage = ''">✖</button>
+    </div>
+
+    <div *ngIf="errorMessage" class="alert alert-error">
+        <span>⚠️ {{ errorMessage }}</span>
+        <button class="alert-close" (click)="errorMessage = ''">✖</button>
+    </div>
+
+    <!-- FILTRES -->
+    <div class="filters-card">
+        <div class="filters-bar">
+            <div class="search-box">
+                <span class="search-icon">🔍</span>
+                <input type="text" [(ngModel)]="searchTerm" placeholder="Rechercher par titre, auteur, catégorie..." class="search-input">
+            </div>
+            
+            <div class="filter-group">
+                <select [(ngModel)]="selectedCategory" class="filter-select">
+                    <option value="">📂 Toutes les catégories</option>
+                    <option *ngFor="let cat of categories" [value]="cat">{{ cat }}</option>
+                </select>
+                
+                <select [(ngModel)]="selectedStatus" class="filter-select">
+                    <option value="">📋 Tous les statuts</option>
+                    <option value="DRAFT">📝 Brouillon</option>
+                    <option value="PUBLISHED">✅ Publié</option>
+                    <option value="ARCHIVED">📦 Archivé</option>
+                </select>
+                
+                <button class="btn btn-secondary" (click)="resetFilters()">🔄 Réinitialiser</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- LOADING -->
+    <div *ngIf="isLoading" class="loading-spinner">
+        <div class="spinner"></div>
+        <p>Chargement des actualités...</p>
+    </div>
+
+    <!-- GRILLE DES ACTUALITÉS -->
+    <div *ngIf="!isLoading" class="news-grid">
+        <div *ngFor="let news of filteredNews" class="news-card" (click)="viewDetails(news)">
+            
+            <div class="card-header" [class]="getStatusClass(news.status)">
+                <div class="card-title">
+                    <h3>{{ truncateText(news.title, 60) }}</h3>
+                    <div class="badges">
+                        <span class="badge" [class]="getStatusClass(news.status)">
+                            {{ getStatusIcon(news.status) }} {{ getStatusLabel(news.status) }}
+                        </span>
+                        <span class="badge category">{{ news.category }}</span>
+                    </div>
+                </div>
+                <div class="card-actions">
+                    <button class="btn-icon btn-edit" (click)="editNews(news, $event)" title="Modifier">✏️</button>
+                    <button class="btn-icon btn-delete" (click)="deleteNews(news.newsId, $event)" title="Supprimer">🗑️</button>
+                </div>
+            </div>
+            
+            <div class="card-body">
+                <div class="info-row">
+                    <div class="info-label">✍️ Auteur</div>
+                    <div class="info-value">{{ news.author }}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">📝 Résumé</div>
+                    <div class="info-value summary">{{ truncateText(news.summary, 100) }}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">👁️ Vues</div>
+                    <div class="info-value">{{ news.viewCount || 0 }} vues</div>
+                </div>
+            </div>
+            
+            <div class="card-footer">
+                <span class="news-id">#{{ news.newsId }}</span>
+                <span class="news-date">📅 {{ formatDate(news.publishDate) }}</span>
+                <span class="view-detail">Voir détails →</span>
+            </div>
+        </div>
+
+        <!-- EMPTY STATE -->
+        <div *ngIf="filteredNews.length === 0" class="empty-state">
+            <div class="empty-icon">📭</div>
+            <h3>Aucune actualité trouvée</h3>
+            <p>Créez votre première actualité</p>
+            <button class="btn btn-primary" (click)="openAddForm()">➕ Créer une actualité</button>
+        </div>
+    </div>
+
+    <!-- MODAL FORMULAIRE -->
+    <div *ngIf="showForm" class="modal-overlay" (click)="closeForm()">
+        <div class="modal-content" (click)="$event.stopPropagation()">
+            <div class="modal-header">
+                <h2>{{ isEditing ? '✏️ Modifier l\'actualité' : '➕ Nouvelle actualité' }}</h2>
+                <button class="close-btn" (click)="closeForm()">✖</button>
+            </div>
+            
+            <form [formGroup]="newsForm" (ngSubmit)="saveNews()">
+                <div class="form-group">
+                    <label>Titre <span class="required">*</span></label>
+                    <input type="text" formControlName="title" placeholder="Titre de l'actualité">
+                    <div class="error-message" *ngIf="newsForm.get('title')?.invalid && newsForm.get('title')?.touched">
+                        Titre requis (5-200 caractères)
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Auteur <span class="required">*</span></label>
+                        <input type="text" formControlName="author" placeholder="Nom de l'auteur">
+                    </div>
+                    <div class="form-group">
+                        <label>Catégorie <span class="required">*</span></label>
+                        <select formControlName="category">
+                            <option *ngFor="let cat of categories" [value]="cat">{{ cat }}</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Résumé <span class="required">*</span></label>
+                    <textarea rows="2" formControlName="summary" placeholder="Résumé de l'actualité..."></textarea>
+                    <div class="error-message" *ngIf="newsForm.get('summary')?.invalid && newsForm.get('summary')?.touched">
+                        Résumé requis (10-500 caractères)
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Contenu <span class="required">*</span></label>
+                    <textarea rows="5" formControlName="content" placeholder="Contenu détaillé de l'actualité..."></textarea>
+                    <div class="error-message" *ngIf="newsForm.get('content')?.invalid && newsForm.get('content')?.touched">
+                        Contenu requis (minimum 20 caractères)
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Statut</label>
+                    <select formControlName="status">
+                        <option value="DRAFT">📝 Brouillon</option>
+                        <option value="PUBLISHED">✅ Publié</option>
+                        <option value="ARCHIVED">📦 Archivé</option>
+                    </select>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" (click)="closeForm()">Annuler</button>
+                    <button type="submit" class="btn btn-primary" [disabled]="newsForm.invalid">
+                        {{ isEditing ? 'Mettre à jour' : 'Créer' }}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL DÉTAILS -->
+    <div *ngIf="selectedNews && !showForm" class="modal-overlay" (click)="closeDetails()">
+        <div class="modal-content modal-details" (click)="$event.stopPropagation()">
+            <div class="modal-header" [class]="getStatusClass(selectedNews.status)">
+                <h2>📄 Détails de l'actualité</h2>
+                <button class="close-btn" (click)="closeDetails()">✖</button>
+            </div>
+            
+            <div class="details-content">
+                <div class="detail-row">
+                    <div class="detail-label">ID :</div>
+                    <div class="detail-value">#{{ selectedNews.newsId }}</div>
+                </div>
+
+                <div class="detail-row">
+                    <div class="detail-label">Statut :</div>
+                    <div class="detail-value">
+                        <span class="badge" [class]="getStatusClass(selectedNews.status)">
+                            {{ getStatusIcon(selectedNews.status) }} {{ getStatusLabel(selectedNews.status) }}
+                        </span>
+                    </div>
+                </div>
+
+                <div class="detail-row">
+                    <div class="detail-label">Titre :</div>
+                    <div class="detail-value">{{ selectedNews.title }}</div>
+                </div>
+
+                <div class="detail-row">
+                    <div class="detail-label">Auteur :</div>
+                    <div class="detail-value">{{ selectedNews.author }}</div>
+                </div>
+
+                <div class="detail-row">
+                    <div class="detail-label">Catégorie :</div>
+                    <div class="detail-value">{{ selectedNews.category }}</div>
+                </div>
+
+                <div class="detail-row">
+                    <div class="detail-label">Résumé :</div>
+                    <div class="detail-value">{{ selectedNews.summary }}</div>
+                </div>
+
+                <div class="detail-row">
+                    <div class="detail-label">Contenu :</div>
+                    <div class="detail-value message-full">{{ selectedNews.content }}</div>
+                </div>
+
+                <div class="detail-row">
+                    <div class="detail-label">Vues :</div>
+                    <div class="detail-value">👁️ {{ selectedNews.viewCount || 0 }} vues</div>
+                </div>
+
+                <div class="detail-row">
+                    <div class="detail-label">Date de publication :</div>
+                    <div class="detail-value">{{ formatDate(selectedNews.publishDate) }}</div>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-secondary" (click)="closeDetails()">Fermer</button>
+                <button class="btn btn-warning" *ngIf="selectedNews.status !== 'PUBLISHED'" (click)="publishNews(selectedNews.newsId, $event); closeDetails()">
+                    🚀 Publier
+                </button>
+                <button class="btn btn-primary" (click)="editNews(selectedNews, $event); closeDetails()">
+                    ✏️ Modifier
+                </button>
+            </div>
+        </div>
+    </div>
+
+</div>
