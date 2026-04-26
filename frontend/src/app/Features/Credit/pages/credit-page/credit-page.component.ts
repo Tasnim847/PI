@@ -7,11 +7,11 @@ import { CreditService, Credit, CreditRequest, CreditStatus } from '../../servic
 
 // ========== CONSTANTES POUR LES STATUTS ==========
 const STATUS_LABELS: Record<CreditStatus, string> = {
-  'PENDING': 'En attente',
-  'APPROVED': 'Approuvé',
-  'REJECTED': 'Rejeté',
-  'IN_REPAYMENT': 'En remboursement',
-  'CLOSED': 'Clôturé'
+  'PENDING': 'Pending',
+  'APPROVED': 'Approved',
+  'REJECTED': 'Rejected',
+  'IN_REPAYMENT': 'In Repayment',
+  'CLOSED': 'Closed'
 };
 
 const STATUS_CLASSES: Record<CreditStatus, string> = {

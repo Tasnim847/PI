@@ -1,12 +1,12 @@
 <div class="container mt-4">
-  <!-- ========== EN-TÊTE ========== -->
+  <!-- ========== HEADER ========== -->
   <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-      <h2 class="mb-0">Remboursement de Crédit</h2>
-      <p class="text-muted mb-0">Gérez vos remboursements</p>
+      <h2 class="mb-0">Credit Repayment</h2>
+      <p class="text-muted mb-0">Manage your repayments</p>
     </div>
     <button class="btn btn-outline-secondary" (click)="goBack()">
-      <i class="fas fa-arrow-left"></i> Retour
+      <i class="fas fa-arrow-left"></i> Back
     </button>
   </div>
 
@@ -24,62 +24,62 @@
   <!-- ========== SPINNER ========== -->
   <div *ngIf="isLoading" class="text-center py-5">
     <div class="spinner-border text-primary" role="status">
-      <span class="visually-hidden">Chargement...</span>
+      <span class="visually-hidden">Loading...</span>
     </div>
   </div>
 
-  <!-- ========== CONTENU PRINCIPAL ========== -->
+  <!-- ========== MAIN CONTENT ========== -->
   <div *ngIf="!isLoading && credit" class="row">
-    <!-- DÉTAILS DU CRÉDIT -->
+    <!-- CREDIT DETAILS -->
     <div class="col-lg-6 mb-4">
       <div class="card">
         <div class="card-header bg-primary text-white">
-          <h5 class="mb-0">Détails du Crédit</h5>
+          <h5 class="mb-0">Credit Details</h5>
         </div>
         <div class="card-body">
           <div class="row mb-3">
             <div class="col-6">
-              <label class="text-muted small">Montant Total</label>
+              <label class="text-muted small">Total Amount</label>
               <p class="h6">{{ formatAmount(credit.amount) }}</p>
             </div>
             <div class="col-6">
-              <label class="text-muted small">Taux d'Intérêt</label>
+              <label class="text-muted small">Interest Rate</label>
               <p class="h6">{{ credit.interestRate }}%</p>
             </div>
           </div>
 
           <div class="row mb-3">
             <div class="col-6">
-              <label class="text-muted small">Durée</label>
-              <p class="h6">{{ credit.durationInMonths }} mois</p>
+              <label class="text-muted small">Duration</label>
+              <p class="h6">{{ credit.durationInMonths }} months</p>
             </div>
             <div class="col-6">
-              <label class="text-muted small">Paiement Mensuel</label>
+              <label class="text-muted small">Monthly Payment</label>
               <p class="h6">{{ formatAmount(credit.monthlyPayment) }}</p>
             </div>
           </div>
 
           <div class="row mb-3">
             <div class="col-6">
-              <label class="text-muted small">Date de Début</label>
+              <label class="text-muted small">Start Date</label>
               <p class="h6">{{ formatDate(credit.startDate) }}</p>
             </div>
             <div class="col-6">
-              <label class="text-muted small">Date de Fin</label>
+              <label class="text-muted small">End Date</label>
               <p class="h6">{{ formatDate(credit.endDate) }}</p>
             </div>
           </div>
 
           <div class="row mb-3">
             <div class="col-12">
-              <label class="text-muted small">Montant Restant à Payer</label>
+              <label class="text-muted small">Remaining Amount</label>
               <p class="h4 text-danger mb-0">{{ formatAmount(remainingAmount) }}</p>
             </div>
           </div>
 
           <div class="row">
             <div class="col-12">
-              <label class="text-muted small">Statut</label>
+              <label class="text-muted small">Status</label>
               <p class="h6">
                 <span [ngClass]="'badge bg-' + (credit.status === 'APPROVED' ? 'success' : credit.status === 'PENDING' ? 'warning' : 'danger')">
                   {{ credit.status }}
@@ -91,17 +91,17 @@
       </div>
     </div>
 
-    <!-- FORMULAIRE DE REMBOURSEMENT -->
+    <!-- REPAYMENT FORM -->
     <div class="col-lg-6 mb-4">
       <div class="card">
         <div class="card-header bg-success text-white">
-          <h5 class="mb-0">Effectuer un Remboursement</h5>
+          <h5 class="mb-0">Make a Repayment</h5>
         </div>
         <div class="card-body">
           <form (ngSubmit)="submitRepayment()">
-            <!-- Montant -->
+            <!-- Amount -->
             <div class="mb-3">
-              <label for="amount" class="form-label">Montant à Rembourser</label>
+              <label for="amount" class="form-label">Amount to Repay</label>
               <div class="input-group">
                 <span class="input-group-text">TND</span>
                 <input
@@ -118,16 +118,16 @@
                 />
               </div>
               <small class="text-muted d-block mt-1">
-                Montant mensuel: {{ formatAmount(credit.monthlyPayment) }}
+                Monthly amount: {{ formatAmount(credit.monthlyPayment) }}
               </small>
               <small class="text-muted d-block">
                 Maximum: {{ formatAmount(credit.monthlyPayment * 1.5) }}
               </small>
             </div>
 
-            <!-- Méthode de Paiement -->
+            <!-- Payment Method -->
             <div class="mb-3">
-              <label for="method" class="form-label">Méthode de Paiement</label>
+              <label for="method" class="form-label">Payment Method</label>
               <select
                 class="form-select"
                 id="method"
@@ -135,21 +135,21 @@
                 name="method"
                 [disabled]="isSubmitting"
               >
-                <option value="CASH">Espèces</option>
-                <option value="CARD">Carte Bancaire</option>
-                <option value="BANK_TRANSFER">Virement Bancaire</option>
+                <option value="CASH">Cash</option>
+                <option value="CARD">Credit Card</option>
+                <option value="BANK_TRANSFER">Bank Transfer</option>
               </select>
             </div>
 
-            <!-- Résumé -->
+            <!-- Summary -->
             <div class="alert alert-info mb-3">
               <small>
-                <strong>Montant à payer:</strong> {{ formatAmount(repaymentAmount) }}<br>
-                <strong>Reste après paiement:</strong> {{ formatAmount(getRemainingAmount()) }}
+                <strong>Amount to pay:</strong> {{ formatAmount(repaymentAmount) }}<br>
+                <strong>Remaining after payment:</strong> {{ formatAmount(getRemainingAmount()) }}
               </small>
             </div>
 
-            <!-- Boutons -->
+            <!-- Buttons -->
             <div class="d-grid gap-2">
               <button
                 type="submit"
@@ -157,11 +157,11 @@
                 [disabled]="!isRepaymentValid() || isSubmitting"
               >
                 <span *ngIf="!isSubmitting">
-                  <i class="fas fa-check"></i> Confirmer le Remboursement
+                  <i class="fas fa-check"></i> Confirm Repayment
                 </span>
                 <span *ngIf="isSubmitting">
                   <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                  Traitement...
+                  Processing...
                 </span>
               </button>
               <button
@@ -170,7 +170,7 @@
                 (click)="goBack()"
                 [disabled]="isSubmitting"
               >
-                Annuler
+                Cancel
               </button>
             </div>
           </form>
@@ -179,13 +179,13 @@
     </div>
   </div>
 
-  <!-- ========== HISTORIQUE DES REMBOURSEMENTS ========== -->
+  <!-- ========== REPAYMENT HISTORY ========== -->
   <div *ngIf="!isLoading && myRepayments.length > 0" class="row mt-4">
     <div class="col-12">
       <div class="card">
         <div class="card-header bg-info text-white">
           <h5 class="mb-0">
-            <i class="fas fa-history"></i> Historique de mes Remboursements
+            <i class="fas fa-history"></i> My Repayment History
           </h5>
         </div>
         <div class="card-body p-0">
@@ -194,9 +194,9 @@
               <thead class="table-light">
                 <tr>
                   <th>Date</th>
-                  <th>Montant</th>
-                  <th>Méthode</th>
-                  <th>Statut</th>
+                  <th>Amount</th>
+                  <th>Method</th>
+                  <th>Status</th>
                 </tr>
               </thead>
               <tbody>
@@ -218,12 +218,12 @@
     </div>
   </div>
 
-  <!-- MESSAGE VIDE -->
+  <!-- EMPTY MESSAGE -->
   <div *ngIf="!isLoading && !credit" class="alert alert-warning">
-    <i class="fas fa-info-circle"></i> Aucun crédit trouvé
+    <i class="fas fa-info-circle"></i> No credit found
   </div>
 
   <div *ngIf="!isLoading && myRepayments.length === 0 && credit" class="alert alert-info mt-4">
-    <i class="fas fa-info-circle"></i> Aucun remboursement effectué pour le moment
+    <i class="fas fa-info-circle"></i> No repayments made yet
   </div>
 </div>
