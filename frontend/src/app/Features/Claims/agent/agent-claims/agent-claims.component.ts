@@ -12,6 +12,13 @@ export interface Claim {
   status: string;
   claimDate: Date;
   message?: string;
+  client?: {
+    id: number;
+    firstName: string;
+    lastName: string;
+    email: string;
+    telephone: string;
+  };
 }
 
 @Component({
@@ -27,7 +34,10 @@ export class AgentClaimsComponent implements OnInit {
   error: string | null = null;
   approvedAmounts: { [key: number]: number } = {};
   rejectionReasons: { [key: number]: string } = {};
-  selectedCompensation: string | null = null;
+  selectedCompensation: any = null;
+  searchTerm: string = '';
+  selectedStatus: string = 'ALL';
+  filteredClaims: Claim[] = [];
 
   constructor(private http: HttpClient) {}
 
@@ -43,6 +53,7 @@ export class AgentClaimsComponent implements OnInit {
       .subscribe({
         next: (data) => {
           this.claims = data;
+          this.filteredClaims = data;
           this.loading = false;
         },
         error: (err) => {
@@ -53,6 +64,59 @@ export class AgentClaimsComponent implements OnInit {
       });
   }
 
+  // Filter methods
+  filterClaims() {
+    let filtered = [...this.claims];
+    
+    // Filter by status
+    if (this.selectedStatus !== 'ALL') {
+      filtered = filtered.filter(c => c.status === this.selectedStatus);
+    }
+    
+    // Filter by search term
+    if (this.searchTerm.trim()) {
+      const term = this.searchTerm.toLowerCase();
+      filtered = filtered.filter(c => 
+        c.claimId.toString().includes(term) ||
+        c.client?.firstName?.toLowerCase().includes(term) ||
+        c.client?.lastName?.toLowerCase().includes(term) ||
+        c.client?.email?.toLowerCase().includes(term) ||
+        c.description?.toLowerCase().includes(term)
+      );
+    }
+    
+    this.filteredClaims = filtered;
+  }
+
+  setFilter(status: string) {
+    this.selectedStatus = status;
+    this.filterClaims();
+  }
+
+  clearFilters() {
+    this.searchTerm = '';
+    this.selectedStatus = 'ALL';
+    this.filterClaims();
+  }
+
+  // Statistics methods
+  getTotalClaims(): number {
+    return this.claims.length;
+  }
+
+  getPendingCount(): number {
+    return this.claims.filter(c => c.status === 'IN_REVIEW').length;
+  }
+
+  getApprovedCount(): number {
+    return this.claims.filter(c => c.status === 'APPROVED').length;
+  }
+
+  getRejectedCount(): number {
+    return this.claims.filter(c => c.status === 'REJECTED').length;
+  }
+
+  // Approve claim
   approveClaim(claimId: number) {
     const approvedAmount = this.approvedAmounts[claimId];
     
@@ -67,6 +131,7 @@ export class AgentClaimsComponent implements OnInit {
       return;
     }
 
+    this.loading = true;
     this.http.post<Claim>(`http://localhost:8081/claims/approve/${claimId}`, null, {
       params: { approvedAmount: approvedAmount.toString() }
     }).subscribe({
@@ -75,16 +140,19 @@ export class AgentClaimsComponent implements OnInit {
         if (index !== -1) {
           this.claims[index] = updatedClaim;
         }
+        this.filterClaims();
         alert(`✅ Réclamation #${claimId} approuvée avec succès !`);
         delete this.approvedAmounts[claimId];
-        this.loadClaims();
+        this.loading = false;
       },
       error: (err) => {
+        this.loading = false;
         alert('Erreur: ' + (err.error?.message || err.message));
       }
     });
   }
 
+  // Reject claim
   rejectClaim(claimId: number) {
     const reason = this.rejectionReasons[claimId];
     
@@ -93,6 +161,7 @@ export class AgentClaimsComponent implements OnInit {
       return;
     }
 
+    this.loading = true;
     this.http.post<Claim>(`http://localhost:8081/claims/reject/${claimId}`, null, {
       params: { reason: reason }
     }).subscribe({
@@ -101,24 +170,42 @@ export class AgentClaimsComponent implements OnInit {
         if (index !== -1) {
           this.claims[index] = updatedClaim;
         }
+        this.filterClaims();
         alert(`❌ Réclamation #${claimId} rejetée`);
         delete this.rejectionReasons[claimId];
+        this.loading = false;
       },
       error: (err) => {
+        this.loading = false;
         alert('Erreur: ' + (err.error?.message || err.message));
       }
     });
   }
 
+  // View compensation
   viewCompensation(claimId: number) {
-    this.http.get(`http://localhost:8081/claims/calculate-compensation/${claimId}/text`, {
-      responseType: 'text'
+    this.loading = true;
+    this.http.get(`http://localhost:8081/claims/calculate-compensation/${claimId}`, {
+      responseType: 'json'
     }).subscribe({
       next: (data) => {
         this.selectedCompensation = data;
+        this.loading = false;
       },
       error: (err) => {
-        alert('Erreur lors du calcul de la compensation');
+        this.loading = false;
+        // Try text response as fallback
+        this.http.get(`http://localhost:8081/claims/calculate-compensation/${claimId}/text`, {
+          responseType: 'text'
+        }).subscribe({
+          next: (textData) => {
+            this.selectedCompensation = textData;
+          },
+          error: (textErr) => {
+            alert('Erreur lors du calcul de la compensation');
+            console.error(textErr);
+          }
+        });
       }
     });
   }
@@ -129,11 +216,23 @@ export class AgentClaimsComponent implements OnInit {
 
   getStatusLabel(status: string): string {
     const labels: { [key: string]: string } = {
-      'IN_REVIEW': '📝 En révision',
-      'APPROVED': '✅ Approuvé',
-      'REJECTED': '❌ Rejeté',
-      'COMPENSATED': '💰 Compensé'
+      'IN_REVIEW': 'En révision',
+      'APPROVED': 'Approuvé',
+      'REJECTED': 'Rejeté',
+      'COMPENSATED': 'Compensé',
+      'PAID': 'Payé'
     };
     return labels[status] || status;
+  }
+
+  getStatusClass(status: string): string {
+    const classes: { [key: string]: string } = {
+      'IN_REVIEW': 'warning',
+      'APPROVED': 'success',
+      'REJECTED': 'danger',
+      'COMPENSATED': 'info',
+      'PAID': 'success'
+    };
+    return classes[status] || 'secondary';
   }
 }

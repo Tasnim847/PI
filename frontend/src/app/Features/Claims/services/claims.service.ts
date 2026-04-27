@@ -4,6 +4,7 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { ClaimDTO } from '../../../shared/dto/claim-dto.model';
 import { ClaimScoreDTO, ClientScoreResult, DetailedAnalysis } from '../../../shared/dto/scoring-dto.model';
+import { Claim } from '../../../shared';
 
 @Injectable({
   providedIn: 'root'
@@ -15,6 +16,19 @@ export class ClaimsService {
 
   constructor(private http: HttpClient) { }
 
+  // Ajoutez cette méthode dans ClaimsService
+private getHeaders(): HttpHeaders {
+  const token = localStorage.getItem('token');
+  let headers = new HttpHeaders({
+    'Content-Type': 'application/json'
+  });
+  
+  if (token) {
+    headers = headers.set('Authorization', `Bearer ${token}`);
+  }
+  
+  return headers;
+}
   getMyClaims(): Observable<ClaimDTO[]> {
     return this.http.get<ClaimDTO[]>(`${this.apiUrl}/allClaim`);
   }
@@ -113,4 +127,11 @@ export class ClaimsService {
     // You might need to create a batch endpoint or call individually
     return this.http.get<ClaimScoreDTO[]>(`${this.scoringApiUrl}/claims/all-scores`);
   }
+
+
+  // Dans votre ClaimsService, vous avez maintenant :
+getAllClaims(): Observable<Claim[]> {
+  return this.http.get<Claim[]>(`${this.apiUrl}/claims/all`, { headers: this.getHeaders() });
+}
+  
 }

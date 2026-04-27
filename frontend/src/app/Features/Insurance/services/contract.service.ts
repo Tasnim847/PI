@@ -6,6 +6,7 @@ import { RiskEvaluationDTO } from '../../../shared/dto/risk-evaluation.dto';
 import { RiskFactorDTO } from '../../../shared/dto/risk-factor.dto';
 import { CategoryRiskDTO } from '../../../shared/dto/category-risk.dto';
 import { environment } from '../../../../environments/environment'; 
+import { InsuranceContract } from '../../../shared';
 
 export interface CashApprovalRequest {
   id: number;
@@ -615,6 +616,36 @@ export class ContractService {
     }).pipe(catchError(this.handleError));
   }
 
+
+  getAgentContracts(agentId: number): Observable<InsuranceContract[]> {
+    return this.http.get<InsuranceContract[]>(`${this.apiUrl}/agents-assurance/${agentId}/contracts`, { headers: this.getHeaders() });
+  }
+
+
+
+  /**
+    * Vérifier et envoyer les rappels pour un contrat spécifique
+    * @param contractId L'ID du contrat
+    * @returns Observable contenant la réponse avec le nombre de rappels envoyés
+  */
+  checkContractReminders(contractId: number): Observable<any> {
+    return this.http.post(`${environment.apiUrl}/api/reminders/check-contract/${contractId}`, {}, {
+      headers: this.getHeaders()
+    }).pipe(
+      catchError(this.handleError),
+      map(response => {
+        console.log('Rappels envoyés pour contrat', contractId, response);
+        return response;
+      })
+    );
+  }
+
+
+  sendTestReminder(contractId: number, daysBefore: number): Observable<any> {
+    return this.http.post(`http://localhost:8081/api/reminders/test/${contractId}/${daysBefore}`, {}, {
+      headers: this.getHeaders()
+    }).pipe(catchError(this.handleError));
+  }
   // ========== UTILITAIRES ==========
   
   isAdmin(): boolean {

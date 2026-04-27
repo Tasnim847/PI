@@ -1,0 +1,193 @@
+<!-- Main Content -->
+<div class="agent-dashboard" style="margin-top: 76px;">
+  <div class="container-fluid px-4 py-4">
+    
+    <!-- Welcome Banner -->
+    <div class="welcome-banner mb-4">
+      <div class="row align-items-center">
+        <div class="col-md-8">
+          <h1 class="display-6 fw-bold mb-2">
+            Hello, Agent {{ firstName }} {{ lastName }}!
+          </h1>
+          <p class="lead mb-0">Welcome to your Insurance Agent Dashboard</p>
+        </div>
+        <div class="col-md-4 text-md-end">
+          <div class="date-badge">
+            <i class="fas fa-calendar-alt me-2"></i>
+            {{ currentDate }}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row mb-4">
+      <div class="col-md-3 mb-3">
+        <div class="stat-card">
+          <div class="stat-icon bg-primary bg-opacity-10">
+            <i class="fas fa-file-contract text-primary"></i>
+          </div>
+          <div class="stat-info">
+            <h2 class="mb-0">{{ contracts.length }}</h2>
+            <p class="text-muted mb-0">Total Contracts</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3 mb-3">
+        <div class="stat-card">
+          <div class="stat-icon bg-warning bg-opacity-10">
+            <i class="fas fa-exclamation-triangle text-warning"></i>
+          </div>
+          <div class="stat-info">
+            <h2 class="mb-0">{{ pendingClaims }}</h2>
+            <p class="text-muted mb-0">Pending Claims</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3 mb-3">
+        <div class="stat-card">
+          <div class="stat-icon bg-success bg-opacity-10">
+            <i class="fas fa-check-circle text-success"></i>
+          </div>
+          <div class="stat-info">
+            <h2 class="mb-0">{{ approvedClaims }}</h2>
+            <p class="text-muted mb-0">Approved Claims</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3 mb-3">
+        <div class="stat-card">
+          <div class="stat-icon bg-info bg-opacity-10">
+            <i class="fas fa-users text-info"></i>
+          </div>
+          <div class="stat-info">
+            <h2 class="mb-0">{{ clients.length }}</h2>
+            <p class="text-muted mb-0">My Clients</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row mb-4">
+      <div class="col-12">
+        <div class="actions-card">
+          <div class="card-body p-4">
+            <h5 class="mb-3">Quick Actions</h5>
+            <div class="row g-3">
+              <div class="col-md-3 col-6">
+                <button class="action-btn w-100" (click)="goToContracts()">
+                  <i class="fas fa-file-signature fa-2x mb-2"></i>
+                  <span>📋 View Contracts</span>
+                </button>
+              </div>
+              <div class="col-md-3 col-6">
+                <button class="action-btn w-100" (click)="goToClaims()">
+                  <i class="fas fa-hand-holding-usd fa-2x mb-2"></i>
+                  <span>💰 Manage Claims</span>
+                </button>
+              </div>
+              <div class="col-md-3 col-6">
+                <button class="action-btn w-100" (click)="goToCashApprovals()">
+                  <i class="fas fa-money-bill-wave fa-2x mb-2"></i>
+                  <span>💵 Cash Approvals</span>
+                </button>
+              </div>
+              
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent Contracts -->
+    <div class="row mb-4">
+      <div class="col-12">
+        <div class="transactions-card">
+          <div class="card-body p-0">
+            <div class="d-flex justify-content-between align-items-center p-4 border-bottom">
+              <h5 class="mb-0">📋 Recent Contracts</h5>
+              <a href="javascript:void(0)" class="text-decoration-none" (click)="goToContracts()">
+                View all <i class="fas fa-chevron-right ms-1"></i>
+              </a>
+            </div>
+            <div class="table-responsive">
+              <table class="table table-hover mb-0">
+                <thead>
+                  <tr>
+                    <th>Contract ID</th>
+                    <th>Client</th>
+                    <th>Start Date</th>
+                    <th>Premium</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let contract of recentContracts">
+                    <td>#{{ contract.contractId }}</td>
+                    <td>{{ contract.client?.firstName }} {{ contract.client?.lastName }}</td>
+                    <td>{{ contract.startDate | date:'dd/MM/yyyy' }}</td>
+                    <td>{{ contract.premium | currency:'TND' }}</td>
+                    <td>
+                      <span class="badge" [class.bg-success]="contract.status === 'ACTIVE'" 
+                            [class.bg-warning]="contract.status === 'PENDING'"
+                            [class.bg-danger]="contract.status === 'EXPIRED'">
+                        {{ contract.status }}
+                      </span>
+                    </td>
+                    <td>
+                      <button class="btn btn-sm btn-outline-primary" (click)="viewContract(contract.contractId)">
+                        <i class="fas fa-eye"></i>
+                      </button>
+                    </td>
+                  </tr>
+                  <tr *ngIf="recentContracts.length === 0">
+                    <td colspan="6" class="text-center text-muted py-4">No contracts found</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pending Claims & Clients -->
+    <div class="row">
+      <div class="col-md-6 mb-4">
+        <div class="savings-card h-100">
+          <div class="card-body p-4">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+              <h5 class="mb-0">⚠️ Pending Claims</h5>
+              <button class="btn btn-sm btn-outline-primary" (click)="goToClaims()">
+                View all
+              </button>
+            </div>
+            <div *ngFor="let claim of pendingClaimsList" class="pending-item border-bottom pb-3 mb-3">
+              <div class="d-flex justify-content-between align-items-start">
+                <div>
+                  <h6 class="mb-1">Claim #{{ claim.claimId }}</h6>
+                  <small class="text-muted">{{ claim.client?.firstName }} {{ claim.client?.lastName }}</small>
+                  <br>
+                  <small class="text-muted">{{ claim.claimDate | date:'dd/MM/yyyy' }}</small>
+                </div>
+                <div class="text-end">
+                  <span class="badge bg-warning mb-2">Pending</span>
+                  <br>
+                  <strong>{{ claim.claimedAmount | currency:'TND' }}</strong>
+                </div>
+              </div>
+            </div>
+            <div *ngIf="pendingClaimsList.length === 0" class="text-center text-muted py-4">
+              No pending claims
+            </div>
+          </div>
+        </div>
+      </div>
+
+      
+    </div>
+
+  </div>
+</div>

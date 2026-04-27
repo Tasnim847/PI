@@ -154,8 +154,19 @@ export class NavbarComponent implements OnInit, OnDestroy {
     return '/public/claims'; // Fallback
   }
 
+  // Méthode pour la visibilité du lien Compensation
   isCompensationVisible(): boolean {
     return this.userRole === 'CLIENT' || this.userRole === 'AGENT_ASSURANCE';
+  }
+
+  // Méthode pour obtenir le bon lien selon le rôle
+  getCompensationLink(): string {
+    if (this.userRole === 'AGENT_ASSURANCE') {
+      return '/public/agent/compensations';  // Page avec toutes les compensations
+    } else if (this.userRole === 'CLIENT') {
+      return '/public/compensations';         // Page avec ses propres compensations
+    }
+    return '/public/compensations';
   }
   
   logout(event: Event) {
@@ -168,12 +179,26 @@ export class NavbarComponent implements OnInit, OnDestroy {
   }
   // Ajoutez cette méthode
 
-getComplaintLink(): string {
+  getComplaintLink(): string {
     if (this.userRole === 'CLIENT') {
         return '/public/my-complaints';
     } else if (this.userRole === 'AGENT_ASSURANCE' || this.userRole === 'AGENT_FINANCE') {
         return '/public/agent/complaints';  // ← Changement ici : ajouter /public/
     }
     return '/public/my-complaints';
-}
+  }
+
+ // Dans la classe NavbarComponent
+  getHomeLink(): string {
+    if (this.userRole === 'AGENT_ASSURANCE') {
+      return '/public/agent/home';
+    } else if (this.userRole === 'CLIENT') {
+      return '/public/home';
+    } else if (this.userRole === 'AGENT_FINANCE') {
+      return '/public/agent-finance/home';
+    } else if (this.userRole === 'ADMIN') {
+      return '/backoffice';
+    }
+    return '/public/home';
+  }
 }

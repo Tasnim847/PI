@@ -2,14 +2,17 @@ package org.example.projet_pi.Controller;
 
 import lombok.AllArgsConstructor;
 import org.example.projet_pi.Dto.ClaimScoreDTO;
+import org.example.projet_pi.Dto.ClientDTO;
 import org.example.projet_pi.Dto.CompensationDTO;
 import org.example.projet_pi.Repository.AccountRepository;
+import org.example.projet_pi.Repository.AgentAssuranceRepository;
 import org.example.projet_pi.Repository.ClaimRepository;
 import org.example.projet_pi.Repository.ClientRepository;
 import org.example.projet_pi.Service.AdvancedClaimScoringService;
 import org.example.projet_pi.Service.CompensationService;
 import org.example.projet_pi.Service.PaymentService;
 import org.example.projet_pi.entity.Account;
+import org.example.projet_pi.entity.AgentAssurance;
 import org.example.projet_pi.entity.Claim;
 import org.example.projet_pi.entity.Client;
 import org.springframework.http.ResponseEntity;
@@ -17,6 +20,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,6 +37,7 @@ public class CompensationController {
     private final ClientRepository clientRepository;
     private final AccountRepository accountRepository;
     private final PaymentService paymentService; // ✅ Injecter PaymentService pour Stripe
+    private final AgentAssuranceRepository agentAssuranceRepository;
 
 
     @PostMapping("/addComp")
@@ -418,6 +423,81 @@ public class CompensationController {
             response.put("error", e.getMessage());
             return ResponseEntity.badRequest().body(response);
         }
+    }
+
+    // Dans CompensationController.java, ajoutez ces méthodes :
+
+    /**
+     * 🔥 NOUVEAU : L'agent d'assurance voit les compensations de ses clients
+     */
+    /**
+     * 🔥 NOUVEAU : L'agent d'assurance voit les compensations de ses clients
+     */
+    @GetMapping("/agent/compensations")
+    public ResponseEntity<List<CompensationDTO>> getAgentCompensations(
+            @AuthenticationPrincipal UserDetails currentUser) {
+
+        // Récupérer l'agent connecté
+        AgentAssurance agent = agentAssuranceRepository.findByEmail(currentUser.getUsername())
+                .orElseThrow(() -> new RuntimeException("Agent non trouvé"));
+
+        // Récupérer tous les clients de cet agent
+        List<Client> clients = clientRepository.findByAgentAssuranceId(agent.getId());
+
+        // Récupérer toutes les compensations des clients
+        List<CompensationDTO> compensations = new ArrayList<>();
+
+        for (Client client : clients) {
+            List<Claim> clientClaims = claimRepository.findByClientId(client.getId());
+            for (Claim claim : clientClaims) {
+                if (claim.getCompensation() != null) {
+                    CompensationDTO compensationDTO = compensationService.getCompensationById(
+                            claim.getCompensation().getCompensationId()
+                    );
+
+                    // 🔥 Ajouter explicitement les informations du client
+                    ClientDTO clientDTO = new ClientDTO();
+                    clientDTO.setId(client.getId());
+                    clientDTO.setFirstName(client.getFirstName());
+                    clientDTO.setLastName(client.getLastName());
+                    clientDTO.setEmail(client.getEmail());
+                    clientDTO.setTelephone(client.getTelephone());
+                    compensationDTO.setClient(clientDTO);
+
+                    compensations.add(compensationDTO);
+                }
+            }
+        }
+
+        return ResponseEntity.ok(compensations);
+    }
+
+
+    /**
+     * 🔥 NOUVEAU : L'agent d'assurance voit la liste de ses clients
+     */
+    @GetMapping("/agent/clients")
+    public ResponseEntity<List<ClientDTO>> getAgentClients(
+            @AuthenticationPrincipal UserDetails currentUser) {
+
+        AgentAssurance agent = agentAssuranceRepository.findByEmail(currentUser.getUsername())
+                .orElseThrow(() -> new RuntimeException("Agent non trouvé"));
+
+        List<Client> clients = clientRepository.findByAgentAssuranceId(agent.getId());
+
+        List<ClientDTO> clientDTOs = clients.stream()
+                .map(client -> {
+                    ClientDTO dto = new ClientDTO();
+                    dto.setId(client.getId());
+                    dto.setFirstName(client.getFirstName());
+                    dto.setLastName(client.getLastName());
+                    dto.setEmail(client.getEmail());
+                    dto.setTelephone(client.getTelephone());
+                    return dto;
+                })
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(clientDTOs);
     }
 
 }

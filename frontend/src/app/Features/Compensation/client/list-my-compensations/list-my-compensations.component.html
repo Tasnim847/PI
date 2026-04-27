@@ -1,312 +1,397 @@
-<div class="container mt-4">
-  <div class="d-flex justify-content-between align-items-center mb-4">
-    <button class="btn btn-outline-primary" (click)="loadCompensations()">
-      <i class="bi bi-arrow-repeat"></i> Refresh
-    </button>
+<div class="compensations-dashboard">
+  <!-- Header avec animation -->
+  <div class="dashboard-header">
+    <div class="header-content">
+      <div class="title-section">
+        <div class="icon-wrapper">
+          <i class="bi bi-cash-stack-fill"></i>
+        </div>
+        <div>
+          <h1 class="page-title">My Compensations</h1>
+          <p class="page-subtitle">Manage your insurance compensations and payments</p>
+        </div>
+      </div>
+      <button class="btn-refresh" (click)="loadCompensations()">
+        <i class="bi bi-arrow-repeat"></i> Refresh
+      </button>
+    </div>
+  </div>
+
+  <!-- Alert messages -->
+  <div *ngIf="successMessage" class="alert alert-success alert-dismissible fade show" role="alert">
+    <i class="bi bi-check-circle-fill me-2"></i>{{ successMessage }}
+    <button type="button" class="btn-close" (click)="successMessage = ''"></button>
+  </div>
+
+  <div *ngIf="error" class="alert alert-danger alert-dismissible fade show" role="alert">
+    <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ error }}
+    <button type="button" class="btn-close" (click)="error = ''"></button>
   </div>
 
   <!-- Loading spinner -->
-  <div *ngIf="loading" class="text-center">
-    <div class="spinner-border text-primary" role="status">
-      <span class="visually-hidden">Loading...</span>
+  <div *ngIf="loading" class="loading-container">
+    <div class="spinner"></div>
+    <p>Loading your compensations...</p>
+  </div>
+
+  <!-- Stats Cards -->
+  <div *ngIf="!loading && compensations.length > 0" class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-icon total">
+        <i class="bi bi-calculator"></i>
+      </div>
+      <div class="stat-info">
+        <h3>{{ compensations.length }}</h3>
+        <p>Total Compensations</p>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon calculated">
+        <i class="bi bi-clock-history"></i>
+      </div>
+      <div class="stat-info">
+        <h3>{{ getCalculatedCount() }}</h3>
+        <p>Ready to Pay</p>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon paid">
+        <i class="bi bi-check-circle"></i>
+      </div>
+      <div class="stat-info">
+        <h3>{{ getPaidCount() }}</h3>
+        <p>Paid</p>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon amount">
+        <i class="bi bi-cash"></i>
+      </div>
+      <div class="stat-info">
+        <h3>{{ getTotalOutOfPocket() | currency:'EUR' }}</h3>
+        <p>Total Out of Pocket</p>
+      </div>
     </div>
   </div>
 
-  <!-- Error message -->
-  <div *ngIf="error" class="alert alert-danger alert-dismissible fade show" role="alert">
-    {{ error }}
-    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-  </div>
-
-  <!-- Success message -->
-  <div *ngIf="paymentStatus?.success" class="alert alert-success alert-dismissible fade show" role="alert">
-    <i class="bi bi-check-circle"></i> {{ paymentStatus.message }}
-    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-  </div>
-
-  <div class="row g-4">
-    <!-- Compensations list - Left Column -->
-    <div class="col-lg-8">
-      <div *ngIf="!loading && compensations.length === 0" class="alert alert-info">
-        <i class="bi bi-info-circle"></i> You have no compensations at the moment.
+  <!-- Filters -->
+  <div *ngIf="!loading && compensations.length > 0" class="filters-card">
+    <div class="filters-content">
+      <div class="filter-group">
+        <label class="filter-label">
+          <i class="bi bi-funnel"></i>
+          Filter by Status
+        </label>
+        <select class="filter-select" [(ngModel)]="filterStatus" (change)="applyFilter()">
+          <option value="ALL">All Statuses</option>
+          <option value="CALCULATED">Calculated - Ready to Pay</option>
+          <option value="PAID">Paid</option>
+          <option value="PENDING">Pending</option>
+          <option value="CANCELLED">Cancelled</option>
+        </select>
       </div>
-
-      <div class="row" *ngIf="compensations.length > 0">
-        <div class="col-md-6 mb-4" *ngFor="let compensation of compensations">
-          <div class="card h-100 shadow-sm" [class.selected-for-payment]="selectedCompensationForPayment?.compensationId === compensation.compensationId">
-            <div class="card-header d-flex justify-content-between align-items-center">
-              <strong>Compensation #{{ compensation.compensationId }}</strong>
-              <span [class]="getStatusColor(compensation.status)">
-                {{ compensation.status }}
-              </span>
-            </div>
-            <div class="card-body">
-              <div class="row">
-                <div class="col-6">
-                  <small class="text-muted">Insurance amount:</small><br>
-                  <strong class="text-success">{{ formatAmount(compensation.amount) }}</strong>
-                </div>
-                <div class="col-6">
-                  <small class="text-muted">Out of pocket (to pay):</small><br>
-                  <strong class="text-danger">{{ formatAmount(compensation.clientOutOfPocket) }}</strong>
-                </div>
-                <div class="col-6 mt-2">
-                  <small class="text-muted">Calculation date:</small><br>
-                  <strong>{{ formatDate(compensation.calculationDate) }}</strong>
-                </div>
-                <div class="col-6 mt-2">
-                  <small class="text-muted">Total approved amount:</small><br>
-                  <strong class="text-primary">{{ formatAmount(compensation.approvedAmount) }}</strong>
-                </div>
-              </div>
-              <hr>
-            </div>
-            <div class="card-footer bg-transparent">
-              <button class="btn btn-sm btn-outline-info me-2" (click)="viewCompensationDetails(compensation.compensationId)">
-                <i class="bi bi-graph-up"></i> Details & Scoring
-              </button>
-              <button *ngIf="compensation.status === 'CALCULATED'" 
-                      class="btn btn-sm btn-success" 
-                      (click)="selectCompensationForPayment(compensation)">
-                <i class="bi bi-credit-card"></i> Pay {{ formatAmount(compensation.clientOutOfPocket) }}
-              </button>
-            </div>
-          </div>
+      <div class="filter-group">
+        <label class="filter-label">
+          <i class="bi bi-bar-chart"></i>
+          Results
+        </label>
+        <div class="results-count">
+          <strong>{{ filteredCompensations.length }}</strong> compensation(s)
         </div>
       </div>
     </div>
+  </div>
 
-    <!-- Payment Summary Sidebar - Right Column -->
-    <div class="col-lg-4" *ngIf="selectedCompensationForPayment">
-      <div class="card shadow-sm border-0 rounded-4 mb-4 sticky-top" style="top: 2rem;">
-        <div class="card-body p-4">
-          <div class="text-center mb-4">
-            <div class="summary-icon mx-auto mb-3">
-              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#10b981">
-                <path d="M20 12V8H4v4M20 12v6a2 2 0 01-2 2H6a2 2 0 01-2-2v-6m16 0h-4M4 12H0m20 0h4M12 4v4m0 4v4"/>
-              </svg>
-            </div>
-            <h5 class="fw-semibold mb-2">Payment Summary</h5>
-            <div class="border-top pt-3 mt-2">
-              <div class="d-flex justify-content-between mb-2">
-                <span class="text-muted">Compensation #:</span>
-                <strong class="text-dark">{{ selectedCompensationForPayment.compensationId }}</strong>
-              </div>
-              <div class="d-flex justify-content-between mb-2">
-                <span class="text-muted">Insurance reimbursement:</span>
-                <strong class="text-success">{{ formatAmount(selectedCompensationForPayment.amount) }}</strong>
-              </div>
-              <div class="d-flex justify-content-between pt-2 border-top">
-                <span class="text-muted">Amount to pay (out of pocket):</span>
-                <strong class="fs-4 text-danger">{{ formatAmount(selectedCompensationForPayment.clientOutOfPocket) }}</strong>
-              </div>
-            </div>
+  <!-- Empty state -->
+  <div *ngIf="!loading && filteredCompensations.length === 0" class="empty-state">
+    <div class="empty-state-content">
+      <div class="empty-icon">
+        <i class="bi bi-inbox"></i>
+      </div>
+      <h3>No Compensations Found</h3>
+      <p *ngIf="compensations.length === 0">You haven't received any compensations yet.</p>
+      <p *ngIf="compensations.length > 0">No compensations match your filter criteria.</p>
+      <button class="btn-primary-modern" *ngIf="filterStatus !== 'ALL'" (click)="filterStatus = 'ALL'; applyFilter()">
+        <i class="bi bi-funnel"></i>
+        Clear Filters
+      </button>
+    </div>
+  </div>
+
+  <!-- Compensations grid -->
+  <div *ngIf="!loading && filteredCompensations.length > 0" class="compensations-grid">
+    <div *ngFor="let compensation of getPaginatedCompensations()" class="compensation-card" 
+         [class.selected]="selectedCompensationForPayment?.compensationId === compensation.compensationId">
+      <div class="compensation-card-header">
+        <div class="compensation-id">
+          <i class="bi bi-receipt"></i>
+          <span>#{{ compensation.compensationId }}</span>
+        </div>
+        <div class="compensation-status" [class]="getStatusClass(compensation.status)">
+          {{ compensation.status }}
+        </div>
+      </div>
+      
+      <div class="compensation-card-body">
+        <div class="amounts-grid">
+          <div class="amount-item">
+            <label>Insurance reimbursement</label>
+            <span class="amount insurance">{{ compensation.amount | currency:'EUR' }}</span>
+          </div>
+          <div class="amount-item">
+            <label>Out of pocket (to pay)</label>
+            <span class="amount out-of-pocket">{{ compensation.clientOutOfPocket | currency:'EUR' }}</span>
+          </div>
+          <div class="amount-item">
+            <label>Total approved</label>
+            <span class="amount approved">{{ compensation.approvedAmount | currency:'EUR' }}</span>
+          </div>
+          <div class="amount-item">
+            <label>Calculation date</label>
+            <span class="date">{{ formatDate(compensation.calculationDate) }}</span>
           </div>
         </div>
+        
+        <div *ngIf="compensation.message" class="compensation-message">
+          <i class="bi bi-info-circle"></i>
+          <span>{{ compensation.message }}</span>
+        </div>
+      </div>
+      
+      <div class="compensation-card-footer">
+        <button class="btn-details" (click)="viewCompensationDetails(compensation.compensationId)">
+          <i class="bi bi-graph-up"></i>
+          Details & Scoring
+        </button>
+        
+        <button *ngIf="compensation.status === 'CALCULATED'" 
+                class="btn-pay" 
+                (click)="selectCompensationForPayment(compensation)">
+          <i class="bi bi-credit-card"></i>
+          Pay {{ compensation.clientOutOfPocket | currency:'EUR' }}
+        </button>
+      </div>
+    </div>
+  </div>
 
+  <!-- Pagination -->
+  <div *ngIf="!loading && filteredCompensations.length > 0 && totalPages > 1" class="pagination-container">
+    <button class="page-btn" [class.disabled]="currentPage === 1" (click)="previousPage()">
+      <i class="bi bi-chevron-left"></i> Previous
+    </button>
+    <span class="page-info">{{ currentPage }} / {{ totalPages }}</span>
+    <button class="page-btn" [class.disabled]="currentPage === totalPages" (click)="nextPage()">
+      Next <i class="bi bi-chevron-right"></i>
+    </button>
+  </div>
+
+  <!-- Payment Sidebar -->
+  <div class="payment-sidebar" [class.open]="selectedCompensationForPayment">
+    <div class="payment-sidebar-overlay" (click)="cancelPayment()"></div>
+    <div class="payment-sidebar-content">
+      <div class="payment-sidebar-header">
+        <h3>
+          <i class="bi bi-credit-card"></i>
+          Payment Summary
+        </h3>
+        <button class="btn-close-sidebar" (click)="cancelPayment()">&times;</button>
+      </div>
+      
+      <div class="payment-sidebar-body">
+        <div class="payment-amount-card">
+          <div class="payment-amount-label">Amount to pay</div>
+          <div class="payment-amount-value">{{ selectedCompensationForPayment?.clientOutOfPocket | currency:'EUR' }}</div>
+          <div class="payment-compensation-id">Compensation #{{ selectedCompensationForPayment?.compensationId }}</div>
+        </div>
+        
+        <div class="payment-details">
+          <div class="detail-row">
+            <span>Insurance reimbursement</span>
+            <strong>{{ selectedCompensationForPayment?.amount | currency:'EUR' }}</strong>
+          </div>
+          <div class="detail-row">
+            <span>Total approved</span>
+            <strong>{{ selectedCompensationForPayment?.approvedAmount | currency:'EUR' }}</strong>
+          </div>
+        </div>
+        
         <!-- Payment Method Selection -->
-        <div class="card-body border-top p-4">
-          <h6 class="fw-semibold mb-3 d-flex align-items-center gap-2">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3b82f6">
-              <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/>
-              <line x1="1" y1="10" x2="23" y2="10"/>
-            </svg>
-            Payment Method
-          </h6>
+        <div class="payment-methods">
+          <h4>Payment Method</h4>
           
-          <div class="d-flex flex-column gap-2 mb-3">
-            <label class="payment-method-modern d-flex align-items-center gap-3 p-3 border rounded-3 cursor-pointer"
-                   [class.active-method]="paymentMethod === 'CARD'">
-              <input type="radio" name="paymentMethod" value="CARD" class="d-none" [(ngModel)]="paymentMethod">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/>
-                <line x1="1" y1="10" x2="23" y2="10"/>
-              </svg>
-              <span class="flex-grow-1">Credit Card (Online)</span>
-              <div class="method-check" *ngIf="paymentMethod === 'CARD'">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981">
-                  <polyline points="20 6 9 17 4 12"/>
-                </svg>
-              </div>
-            </label>
-            
-            <label class="payment-method-modern d-flex align-items-center gap-3 p-3 border rounded-3 cursor-pointer"
-                   [class.active-method]="paymentMethod === 'CASH'">
-              <input type="radio" name="paymentMethod" value="CASH" class="d-none" [(ngModel)]="paymentMethod">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                <circle cx="12" cy="12" r="10"/>
-                <path d="M12 6v12M8 8h8M8 16h8"/>
-              </svg>
-              <span class="flex-grow-1">Cash (In Person)</span>
-              <div class="method-check" *ngIf="paymentMethod === 'CASH'">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981">
-                  <polyline points="20 6 9 17 4 12"/>
-                </svg>
-              </div>
-            </label>
+          <label class="payment-method-option" [class.active]="paymentMethod === 'CARD'">
+            <input type="radio" name="paymentMethod" value="CARD" [(ngModel)]="paymentMethod">
+            <div class="method-icon">
+              <i class="bi bi-credit-card"></i>
+            </div>
+            <div class="method-info">
+              <strong>Credit Card</strong>
+              <small>Pay online securely</small>
+            </div>
+            <div class="method-check" *ngIf="paymentMethod === 'CARD'">
+              <i class="bi bi-check-circle-fill"></i>
+            </div>
+          </label>
+          
+          <label class="payment-method-option" [class.active]="paymentMethod === 'CASH'">
+            <input type="radio" name="paymentMethod" value="CASH" [(ngModel)]="paymentMethod">
+            <div class="method-icon">
+              <i class="bi bi-cash"></i>
+            </div>
+            <div class="method-info">
+              <strong>Cash</strong>
+              <small>Pay in person at our office</small>
+            </div>
+            <div class="method-check" *ngIf="paymentMethod === 'CASH'">
+              <i class="bi bi-check-circle-fill"></i>
+            </div>
+          </label>
+        </div>
+        
+        <!-- Card Details Form -->
+        <div class="card-details-form" *ngIf="paymentMethod === 'CARD'">
+          <div class="form-group">
+            <label>Card Number</label>
+            <input type="text" class="form-control" placeholder="1234 5678 9012 3456"
+                   [(ngModel)]="cardDetails.cardNumber">
           </div>
-          
-          <!-- Card Details Form (only shown for CARD payment) -->
-          <div class="card-details-modern bg-light rounded-3 p-3" *ngIf="paymentMethod === 'CARD'">
-            <div class="mb-3">
-              <label class="form-label small fw-semibold">Card Number</label>
-              <input type="text" class="form-control form-control-sm rounded-3" 
-                     placeholder="1234 5678 9012 3456"
-                     [(ngModel)]="cardDetails.cardNumber">
+          <div class="form-group">
+            <label>Cardholder Name</label>
+            <input type="text" class="form-control" placeholder="John DOE"
+                   [(ngModel)]="cardDetails.cardHolder">
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Expiration</label>
+              <input type="text" class="form-control" placeholder="MM/YY"
+                     [(ngModel)]="cardDetails.expiryDate">
             </div>
-            <div class="mb-3">
-              <label class="form-label small fw-semibold">Cardholder Name</label>
-              <input type="text" class="form-control form-control-sm rounded-3" 
-                     placeholder="John DOE"
-                     [(ngModel)]="cardDetails.cardHolder">
-            </div>
-            <div class="row g-2">
-              <div class="col-6">
-                <label class="form-label small fw-semibold">Expiration</label>
-                <input type="text" class="form-control form-control-sm rounded-3" 
-                       placeholder="MM/YY"
-                       [(ngModel)]="cardDetails.expiryDate">
-              </div>
-              <div class="col-6">
-                <label class="form-label small fw-semibold">CVV</label>
-                <input type="password" class="form-control form-control-sm rounded-3" 
-                       placeholder="123"
-                       [(ngModel)]="cardDetails.cvv">
-              </div>
+            <div class="form-group">
+              <label>CVV</label>
+              <input type="password" class="form-control" placeholder="123"
+                     [(ngModel)]="cardDetails.cvv">
             </div>
           </div>
         </div>
-
-        <!-- Action Buttons -->
-        <div class="card-footer bg-white border-0 p-4 pt-0">
-          <div class="d-flex gap-3">
-            <button class="btn btn-outline-secondary flex-grow-1 rounded-pill" (click)="cancelPayment()">
-              Cancel
-            </button>
-            <button class="btn btn-danger flex-grow-1 rounded-pill" 
-                    [disabled]="processingPayment"
-                    (click)="processPayment()">
-              <div class="d-flex align-items-center justify-content-center gap-2">
-                <div class="spinner-border spinner-border-sm" *ngIf="processingPayment" role="status"></div>
-                <i *ngIf="!processingPayment" class="bi bi-credit-card"></i>
-                <span>{{ processingPayment ? 'Processing...' : 'Pay ' + formatAmount(selectedCompensationForPayment.clientOutOfPocket) }}</span>
-              </div>
-            </button>
-          </div>
-        </div>
+      </div>
+      
+      <div class="payment-sidebar-footer">
+        <button class="btn-cancel" (click)="cancelPayment()">Cancel</button>
+        <button class="btn-pay-now" [disabled]="processingPayment" (click)="processPayment()">
+          <div class="spinner-border spinner-border-sm" *ngIf="processingPayment" role="status"></div>
+          <ng-container *ngIf="!processingPayment">
+            <i class="bi bi-lock-fill"></i>
+            Pay {{ selectedCompensationForPayment?.clientOutOfPocket | currency:'EUR' }}
+          </ng-container>
+        </button>
       </div>
     </div>
   </div>
 
   <!-- Modal Details with Scoring -->
-  <div class="modal fade" [class.show]="showDetails" [style.display]="showDetails ? 'block' : 'none'" tabindex="-1" *ngIf="showDetails && selectedCompensation">
-    <div class="modal-dialog modal-lg">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title">Complete Compensation Details</h5>
-          <button type="button" class="btn-close" (click)="closeDetails()"></button>
-        </div>
-        <div class="modal-body">
-          <!-- Compensation Details -->
-          <div class="card mb-3">
-            <div class="card-header bg-primary text-white">
-              <strong>Compensation Information</strong>
+  <div class="modal-overlay" *ngIf="showDetails" (click)="closeDetails()">
+    <div class="modal-container modal-lg" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>
+          <i class="bi bi-graph-up"></i>
+          Complete Compensation Details
+        </h3>
+        <button class="modal-close" (click)="closeDetails()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <!-- Compensation Details -->
+        <div class="details-section">
+          <div class="section-title">Compensation Information</div>
+          <div class="details-grid">
+            <div class="detail-row">
+              <label>Compensation ID</label>
+              <span>{{ selectedCompensation?.compensation?.compensationId }}</span>
             </div>
-            <div class="card-body">
-              <div class="row">
-                <div class="col-md-6">
-                  <strong>Compensation ID:</strong> {{ selectedCompensation.compensation?.compensationId }}
-                </div>
-                <div class="col-md-6">
-                  <strong>Status:</strong> {{ selectedCompensation.compensation?.status }}
-                </div>
-                <div class="col-md-6 mt-2">
-                  <strong>Original claimed amount:</strong> {{ formatAmount(selectedCompensation.compensation?.originalClaimedAmount) }}
-                </div>
-                <div class="col-md-6 mt-2">
-                  <strong>Approved amount:</strong> {{ formatAmount(selectedCompensation.compensation?.approvedAmount) }}
-                </div>
-                <div class="col-md-6 mt-2">
-                  <strong>Deductible:</strong> {{ formatAmount(selectedCompensation.compensation?.deductible) }}
-                </div>
-                <div class="col-md-6 mt-2">
-                  <strong>Coverage limit:</strong> {{ formatAmount(selectedCompensation.compensation?.coverageLimit) }}
-                </div>
-                <div class="col-md-6 mt-2">
-                  <strong>Insurance reimbursement:</strong> {{ formatAmount(selectedCompensation.compensation?.amount) }}
-                </div>
-                <div class="col-md-6 mt-2">
-                  <strong>Client out of pocket:</strong> {{ formatAmount(selectedCompensation.compensation?.clientOutOfPocket) }}
-                </div>
-              </div>
-              <div class="mt-3">
-                <strong>Message:</strong>
-                <pre class="bg-light p-2 rounded">{{ selectedCompensation.compensation?.message }}</pre>
-              </div>
+            <div class="detail-row">
+              <label>Status</label>
+              <span class="compensation-status" [class]="getStatusClass(selectedCompensation?.compensation?.status)">
+                {{ selectedCompensation?.compensation?.status }}
+              </span>
+            </div>
+            <div class="detail-row">
+              <label>Original claimed amount</label>
+              <span>{{ selectedCompensation?.compensation?.originalClaimedAmount | currency:'EUR' }}</span>
+            </div>
+            <div class="detail-row">
+              <label>Approved amount</label>
+              <span class="approved">{{ selectedCompensation?.compensation?.approvedAmount | currency:'EUR' }}</span>
+            </div>
+            <div class="detail-row">
+              <label>Deductible</label>
+              <span>{{ selectedCompensation?.compensation?.deductible | currency:'EUR' }}</span>
+            </div>
+            <div class="detail-row">
+              <label>Coverage limit</label>
+              <span>{{ selectedCompensation?.compensation?.coverageLimit | currency:'EUR' }}</span>
+            </div>
+            <div class="detail-row">
+              <label>Insurance reimbursement</label>
+              <span class="insurance">{{ selectedCompensation?.compensation?.amount | currency:'EUR' }}</span>
+            </div>
+            <div class="detail-row">
+              <label>Client out of pocket</label>
+              <span class="out-of-pocket">{{ selectedCompensation?.compensation?.clientOutOfPocket | currency:'EUR' }}</span>
+            </div>
+            <div class="detail-row full-width" *ngIf="selectedCompensation?.compensation?.message">
+              <label>Message</label>
+              <div class="info-message">{{ selectedCompensation?.compensation?.message }}</div>
             </div>
           </div>
+        </div>
 
-          <!-- Claim Score Details -->
-          <div class="card" *ngIf="selectedCompensation.claimScore">
-            <div class="card-header" [ngClass]="{
-              'bg-success': selectedCompensation.claimScore.riskScore >= 70,
-              'bg-warning': selectedCompensation.claimScore.riskScore >= 40 && selectedCompensation.claimScore.riskScore < 70,
-              'bg-danger': selectedCompensation.claimScore.riskScore < 40
-            }">
-              <strong class="text-white">Advanced Risk Score</strong>
-            </div>
-            <div class="card-body">
-              <div class="row">
-                <div class="col-md-6">
-                  <strong>Score:</strong> 
-                  <div class="progress mt-1">
-                    <div class="progress-bar" [ngClass]="{
-                      'bg-success': selectedCompensation.claimScore.riskScore >= 70,
-                      'bg-warning': selectedCompensation.claimScore.riskScore >= 40 && selectedCompensation.claimScore.riskScore < 70,
-                      'bg-danger': selectedCompensation.claimScore.riskScore < 40
-                    }" 
-                    [style.width.%]="selectedCompensation.claimScore.riskScore">
-                      {{ selectedCompensation.claimScore.riskScore }}/100
-                    </div>
-                  </div>
-                </div>
-                <div class="col-md-6">
-                  <strong>Risk level:</strong>
-                  <span [class]="getRiskLevelColor(selectedCompensation.claimScore.riskLevel)">
-                    {{ selectedCompensation.claimScore.riskLevel }}
-                  </span>
-                </div>
-                <div class="col-md-12 mt-3">
-                  <strong>Suggested decision:</strong>
-                  <span class="badge" [ngClass]="{
-                    'bg-success': selectedCompensation.claimScore.decisionSuggestion === 'AUTO_APPROVE',
-                    'bg-danger': selectedCompensation.claimScore.decisionSuggestion === 'AUTO_REJECT',
-                    'bg-warning': selectedCompensation.claimScore.decisionSuggestion === 'MANUAL_REVIEW'
-                  }">
-                    {{ selectedCompensation.claimScore.decisionSuggestion }}
-                  </span>
-                </div>
-                <div class="col-12 mt-3">
-                  <strong>Recommendation:</strong>
-                  <div class="alert alert-info mt-2">
-                    {{ selectedCompensation.claimScore.recommendation }}
-                  </div>
-                </div>
-                <div class="col-12 mt-3">
-                  <strong>Analyzed factors:</strong>
-                  <ul class="mt-2">
-                    <li *ngIf="selectedCompensation.claimScore.delayInfo">Delay: {{ selectedCompensation.claimScore.delayInfo }}</li>
-                    <li *ngIf="selectedCompensation.claimScore.documentTypeInfo">Documents: {{ selectedCompensation.claimScore.documentTypeInfo }}</li>
-                    <li *ngIf="selectedCompensation.claimScore.frequencyInfo">Frequency: {{ selectedCompensation.claimScore.frequencyInfo }}</li>
-                  </ul>
-                </div>
-              </div>
+        <!-- Claim Score Details -->
+        <div class="details-section" *ngIf="selectedCompensation?.claimScore">
+          <div class="section-title">
+            Advanced Risk Score
+            <span class="risk-score" [class]="getRiskScoreClass(selectedCompensation?.claimScore?.riskScore)">
+              {{ selectedCompensation?.claimScore?.riskScore }}/100
+            </span>
+          </div>
+          
+          <div class="score-progress">
+            <div class="progress-bar-custom">
+              <div class="progress-fill" [class]="getRiskScoreClass(selectedCompensation?.claimScore?.riskScore)" 
+                   [style.width.%]="selectedCompensation?.claimScore?.riskScore"></div>
             </div>
           </div>
+          
+          <div class="risk-details">
+            <div class="detail-row">
+              <label>Risk level</label>
+              <span class="risk-level" [class]="getRiskLevelClass(selectedCompensation?.claimScore?.riskLevel)">
+                {{ selectedCompensation?.claimScore?.riskLevel }}
+              </span>
+            </div>
+            <div class="detail-row">
+              <label>Suggested decision</label>
+              <span class="decision-suggestion" [class]="getDecisionClass(selectedCompensation?.claimScore?.decisionSuggestion)">
+                {{ selectedCompensation?.claimScore?.decisionSuggestion }}
+              </span>
+            </div>
+            <div class="detail-row full-width" *ngIf="selectedCompensation?.claimScore?.recommendation">
+              <label>Recommendation</label>
+              <div class="recommendation">{{ selectedCompensation?.claimScore?.recommendation }}</div>
+            </div>
+          </div>
+          
+          <div *ngIf="selectedCompensation?.claimScore?.delayInfo || selectedCompensation?.claimScore?.documentTypeInfo || selectedCompensation?.claimScore?.frequencyInfo" 
+               class="analyzed-factors">
+            <label>Analyzed factors</label>
+            <ul>
+              <li *ngIf="selectedCompensation?.claimScore?.delayInfo">{{ selectedCompensation?.claimScore?.delayInfo }}</li>
+              <li *ngIf="selectedCompensation?.claimScore?.documentTypeInfo">{{ selectedCompensation?.claimScore?.documentTypeInfo }}</li>
+              <li *ngIf="selectedCompensation?.claimScore?.frequencyInfo">{{ selectedCompensation?.claimScore?.frequencyInfo }}</li>
+            </ul>
+          </div>
         </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" (click)="closeDetails()">Close</button>
-        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" (click)="closeDetails()">Close</button>
       </div>
     </div>
   </div>

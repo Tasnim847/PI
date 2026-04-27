@@ -2,17 +2,17 @@
 <div class="admin-products-container">
   <!-- Header -->
   <div class="admin-header">
-    <h1>Gestion des Produits</h1>
+    <h1>Product Management</h1>
     <button class="btn-add" (click)="openAddModal()">
       <i class="fas fa-plus"></i>
-      Ajouter un produit
+      Add Product
     </button>
   </div>
 
   <!-- Loading State -->
   <div *ngIf="isLoading" class="loading-state">
     <div class="spinner"></div>
-    <p>Chargement des produits...</p>
+    <p>Loading products...</p>
   </div>
 
   <!-- Products Table -->
@@ -21,11 +21,11 @@
       <thead>
         <tr>
           <th>Image</th>
-          <th>Nom</th>
+          <th>Name</th>
           <th>Description</th>
           <th>Type</th>
-          <th>Prix</th>
-          <th>Statut</th>
+          <th>Price</th>
+          <th>Status</th>
           <th>Actions</th>
         </tr>
       </thead>
@@ -69,45 +69,43 @@
           </td>
 
           <td class="actions">
-
-            <!-- ACTIVER -->
+            <!-- ACTIVATE -->
             <button
               class="action-btn action-activate"
               *ngIf="product.status !== 'ACTIVE' && product.status !== 'REFUSED'"
               (click)="toggleProductStatus(product)"
-              title="Activer"
+              title="Activate"
             >
               <i class="fas fa-toggle-on"></i>
             </button>
 
-            <!-- DESACTIVER -->
+            <!-- DEACTIVATE -->
             <button
               class="action-btn action-deactivate"
               *ngIf="product.status === 'ACTIVE'"
               (click)="toggleProductStatus(product)"
-              title="Désactiver"
+              title="Deactivate"
             >
               <i class="fas fa-toggle-off"></i>
             </button>
 
-            <!-- MODIFIER -->
+            <!-- EDIT -->
             <button
               class="action-btn action-edit"
               (click)="openEditModal(product)"
-              title="Modifier"
+              title="Edit"
             >
               <i class="fas fa-pen-to-square"></i>
             </button>
 
-            <!-- SUPPRIMER -->
+            <!-- DELETE -->
             <button
               class="action-btn action-delete"
               (click)="openDeleteModal(product)"
-              title="Supprimer"
+              title="Delete"
             >
               <i class="fas fa-trash-can"></i>
             </button>
-
           </td>
         </tr>
       </tbody>
@@ -117,15 +115,15 @@
   <!-- Empty State -->
   <div *ngIf="!isLoading && products.length === 0" class="empty-state">
     <i class="fas fa-box-open"></i>
-    <h3>Aucun produit disponible</h3>
-    <p>Cliquez sur "Ajouter un produit" pour commencer</p>
+    <h3>No products available</h3>
+    <p>Click "Add Product" to get started</p>
   </div>
 
-  <!-- Modal Ajout/Modification -->
+  <!-- Add/Edit Modal -->
   <div class="modal" *ngIf="showAddModal || showEditModal" (click)="closeModals()">
     <div class="modal-content" (click)="$event.stopPropagation()">
       <div class="modal-header">
-        <h2>{{ showAddModal ? 'Ajouter un produit' : 'Modifier le produit' }}</h2>
+        <h2>{{ showAddModal ? 'Add Product' : 'Edit Product' }}</h2>
         <button class="close-btn" (click)="closeModals()">&times;</button>
       </div>
 
@@ -135,7 +133,7 @@
           #productForm="ngForm"
         >
           <div class="form-group">
-            <label>Nom du produit *</label>
+            <label>Product Name *</label>
             <input
               type="text"
               class="form-control"
@@ -158,7 +156,7 @@
 
           <div class="form-row">
             <div class="form-group">
-              <label>Prix (TND) *</label>
+              <label>Price (TND) *</label>
               <input
                 type="number"
                 class="form-control"
@@ -169,25 +167,25 @@
             </div>
 
             <div class="form-group">
-              <label>Type de produit *</label>
+              <label>Product Type *</label>
               <select
                 class="form-control"
                 [(ngModel)]="productFormData.productType"
                 name="productType"
                 required
               >
-                <option value="">Sélectionner un type</option>
+                <option value="">Select a type</option>
                 <option value="AUTO">Auto</option>
-                <option value="HEALTH">Santé</option>
-                <option value="HOME">Habitation</option>
-                <option value="LIFE">Vie</option>
-                <option value="OTHER">Autre</option>
+                <option value="HEALTH">Health</option>
+                <option value="HOME">Home</option>
+                <option value="LIFE">Life</option>
+                <option value="OTHER">Other</option>
               </select>
             </div>
           </div>
 
           <div class="form-group" *ngIf="productFormData.productType === 'OTHER'">
-            <label>Précisez le type</label>
+            <label>Specify Type</label>
             <input
               type="text"
               class="form-control"
@@ -197,20 +195,20 @@
           </div>
 
           <div class="form-group">
-            <label>Statut</label>
+            <label>Status</label>
             <select
               class="form-control"
               [(ngModel)]="productFormData.status"
               name="status"
             >
-              <option value="ACTIVE">Actif</option>
-              <option value="INACTIVE">Inactif</option>
-              <option value="REFUSED">Refusé</option>
+              <option value="ACTIVE">Active</option>
+              <option value="INACTIVE">Inactive</option>
+              <option value="REFUSED">Refused</option>
             </select>
           </div>
 
           <div class="form-group">
-            <label>Image du produit</label>
+            <label>Product Image</label>
             <input
               type="file"
               class="form-control-file"
@@ -219,7 +217,7 @@
             />
 
             <div *ngIf="imagePreview" class="image-preview">
-              <img [src]="imagePreview" alt="Aperçu" />
+              <img [src]="imagePreview" alt="Preview" />
               <button
                 type="button"
                 class="remove-image"
@@ -236,11 +234,11 @@
               class="btn-cancel"
               (click)="closeModals()"
             >
-              Annuler
+              Cancel
             </button>
 
             <button type="submit" class="btn-submit">
-              {{ showAddModal ? 'Ajouter' : 'Modifier' }}
+              {{ showAddModal ? 'Add' : 'Update' }}
             </button>
           </div>
         </form>
@@ -248,27 +246,27 @@
     </div>
   </div>
 
-  <!-- Modal Suppression -->
+  <!-- Delete Confirmation Modal -->
   <div class="modal" *ngIf="showDeleteModal" (click)="closeModals()">
     <div class="modal-content modal-delete" (click)="$event.stopPropagation()">
       <div class="modal-header">
-        <h2>Confirmer la suppression</h2>
+        <h2>Confirm Deletion</h2>
         <button class="close-btn" (click)="closeModals()">&times;</button>
       </div>
 
       <div class="modal-body">
         <div class="delete-warning">
           <i class="fas fa-exclamation-triangle"></i>
-          <p>Êtes-vous sûr de vouloir supprimer le produit :</p>
+          <p>Are you sure you want to delete the product:</p>
           <p class="product-name-highlight">{{ selectedProduct?.name }}</p>
-          <p class="warning-text">Cette action est irréversible.</p>
+          <p class="warning-text">This action is irreversible.</p>
         </div>
       </div>
 
       <div class="form-actions">
-        <button class="btn-cancel" (click)="closeModals()">Annuler</button>
+        <button class="btn-cancel" (click)="closeModals()">Cancel</button>
         <button class="btn-delete-confirm" (click)="deleteProduct()">
-          Supprimer
+          Delete
         </button>
       </div>
     </div>

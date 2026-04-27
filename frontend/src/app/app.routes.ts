@@ -50,6 +50,8 @@ import { TransferByRipComponent } from './components/transfer-by-rip/transfer-by
 import { AgentPendingRequestsComponent } from './components/agent-pending-requests/agent-pending-requests.component';
 import { AgentAccountComponent } from './components/agent-account/agent-account.component';
 import { AgentCashApprovalsComponent } from './Features/Insurance/pages/agent/agent-cash-approvals/agent-cash-approvals.component';
+import { AgentCompensationListComponent } from './Features/Compensation/agent/agent-compensation-list/agent-compensation-list.component';
+import { HomeAgentComponent } from './Features/Home agent/home-agent/home-agent.component';
 
 export const routes: Routes = [
 
@@ -106,7 +108,8 @@ export const routes: Routes = [
       { path: 'products', component: ProductListComponent },
       { path: 'product-detail/:id', component: ProductDetailComponent },
       { path: 'profile', component: ProfileComponent },
-      
+      { path: 'agent/home', component: HomeAgentComponent, canActivate: [roleGuard], data: { roles: ['AGENT_ASSURANCE'] } },
+
 
       // 🆕 ROUTES CLIENT - NOUVELLES FONCTIONNALITÉS
 
@@ -203,6 +206,12 @@ export const routes: Routes = [
         component: ListMyCompensationsComponent,
         canActivate: [roleGuard],
         data: { roles: ['CLIENT'] }
+      },
+      { 
+        path: 'agent/compensations', 
+        component: AgentCompensationListComponent,
+        canActivate: [roleGuard],
+        data: { roles: ['AGENT_ASSURANCE'] }
       },
       
       // Routes pour les réclamations
