@@ -42,9 +42,11 @@ public class Client extends User {
     private AgentFinance agentFinance;
 
     @OneToMany(mappedBy = "client", cascade = CascadeType.ALL)
+    @JsonIgnore  // ← Changé : plus de JsonManagedReference
     private List<Account> accounts = new ArrayList<>();
 
     @OneToMany(mappedBy = "client", cascade = CascadeType.ALL)
+    @JsonIgnore  // ← Changé : plus de JsonManagedReference
     private List<Credit> credits = new ArrayList<>();
 
     @OneToMany(mappedBy = "client", cascade = CascadeType.ALL)
