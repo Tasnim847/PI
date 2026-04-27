@@ -176,6 +176,10 @@ public class SecurityConfig {
                         .requestMatchers("/api/scoring/claim/*/advanced").hasAnyRole("ADMIN", "AGENT_ASSURANCE")
                         .requestMatchers("/api/scoring/claim/*/auto-decision-advanced").hasAnyRole("ADMIN", "AGENT_ASSURANCE")
                         .requestMatchers("/api/scoring/claim/*/detailed-analysis").hasAnyRole("ADMIN", "AGENT_ASSURANCE")
+                        // ========== CREDIT SCORING ENDPOINTS ==========
+                        .requestMatchers("/Scoring/calculate/**").hasAnyRole("ADMIN", "AGENT_FINANCE")
+                        .requestMatchers("/Scoring/analyze/**").hasAnyRole("ADMIN", "AGENT_FINANCE")
+                        .requestMatchers("/Scoring/quick-score/**").hasAnyRole("ADMIN", "AGENT_FINANCE")
 
                         // Compensations endpoints
                         // ========== COMPENSATIONS ENDPOINTS ==========

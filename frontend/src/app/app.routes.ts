@@ -6,7 +6,7 @@ import { HomeComponent } from './pages/home/home.component';
 import { AboutComponent } from './pages/about/about.component';
 import { DashboardComponent } from './pages/dashboard/dashboard.component';
 import { ProductListComponent } from './Features/Produit/pages/product-list/product-list.component';
-import { CreditPageComponent } from './Features/Credit/pages/credit-page/credit-page.component';
+import { CreditPageComponent } from './Features/Credit/credit-page/pages/credit-page/credit-page.component';
 import { AccountPageComponent } from './Features/Account/pages/account-page/account-page.component';
 import { ComplaintPageComponent } from './Features/Complaint/pages/complaint-page/complaint-page.component';
 import { NewsPageComponent } from './Features/News/pages/news-page/news-page.component';
@@ -24,7 +24,7 @@ import { ForgotPasswordComponent } from './Features/auth/forgot-password/forgot-
 import { UserManagementComponent } from './pages/dashboard/user-management/user-management.component';
 import { DashboardProfileComponent } from './pages/dashboard-profile/dashboard-profile.component';
 import { OauthCallbackComponent } from './Features/auth/oauth-callback.component';
-import { ClientRepaymentComponent } from './Features/Credit/pages/repayment/client-repayment/client-repayment.component';
+import { ClientRepaymentComponent } from './Features/Credit/credit-page/pages/repayment/client-repayment/client-repayment.component';
 import { InsuranceRouterComponent } from './Features/Insurance/insurance-router';
 import { ProductDetailComponent } from './Features/Produit/pages/product-detail/product-detail.component';
 import { DashboardInsuranceComponent } from './Features/Insurance/pages/client/dashboard-insurance/dashboard-insurance.component';
@@ -32,7 +32,7 @@ import { PaymentPageComponent } from './Features/Insurance/pages/client/payment-
 import { AgentContractsComponent } from './Features/Insurance/pages/agent/agent-contracts/agent-contracts.component';
 import { AgentClaimsComponent } from './Features/Claims/agent/agent-claims/agent-claims.component';
 import { ListMyCompensationsComponent } from './Features/Compensation/client/list-my-compensations/list-my-compensations.component';
-import { AdminRepaymentComponent } from './Features/Credit/pages/repayment/admin-repayment/admin-repayment.component';
+import { AdminRepaymentComponent } from './Features/Credit/credit-page/pages/repayment/admin-repayment/admin-repayment.component';
 import { ContractRiskDetailsComponent } from './Features/Insurance/pages/admin/contract-risk-details/contract-risk-details.component';
 import { AdminDashboardComponent } from './Features/Insurance/pages/admin/admin-dashboard/admin-dashboard.component';
 import { ClaimsDashboardComponent } from './Features/Claims/admin/claims-dashboard/claims-dashboard.component';

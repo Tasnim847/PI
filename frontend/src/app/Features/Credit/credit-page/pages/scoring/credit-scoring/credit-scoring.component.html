@@ -1,0 +1,250 @@
+<div class="credit-scoring-container">
+  <!-- ========== EN-TÊTE ========== -->
+  <div class="d-flex justify-content-between align-items-center mb-4" *ngIf="showFullAnalysis">
+    <div>
+      <h4 class="mb-0">
+        <i class="fas fa-chart-line text-primary"></i>
+        Scoring de Crédit IA
+      </h4>
+      <p class="text-muted mb-0" *ngIf="clientName">Client: {{ clientName }}</p>
+    </div>
+    <div class="btn-group">
+      <button 
+        class="btn btn-outline-primary btn-sm"
+        (click)="refreshScore()"
+        [disabled]="isLoading || isAnalyzing"
+        title="Recalculer le score">
+        <i class="fas fa-sync-alt" [class.fa-spin]="isLoading"></i>
+        Actualiser
+      </button>
+      <button 
+        class="btn btn-outline-success btn-sm"
+        (click)="analyzeWithGemini()"
+        [disabled]="isLoading || isAnalyzing || !clientId"
+        title="Analyse approfondie avec Gemini AI">
+        <i class="fas fa-brain" [class.fa-pulse]="isAnalyzing"></i>
+        {{ isAnalyzing ? 'Analyse IA...' : 'Analyser avec IA' }}
+      </button>
+    </div>
+  </div>
+
+  <!-- ========== MESSAGES ========== -->
+  <div *ngIf="successMessage" class="alert alert-success alert-dismissible fade show">
+    <i class="fas fa-check-circle"></i> {{ successMessage }}
+    <button type="button" class="btn-close" (click)="successMessage = ''"></button>
+  </div>
+
+  <div *ngIf="errorMessage" class="alert alert-danger alert-dismissible fade show">
+    <i class="fas fa-exclamation-circle"></i> {{ errorMessage }}
+    <button type="button" class="btn-close" (click)="errorMessage = ''"></button>
+  </div>
+
+  <!-- ========== SPINNER ========== -->
+  <div *ngIf="isLoading && !creditScore" class="text-center py-5">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Calcul en cours...</span>
+    </div>
+    <p class="mt-2 text-muted">Calcul du score de crédit...</p>
+  </div>
+
+  <!-- ========== RÉSULTATS DU SCORING ========== -->
+  <div *ngIf="creditScore && !isLoading" class="scoring-results">
+    
+    <!-- Score Principal -->
+    <div class="row mb-4">
+      <div class="col-md-4">
+        <div class="card score-card text-center">
+          <div class="card-body">
+            <div class="score-circle" [style.border-color]="getScoreColor(creditScore.score)">
+              <div class="score-number" [style.color]="getScoreColor(creditScore.score)">
+                {{ creditScore.score }}
+              </div>
+              <div class="score-max">/850</div>
+            </div>
+            <h6 class="mt-3 mb-0">Score de Crédit</h6>
+            <small class="text-muted">{{ getScoreLabel(creditScore.score) }}</small>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-4">
+        <div class="card risk-card">
+          <div class="card-body text-center">
+            <div class="risk-icon mb-3">
+              <i class="fas fa-shield-alt fa-3x" [style.color]="getScoreColor(creditScore.score)"></i>
+            </div>
+            <h6 class="mb-2">Niveau de Risque</h6>
+            <span class="badge fs-6 px-3 py-2" [ngClass]="getRiskLevelClass(creditScore.riskLevel)">
+              {{ getRiskLevelLabel(creditScore.riskLevel) }}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-4">
+        <div class="card recommendation-card">
+          <div class="card-body text-center">
+            <div class="recommendation-icon mb-3">
+              <i class="fas fa-thumbs-up fa-3x" [style.color]="getScoreColor(creditScore.score)"></i>
+            </div>
+            <h6 class="mb-2">Recommandation</h6>
+            <span class="badge fs-6 px-3 py-2" [ngClass]="getRecommendationClass(creditScore.recommendation)">
+              {{ getRecommendationLabel(creditScore.recommendation) }}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Analyse IA -->
+    <div class="row mb-4" *ngIf="creditScore.analysis">
+      <div class="col-12">
+        <div class="card analysis-card">
+          <div class="card-header bg-info text-white">
+            <h6 class="mb-0">
+              <i class="fas fa-robot"></i>
+              Analyse Gemini AI
+              <span *ngIf="isAnalyzing" class="spinner-border spinner-border-sm ms-2"></span>
+            </h6>
+          </div>
+          <div class="card-body">
+            <p class="mb-0">{{ creditScore.analysis }}</p>
+            <small class="text-muted d-block mt-2">
+              <i class="fas fa-clock"></i>
+              Calculé le {{ formatDate(creditScore.calculatedAt) }}
+            </small>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Métriques Détaillées -->
+    <div class="row" *ngIf="showFullAnalysis">
+      <div class="col-md-6 mb-3">
+        <div class="card metrics-card">
+          <div class="card-header">
+            <h6 class="mb-0">
+              <i class="fas fa-chart-bar"></i>
+              Historique des Crédits
+            </h6>
+          </div>
+          <div class="card-body">
+            <div class="row text-center">
+              <div class="col-4">
+                <div class="metric-item">
+                  <div class="metric-value text-primary">{{ creditScore.totalCredits || 0 }}</div>
+                  <div class="metric-label">Total</div>
+                </div>
+              </div>
+              <div class="col-4">
+                <div class="metric-item">
+                  <div class="metric-value text-warning">{{ creditScore.activeCredits || 0 }}</div>
+                  <div class="metric-label">Actifs</div>
+                </div>
+              </div>
+              <div class="col-4">
+                <div class="metric-item">
+                  <div class="metric-value text-success">{{ creditScore.closedCredits || 0 }}</div>
+                  <div class="metric-label">Fermés</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-6 mb-3">
+        <div class="card metrics-card">
+          <div class="card-header">
+            <h6 class="mb-0">
+              <i class="fas fa-money-bill-wave"></i>
+              Situation Financière
+            </h6>
+          </div>
+          <div class="card-body">
+            <div class="metric-row">
+              <span class="metric-label">Montant total emprunté:</span>
+              <span class="metric-value">{{ formatAmount(creditScore.totalAmount || 0) }}</span>
+            </div>
+            <div class="metric-row">
+              <span class="metric-label">Dette actuelle:</span>
+              <span class="metric-value text-danger">{{ formatAmount(creditScore.currentDebt || 0) }}</span>
+            </div>
+            <div class="metric-row">
+              <span class="metric-label">Paiement mensuel moyen:</span>
+              <span class="metric-value">{{ formatAmount(creditScore.averageMonthlyPayment || 0) }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-6 mb-3">
+        <div class="card metrics-card">
+          <div class="card-header">
+            <h6 class="mb-0">
+              <i class="fas fa-clock"></i>
+              Comportement de Paiement
+            </h6>
+          </div>
+          <div class="card-body">
+            <div class="metric-row">
+              <span class="metric-label">Pourcentage de retard moyen:</span>
+              <span class="metric-value" 
+                    [class.text-danger]="(creditScore.averageLatePercentage || 0) > 20"
+                    [class.text-warning]="(creditScore.averageLatePercentage || 0) > 10 && (creditScore.averageLatePercentage || 0) <= 20"
+                    [class.text-success]="(creditScore.averageLatePercentage || 0) <= 10">
+                {{ formatPercentage(creditScore.averageLatePercentage || 0) }}
+              </span>
+            </div>
+            <div class="metric-row">
+              <span class="metric-label">Jours depuis le dernier crédit:</span>
+              <span class="metric-value">{{ creditScore.daysSinceLastCredit || 0 }} jours</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-6 mb-3">
+        <div class="card metrics-card">
+          <div class="card-header">
+            <h6 class="mb-0">
+              <i class="fas fa-download"></i>
+              Actions
+            </h6>
+          </div>
+          <div class="card-body text-center">
+            <button 
+              class="btn btn-outline-primary me-2"
+              (click)="exportScore()"
+              title="Exporter le score">
+              <i class="fas fa-download"></i>
+              Exporter
+            </button>
+            <button 
+              class="btn btn-outline-info"
+              (click)="analyzeWithGemini()"
+              [disabled]="isAnalyzing"
+              title="Nouvelle analyse IA">
+              <i class="fas fa-brain"></i>
+              Réanalyser
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== ÉTAT VIDE ========== -->
+  <div *ngIf="!creditScore && !isLoading && !errorMessage" class="text-center py-5">
+    <i class="fas fa-chart-line fa-3x text-muted mb-3"></i>
+    <h5 class="text-muted">Aucun score calculé</h5>
+    <p class="text-muted">Cliquez sur "Calculer le score" pour commencer l'analyse</p>
+    <button 
+      class="btn btn-primary"
+      (click)="calculateScore()"
+      [disabled]="!clientId">
+      <i class="fas fa-calculator"></i>
+      Calculer le Score
+    </button>
+  </div>
+</div>

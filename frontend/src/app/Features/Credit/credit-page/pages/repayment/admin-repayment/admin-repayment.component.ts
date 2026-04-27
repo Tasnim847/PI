@@ -59,25 +59,25 @@ export class AdminRepaymentComponent implements OnInit {
     }
   }
 
-  // ========== CHARGER TOUTES LES DONNÉES ==========
+  // ========== LOAD ALL DATA ==========
   loadAllData(): void {
     this.isLoading = true;
     
-    // Charger les crédits et remboursements en parallèle
+    // Load credits and repayments in parallel
     Promise.all([
       this.loadCredits(),
       this.loadRepayments()
     ]).then(() => {
-      // Associer les crédits (qui contiennent les clients) aux remboursements
+      // Associate credits (which contain clients) with repayments
       this.enrichRepayments();
       this.isLoading = false;
     }).catch(err => {
-      console.error('Erreur chargement données:', err);
+      console.error('Error loading data:', err);
       this.isLoading = false;
     });
   }
 
-  // ========== CHARGER LES CLIENTS ==========
+  // ========== LOAD CLIENTS ==========
   loadClients(): Promise<void> {
     return new Promise((resolve, reject) => {
       this.http.get<any[]>(`${this.clientApiUrl}/getAllClients`, {
@@ -85,19 +85,19 @@ export class AdminRepaymentComponent implements OnInit {
       }).subscribe({
         next: (data) => {
           this.allClients = data || [];
-          console.log('Clients chargés:', this.allClients.length);
+          console.log('Clients loaded:', this.allClients.length);
           resolve();
         },
         error: (err) => {
-          console.error('Erreur chargement clients:', err);
+          console.error('Error loading clients:', err);
           this.allClients = [];
-          resolve(); // Continue même en cas d'erreur
+          resolve(); // Continue even on error
         }
       });
     });
   }
 
-  // ========== CHARGER LES CRÉDITS ==========
+  // ========== LOAD CREDITS ==========
   loadCredits(): Promise<void> {
     return new Promise((resolve, reject) => {
       this.http.get<any[]>(`${this.creditApiUrl}/allCredit`, {
@@ -105,19 +105,19 @@ export class AdminRepaymentComponent implements OnInit {
       }).subscribe({
         next: (data) => {
           this.allCredits = data || [];
-          console.log('Crédits chargés:', this.allCredits.length);
+          console.log('Credits loaded:', this.allCredits.length);
           resolve();
         },
         error: (err) => {
-          console.error('Erreur chargement crédits:', err);
+          console.error('Error loading credits:', err);
           this.allCredits = [];
-          resolve(); // Continue même en cas d'erreur
+          resolve(); // Continue even on error
         }
       });
     });
   }
 
-  // ========== CHARGER LES REMBOURSEMENTS ==========
+  // ========== LOAD REPAYMENTS ==========
   loadRepayments(): Promise<void> {
     return new Promise((resolve, reject) => {
       this.http.get<Repayment[]>(`${this.apiUrl}/allRepayment`, {
@@ -125,11 +125,11 @@ export class AdminRepaymentComponent implements OnInit {
       }).subscribe({
         next: (data) => {
           this.allRepayments = data || [];
-          console.log('Remboursements chargés:', this.allRepayments.length);
+          console.log('Repayments loaded:', this.allRepayments.length);
           resolve();
         },
         error: (err) => {
-          console.error('Erreur chargement remboursements:', err);
+          console.error('Error loading repayments:', err);
           this.allRepayments = [];
           reject(err);
         }
@@ -137,9 +137,9 @@ export class AdminRepaymentComponent implements OnInit {
     });
   }
 
-  // ========== ENRICHIR LES REMBOURSEMENTS AVEC CLIENT ET CRÉDIT ==========
+  // ========== ENRICH REPAYMENTS WITH CLIENT AND CREDIT ==========
   enrichRepayments(): void {
-    // Créer une map creditId -> credit pour accès rapide
+    // Create a creditId -> credit map for quick access
     const creditMap = new Map<number, any>();
     
     for (const credit of this.allCredits) {
@@ -148,25 +148,25 @@ export class AdminRepaymentComponent implements OnInit {
       }
     }
     
-    // Enrichir les remboursements
+    // Enrich repayments
     this.allRepayments.forEach(repayment => {
-      // Essayer de trouver le creditId de plusieurs façons:
-      // 1. Directement dans le repayment
-      // 2. Via la référence (si elle contient l'ID)
-      // 3. Via la recherche dans les crédits
+      // Try to find creditId in several ways:
+      // 1. Directly in the repayment
+      // 2. Via the reference (if it contains the ID)
+      // 3. Via search in credits
       
       let creditId = repayment.creditId;
       
-      // Si pas de creditId direct, essayer d'extraire de la référence
+      // If no direct creditId, try to extract from reference
       if (!creditId && repayment.reference) {
-        // La référence pourrait être au format "CREDIT_123" ou similaire
+        // Reference could be in format "CREDIT_123" or similar
         const match = repayment.reference.match(/\d+/);
         if (match) {
           creditId = parseInt(match[0], 10);
         }
       }
       
-      // Si on a trouvé un creditId, chercher le crédit correspondant
+      // If we found a creditId, search for corresponding credit
       if (creditId) {
         const credit = creditMap.get(creditId);
         if (credit) {
@@ -179,21 +179,21 @@ export class AdminRepaymentComponent implements OnInit {
     
     this.filteredRepayments = [...this.allRepayments];
     
-    console.log('=== ENRICHISSEMENT TERMINÉ ===');
-    console.log('Avec crédit ID:', this.allRepayments.filter(r => r.creditId).length);
-    console.log('Total remboursements:', this.allRepayments.length);
+    console.log('=== ENRICHMENT COMPLETE ===');
+    console.log('With credit ID:', this.allRepayments.filter(r => r.creditId).length);
+    console.log('Total repayments:', this.allRepayments.length);
     
-    // Afficher un exemple
+    // Display an example
     const withCredit = this.allRepayments.find(r => r.creditId);
     if (withCredit) {
-      console.log('Exemple avec crédit:', withCredit);
+      console.log('Example with credit:', withCredit);
       console.log('Credit ID:', withCredit.creditId);
     } else {
-      console.log('Aucun remboursement avec crédit trouvé');
-      // Afficher les premiers remboursements pour debug
+      console.log('No repayment with credit found');
+      // Display first repayments for debug
       if (this.allRepayments.length > 0) {
-        console.log('Premier remboursement:', this.allRepayments[0]);
-        console.log('Clés disponibles:', Object.keys(this.allRepayments[0]));
+        console.log('First repayment:', this.allRepayments[0]);
+        console.log('Available keys:', Object.keys(this.allRepayments[0]));
       }
     }
   }
@@ -220,15 +220,15 @@ export class AdminRepaymentComponent implements OnInit {
     });
   }
 
-  // ========== SUPPRIMER UN REMBOURSEMENT (ADMIN) ==========
+  // ========== DELETE REPAYMENT (ADMIN) ==========
   deleteRepayment(repaymentId: number | undefined): void {
     if (!repaymentId) {
-      this.errorMessage = 'ID de remboursement invalide';
+      this.errorMessage = 'Invalid repayment ID';
       this.toastr.error(this.errorMessage);
       return;
     }
 
-    if (!confirm('Êtes-vous sûr de vouloir supprimer ce remboursement ?')) {
+    if (!confirm('Are you sure you want to delete this repayment?')) {
       return;
     }
 
@@ -236,12 +236,12 @@ export class AdminRepaymentComponent implements OnInit {
       headers: this.getHeaders()
     }).subscribe({
       next: () => {
-        this.successMessage = 'Remboursement supprimé avec succès';
+        this.successMessage = 'Repayment deleted successfully';
         this.toastr.success(this.successMessage);
         this.loadAllRepayments();
       },
       error: (err) => {
-        this.errorMessage = err.error?.message || 'Erreur lors de la suppression';
+        this.errorMessage = err.error?.message || 'Error deleting repayment';
         this.toastr.error(this.errorMessage);
       }
     });
@@ -303,10 +303,10 @@ export class AdminRepaymentComponent implements OnInit {
     return this.filteredRepayments.reduce((sum, r) => sum + r.amount, 0);
   }
 
-  // ========== TÉLÉCHARGER LE PDF D'AMORTISSEMENT ==========
+  // ========== DOWNLOAD AMORTIZATION PDF ==========
   downloadAmortissementPdf(creditId: number | undefined): void {
     if (!creditId) {
-      this.errorMessage = 'ID de crédit invalide';
+      this.errorMessage = 'Invalid credit ID';
       this.toastr.error(this.errorMessage);
       return;
     }
@@ -316,7 +316,7 @@ export class AdminRepaymentComponent implements OnInit {
       responseType: 'blob'
     }).subscribe({
       next: (blob) => {
-        // Créer un lien de téléchargement
+        // Create download link
         const url = window.URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
@@ -324,57 +324,57 @@ export class AdminRepaymentComponent implements OnInit {
         link.click();
         window.URL.revokeObjectURL(url);
         
-        this.successMessage = 'PDF téléchargé avec succès';
+        this.successMessage = 'PDF downloaded successfully';
         this.toastr.success(this.successMessage);
       },
       error: (err) => {
-        this.errorMessage = err.error?.message || 'Erreur lors du téléchargement du PDF';
+        this.errorMessage = err.error?.message || 'Error downloading PDF';
         this.toastr.error(this.errorMessage);
       }
     });
   }
 
-  // ========== ENVOYER LE PDF PAR EMAIL ==========
+  // ========== SEND AMORTIZATION PDF BY EMAIL ==========
   sendAmortissementPdfByEmail(creditId: number | undefined): void {
     if (!creditId) {
-      this.errorMessage = 'ID de crédit invalide';
+      this.errorMessage = 'Invalid credit ID';
       this.toastr.error(this.errorMessage);
       return;
     }
 
-    // Trouver le remboursement correspondant pour afficher l'email du client
+    // Find corresponding repayment to display client email
     const repayment = this.allRepayments.find(r => r.creditId === creditId);
-    const clientEmail = repayment?.client?.email || 'Email non trouvé';
+    const clientEmail = repayment?.client?.email || 'Email not found';
     
-    const confirmMessage = `Êtes-vous sûr de vouloir envoyer le PDF d'amortissement par email au client ?\n\nEmail: ${clientEmail}`;
+    const confirmMessage = `Are you sure you want to send the amortization PDF by email to the client?\n\nEmail: ${clientEmail}`;
     
     if (!confirm(confirmMessage)) {
       return;
     }
 
-    console.log(`Envoi du PDF pour le crédit ID: ${creditId}`);
-    console.log(`Email du client: ${clientEmail}`);
+    console.log(`Sending PDF for credit ID: ${creditId}`);
+    console.log(`Client email: ${clientEmail}`);
     console.log(`URL: ${this.apiUrl}/credits/${creditId}/send-pdf-email`);
 
     this.http.post(`${this.apiUrl}/credits/${creditId}/send-pdf-email`, {}, {
       headers: this.getHeaders()
     }).subscribe({
       next: (response: any) => {
-        console.log('Réponse du serveur:', response);
-        this.successMessage = `PDF envoyé par email avec succès à ${clientEmail}`;
+        console.log('Server response:', response);
+        this.successMessage = `PDF sent by email successfully to ${clientEmail}`;
         this.toastr.success(this.successMessage);
       },
       error: (err) => {
-        console.error('Erreur complète:', err);
+        console.error('Complete error:', err);
         console.error('Status:', err.status);
         console.error('Error body:', err.error);
         
-        let errorMsg = 'Erreur lors de l\'envoi du PDF';
+        let errorMsg = 'Error sending PDF';
         
         if (err.status === 403) {
-          errorMsg = 'Accès refusé - Vous devez être admin pour envoyer des emails';
+          errorMsg = 'Access denied - You must be admin to send emails';
         } else if (err.status === 404) {
-          errorMsg = 'Crédit non trouvé';
+          errorMsg = 'Credit not found';
         } else if (err.error?.error) {
           errorMsg = err.error.error;
         } else if (err.error?.message) {
