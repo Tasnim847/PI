@@ -193,6 +193,8 @@ public class SecurityConfig {
                         .requestMatchers("/compensations/{id}/details").hasAnyRole("ADMIN", "AGENT_ASSURANCE", "CLIENT")
                         .requestMatchers("/compensations/{id}/with-scoring").hasAnyRole("ADMIN", "AGENT_ASSURANCE")
                         .requestMatchers("/compensations/my-compensations").hasAnyRole("ADMIN", "AGENT_ASSURANCE", "CLIENT")
+                        .requestMatchers("/compensations/agent/compensations").hasAnyRole("AGENT_ASSURANCE", "ADMIN")
+                        .requestMatchers("/compensations/agent/clients").hasAnyRole("AGENT_ASSURANCE", "ADMIN")
 
                         // ========== CREDIT ENDPOINTS ==========
                         .requestMatchers("/Credit/addCredit").hasRole("ADMIN")

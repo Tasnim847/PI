@@ -73,4 +73,16 @@ export class CompensationService {
   markAsPaid(compensationId: number): Observable<any> {
     return this.http.post(`${this.apiUrl}/${compensationId}/pay`, {}, { headers: this.getHeaders() });
   }
+
+  // Dans CompensationService, ajoutez ces méthodes :
+
+  // Get compensations des clients de l'agent connecté
+  getAgentCompensations(): Observable<Compensation[]> {
+    return this.http.get<Compensation[]>(`${this.apiUrl}/agent/compensations`, { headers: this.getHeaders() });
+  }
+
+  // Get la liste des clients de l'agent
+  getAgentClients(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/agent/clients`, { headers: this.getHeaders() });
+  }
 }

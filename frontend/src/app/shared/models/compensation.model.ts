@@ -1,4 +1,5 @@
-﻿import { CompensationStatus } from '../enums/compensation-status.enum';
+﻿import { ClientDTO } from '../dto/client-dto.model';
+import { CompensationStatus } from '../enums/compensation-status.enum';
 import { Claim } from './claim.model';
 
 export interface Compensation {
@@ -19,4 +20,6 @@ export interface Compensation {
     adjustedAmount: number;
     calculationDate: Date;
     claim?: Claim;
+    client?: ClientDTO;  // 🔥 AJOUTER CETTE PROPRIÉTÉ
+
 }

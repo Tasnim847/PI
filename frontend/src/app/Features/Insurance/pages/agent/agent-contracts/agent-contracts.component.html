@@ -1,6 +1,6 @@
 <!-- agent-contracts.component.html -->
 <div class="container-fluid mt-4">
-  <!-- Header avec statistiques -->
+  <!-- Header with Statistics -->
   <div class="row mb-4">
     <div class="col-12">
       <div class="stats-grid">
@@ -9,90 +9,90 @@
             <i class="bi bi-file-text"></i>
           </div>
           <div class="stat-number">{{ stats.total }}</div>
-          <div class="stat-label">Total contrats</div>
+          <div class="stat-label">Total Contracts</div>
         </div>
         <div class="stat-card">
           <div class="stat-icon bg-warning bg-opacity-10">
             <i class="bi bi-clock-history"></i>
           </div>
           <div class="stat-number">{{ stats.pending }}</div>
-          <div class="stat-label">En attente</div>
+          <div class="stat-label">Pending</div>
         </div>
         <div class="stat-card">
           <div class="stat-icon bg-success bg-opacity-10">
             <i class="bi bi-check-circle"></i>
           </div>
           <div class="stat-number">{{ stats.active }}</div>
-          <div class="stat-label">Actifs</div>
+          <div class="stat-label">Active</div>
         </div>
         <div class="stat-card">
           <div class="stat-icon bg-info bg-opacity-10">
             <i class="bi bi-check2-circle"></i>
           </div>
           <div class="stat-number">{{ stats.completed }}</div>
-          <div class="stat-label">Terminés</div>
+          <div class="stat-label">Completed</div>
         </div>
         <div class="stat-card">
           <div class="stat-icon bg-danger bg-opacity-10">
             <i class="bi bi-x-circle"></i>
           </div>
           <div class="stat-number">{{ stats.cancelled }}</div>
-          <div class="stat-label">Annulés</div>
+          <div class="stat-label">Cancelled</div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Carte principale -->
+  <!-- Main Card -->
   <div class="card shadow">
     <div class="card-header">
       <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
         <div>
           <h4 class="mb-0">
-            <i class="bi bi-people me-2"></i>Gestion des Contrats Clients
+            <i class="bi bi-people me-2"></i>Client Contracts Management
           </h4>
           <p class="mb-0 mt-2 small opacity-75">
-            <i class="bi bi-info-circle me-1"></i>Gérez les contrats d'assurance de vos clients
+            <i class="bi bi-info-circle me-1"></i>Manage your clients' insurance contracts
           </p>
         </div>
         <button class="btn btn-light" (click)="refresh()">
-          <i class="bi bi-arrow-repeat me-1"></i> Rafraîchir
+          <i class="bi bi-arrow-repeat me-1"></i> Refresh
         </button>
       </div>
     </div>
 
     <div class="card-body">
-      <!-- Filtres -->
+      <!-- Filters -->
       <div class="row g-3 mb-4">
         <div class="col-md-4">
           <label class="form-label">
-            <i class="bi bi-funnel me-1"></i>Statut
+            <i class="bi bi-funnel me-1"></i>Status
           </label>
           <select class="form-select" [(ngModel)]="selectedStatus" (change)="onStatusChange()">
-            <option value="ALL">📋 Tous les statuts ({{ contracts.length }})</option>
-            <option value="PENDING">⏳ En attente ({{ stats.pending }})</option>
-            <option value="ACTIVE">✅ Actifs ({{ stats.active }})</option>
-            <option value="COMPLETED">🎉 Terminés ({{ stats.completed }})</option>
-            <option value="CANCELLED">❌ Annulés ({{ stats.cancelled }})</option>
+            <option value="ALL">📋 All Status ({{ contracts.length }})</option>
+            <option value="PENDING">⏳ Pending ({{ stats.pending }})</option>
+            <option value="ACTIVE">✅ Active ({{ stats.active }})</option>
+            <option value="COMPLETED">🎉 Completed ({{ stats.completed }})</option>
+            <option value="CANCELLED">❌ Cancelled ({{ stats.cancelled }})</option>
           </select>
         </div>
         <div class="col-md-6">
           <label class="form-label">
-            <i class="bi bi-search me-1"></i>Recherche
+            <i class="bi bi-search me-1"></i>Search
           </label>
           <div class="input-group">
             <span class="input-group-text bg-white border-end-0">
               <i class="bi bi-search text-muted"></i>
             </span>
             <input type="text" class="form-control border-start-0 ps-0" 
-                   placeholder="ID contrat, nom client, email, produit..." 
+                   placeholder="Contract ID, client name, email, product..." 
                    [(ngModel)]="searchTerm" (input)="onSearch()">
           </div>
         </div>
         <div class="col-md-2 d-flex align-items-end">
           <div class="result-badge w-100">
             <i class="bi bi-file-text me-1"></i>
-            <strong>{{ filteredContracts.length }}</strong> contrat(s) trouvé(s)
+            <strong>{{ filteredContracts.length }}</strong> contract(s) found
           </div>
         </div>
       </div>
@@ -101,31 +101,31 @@
       <div *ngIf="isLoading" class="text-center py-5">
         <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;"></div>
         <p class="mt-3 text-muted">
-          <i class="bi bi-hourglass-split me-1"></i>Chargement des contrats...
+          <i class="bi bi-hourglass-split me-1"></i>Loading contracts...
         </p>
       </div>
 
-      <!-- Liste des contrats -->
+      <!-- Contracts List -->
       <div *ngIf="!isLoading">
-        <!-- Aucun résultat -->
+        <!-- Empty State -->
         <div *ngIf="filteredContracts.length === 0" class="empty-state">
           <i class="bi bi-inbox"></i>
-          <h5>Aucun contrat trouvé</h5>
-          <p class="text-muted">Aucun contrat ne correspond à vos critères de recherche</p>
+          <h5>No contracts found</h5>
+          <p class="text-muted">No contracts match your search criteria</p>
         </div>
 
-        <!-- Grille des contrats -->
+        <!-- Contracts Grid -->
         <div class="row g-4" *ngIf="filteredContracts.length > 0">
           <div class="col-xl-4 col-lg-6 col-md-6" *ngFor="let contract of filteredContracts">
             <div class="contract-card">
-              <!-- En-tête -->
+              <!-- Header -->
               <div class="contract-header">
                 <div class="d-flex justify-content-between align-items-start">
                   <div>
                     <span class="contract-badge">
                       <i class="bi bi-hash"></i> {{ contract.contractId }}
                     </span>
-                    <h5 class="contract-title mt-2 mb-0">{{ contract.product?.name || 'Contrat d\'assurance' }}</h5>
+                    <h5 class="contract-title mt-2 mb-0">{{ contract.product?.name || 'Insurance Contract' }}</h5>
                   </div>
                   <span class="status-badge" [class]="'status-' + getStatusClass(contract.status)">
                     <i class="bi" 
@@ -138,18 +138,18 @@
                 </div>
               </div>
 
-              <!-- Corps -->
+              <!-- Body -->
               <div class="contract-body">
-                <!-- Client - Affichage amélioré -->
+                <!-- Client Section -->
                 <div class="client-section">
                   <div class="client-header">
                     <i class="bi bi-person-circle"></i>
-                    <span>Informations client</span>
+                    <span>Client Information</span>
                   </div>
                   <div class="client-details">
                     <div class="client-name">
                       <i class="bi bi-person"></i>
-                      <strong>{{ contract.client?.firstName || 'Non renseigné' }} {{ contract.client?.lastName || '' }}</strong>
+                      <strong>{{ contract.client?.firstName || 'Not specified' }} {{ contract.client?.lastName || '' }}</strong>
                     </div>
                     <div class="client-email" *ngIf="contract.client?.email">
                       <i class="bi bi-envelope"></i>
@@ -162,26 +162,26 @@
                   </div>
                 </div>
 
-                <!-- Montants -->
+                <!-- Amounts -->
                 <div class="amounts-row">
                   <div class="amount-item">
                     <div class="amount-label">
-                      <i class="bi bi-cash-stack"></i> Prime totale
+                      <i class="bi bi-cash-stack"></i> Total Premium
                     </div>
                     <div class="amount-value">{{ contract.premium | number }} DT</div>
                   </div>
                   <div class="amount-item">
                     <div class="amount-label">
-                      <i class="bi bi-wallet2"></i> Montant payé
+                      <i class="bi bi-wallet2"></i> Paid Amount
                     </div>
                     <div class="amount-value text-success">{{ contract.totalPaid | number }} DT</div>
                   </div>
                 </div>
 
-                <!-- Barre de progression -->
+                <!-- Progress Bar -->
                 <div class="progress-wrapper">
                   <div class="progress-label">
-                    <span><i class="bi bi-pie-chart"></i> Progression</span>
+                    <span><i class="bi bi-pie-chart"></i> Progress</span>
                     <span>{{ getProgressPercentage(contract) | number:'1.0-0' }}%</span>
                   </div>
                   <div class="progress">
@@ -193,71 +193,71 @@
                     </div>
                   </div>
                   <div class="remaining-text">
-                    <i class="bi bi-calculator"></i> Restant: {{ contract.remainingAmount | number }} DT
+                    <i class="bi bi-calculator"></i> Remaining: {{ contract.remainingAmount | number }} DT
                   </div>
                 </div>
 
-                <!-- Infos contrat -->
+                <!-- Contract Info -->
                 <div class="info-grid">
                   <div class="info-item">
                     <i class="bi bi-calendar3"></i>
-                    <span>Fréquence: {{ getPaymentFrequencyLabel(contract.paymentFrequency) }}</span>
+                    <span>Frequency: {{ getPaymentFrequencyLabel(contract.paymentFrequency) }}</span>
                   </div>
                   <div class="info-item">
                     <i class="bi bi-calendar-range"></i>
-                    <span>Du {{ formatDate(contract.startDate) }}</span>
+                    <span>From {{ formatDate(contract.startDate) }}</span>
                   </div>
                   <div class="info-item">
                     <i class="bi bi-calendar-check"></i>
-                    <span>Au {{ formatDate(contract.endDate) }}</span>
+                    <span>To {{ formatDate(contract.endDate) }}</span>
                   </div>
                 </div>
 
-                <!-- Jours restants -->
+                <!-- Days Remaining -->
                 <div class="days-remaining" *ngIf="getDaysRemaining(contract.endDate) >= 0">
                   <div class="days-badge" [class.urgent]="getDaysRemaining(contract.endDate) <= 30">
                     <i class="bi bi-hourglass-split"></i>
                     <span *ngIf="getDaysRemaining(contract.endDate) > 0">
-                      {{ getDaysRemaining(contract.endDate) }} jours restants
+                      {{ getDaysRemaining(contract.endDate) }} days remaining
                     </span>
                     <span *ngIf="getDaysRemaining(contract.endDate) === 0">
-                      Dernier jour
+                      Last day
                     </span>
                   </div>
                 </div>
 
-                <!-- Score de risque -->
+                <!-- Risk Score -->
                 <div class="risk-score" *ngIf="contract.riskClaim"
                      [class.risk-high]="contract.riskClaim.riskLevel === 'HIGH'"
                      [class.risk-medium]="contract.riskClaim.riskLevel === 'MEDIUM'"
                      [class.risk-low]="contract.riskClaim.riskLevel === 'LOW'">
                   <i class="bi bi-shield-shaded"></i>
-                  <span>Risque {{ contract.riskClaim.riskLevel }}</span>
+                  <span>Risk Level {{ contract.riskClaim.riskLevel }}</span>
                   <div class="risk-score-value ms-auto">
                     <span class="score-number">{{ contract.riskClaim.riskScore }}/100</span>
                   </div>
                 </div>
               </div>
 
-              <!-- Footer avec actions -->
+              <!-- Footer Actions -->
               <div class="contract-footer">
-                <button class="action-btn btn-risk" (click)="viewRisk(contract)" title="Évaluer le risque">
-                  <i class="bi bi-shield-check"></i> Risque
+                <button class="action-btn btn-risk" (click)="viewRisk(contract)" title="Evaluate Risk">
+                  <i class="bi bi-shield-check"></i> Risk
                 </button>
-                <button class="action-btn btn-pdf" (click)="downloadPdf(contract.contractId)" title="Télécharger PDF">
+                <button class="action-btn btn-pdf" (click)="downloadPdf(contract.contractId)" title="Download PDF">
                   <i class="bi bi-file-pdf"></i> PDF
                 </button>
                 <button *ngIf="contract.status === 'INACTIVE'" 
                         class="action-btn btn-activate" 
                         (click)="openActivateModal(contract)"
-                        title="Activer le contrat">
-                  <i class="bi bi-check-lg"></i> Activer
+                        title="Activate Contract">
+                  <i class="bi bi-check-lg"></i> Activate
                 </button>
                 <button *ngIf="contract.status === 'INACTIVE'" 
                         class="action-btn btn-reject" 
                         (click)="openRejectModal(contract)"
-                        title="Rejeter le contrat">
-                  <i class="bi bi-x-lg"></i> Rejeter
+                        title="Reject Contract">
+                  <i class="bi bi-x-lg"></i> Reject
                 </button>
               </div>
             </div>
@@ -268,14 +268,14 @@
   </div>
 </div>
 
-<!-- Modal Évaluation du Risque -->
+<!-- Risk Evaluation Modal -->
 <div class="modal fade" [class.show]="showRiskModal" [style.display]="showRiskModal ? 'block' : 'none'" tabindex="-1" *ngIf="showRiskModal">
   <div class="modal-dialog modal-lg modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header bg-primary">
         <h5 class="modal-title">
           <i class="bi bi-shield-check me-2"></i>
-          Évaluation du Risque - Contrat #{{ selectedContract?.contractId }}
+          Risk Evaluation - Contract #{{ selectedContract?.contractId }}
         </h5>
         <button type="button" class="btn-close btn-close-white" (click)="closeModal()"></button>
       </div>
@@ -292,22 +292,22 @@
                   [class.bg-danger]="selectedContract?.riskClaim?.riskLevel === 'HIGH'"
                   [class.bg-warning]="selectedContract?.riskClaim?.riskLevel === 'MEDIUM'"
                   [class.bg-success]="selectedContract?.riskClaim?.riskLevel === 'LOW'">
-              Niveau: {{ selectedContract?.riskClaim?.riskLevel }}
+              Level: {{ selectedContract?.riskClaim?.riskLevel }}
             </span>
           </div>
           <div class="risk-factors" *ngIf="selectedContract?.riskClaim?.riskFactors">
-            <strong><i class="bi bi-exclamation-triangle me-1"></i> Facteurs de risque :</strong>
+            <strong><i class="bi bi-exclamation-triangle me-1"></i> Risk Factors:</strong>
             <ul>
               <li *ngFor="let factor of selectedContract.riskClaim.riskFactors">{{ factor }}</li>
             </ul>
           </div>
           <div class="evaluation-note">
             <i class="bi bi-file-text me-2"></i>
-            <strong>Rapport détaillé</strong>
+            <strong>Detailed Report</strong>
           </div>
           <pre class="note-content">{{ selectedContract?.riskClaim?.evaluationNote }}</pre>
           <div class="recommendations" *ngIf="selectedContract?.riskClaim?.recommendations">
-            <strong><i class="bi bi-lightbulb me-1"></i> Recommandations :</strong>
+            <strong><i class="bi bi-lightbulb me-1"></i> Recommendations:</strong>
             <ul>
               <li *ngFor="let rec of selectedContract.riskClaim.recommendations">{{ rec }}</li>
             </ul>
@@ -316,26 +316,26 @@
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" (click)="closeModal()">
-          <i class="bi bi-x-circle me-1"></i> Fermer
+          <i class="bi bi-x-circle me-1"></i> Close
         </button>
       </div>
     </div>
   </div>
 </div>
 
-<!-- Modal Activation -->
+<!-- Activation Modal -->
 <div class="modal fade" [class.show]="showActivateModal" [style.display]="showActivateModal ? 'block' : 'none'" tabindex="-1" *ngIf="showActivateModal">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header bg-success">
         <h5 class="modal-title">
-          <i class="bi bi-check-circle me-2"></i>Activer le contrat
+          <i class="bi bi-check-circle me-2"></i>Activate Contract
         </h5>
         <button type="button" class="btn-close btn-close-white" (click)="closeModal()"></button>
       </div>
       <div class="modal-body text-center py-4">
         <i class="bi bi-question-circle display-1 text-success mb-3 d-block"></i>
-        <p>Voulez-vous vraiment activer le contrat <strong>#{{ selectedContract?.contractId }}</strong> ?</p>
+        <p>Are you sure you want to activate contract <strong>#{{ selectedContract?.contractId }}</strong>?</p>
         <div class="client-info-summary" *ngIf="selectedContract">
           <div class="info-row">
             <i class="bi bi-person"></i>
@@ -347,35 +347,35 @@
           </div>
         </div>
         <p class="text-muted small mt-3">
-          <i class="bi bi-envelope me-1"></i>Le client recevra une notification par email.
+          <i class="bi bi-envelope me-1"></i>The client will receive a notification by email.
         </p>
       </div>
       <div class="modal-footer">
         <button class="btn btn-secondary" (click)="closeModal()">
-          <i class="bi bi-x-circle me-1"></i> Annuler
+          <i class="bi bi-x-circle me-1"></i> Cancel
         </button>
         <button class="btn btn-success" (click)="confirmActivate()">
-          <i class="bi bi-check-lg me-1"></i> Activer
+          <i class="bi bi-check-lg me-1"></i> Activate
         </button>
       </div>
     </div>
   </div>
 </div>
 
-<!-- Modal Rejet -->
+<!-- Rejection Modal -->
 <div class="modal fade" [class.show]="showRejectModal" [style.display]="showRejectModal ? 'block' : 'none'" tabindex="-1" *ngIf="showRejectModal">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header bg-danger">
         <h5 class="modal-title">
-          <i class="bi bi-x-circle me-2"></i>Rejeter le contrat
+          <i class="bi bi-x-circle me-2"></i>Reject Contract
         </h5>
         <button type="button" class="btn-close btn-close-white" (click)="closeModal()"></button>
       </div>
       <div class="modal-body">
         <div class="text-center mb-3">
           <i class="bi bi-exclamation-triangle display-1 text-warning"></i>
-          <p class="mt-3">Voulez-vous vraiment rejeter le contrat <strong>#{{ selectedContract?.contractId }}</strong> ?</p>
+          <p class="mt-3">Are you sure you want to reject contract <strong>#{{ selectedContract?.contractId }}</strong>?</p>
           <div class="client-info-summary" *ngIf="selectedContract">
             <div class="info-row">
               <i class="bi bi-person"></i>
@@ -384,22 +384,22 @@
           </div>
         </div>
         <label class="form-label">
-          <i class="bi bi-pencil-square me-1"></i>Raison du rejet *
+          <i class="bi bi-pencil-square me-1"></i>Rejection Reason *
         </label>
         <textarea class="form-control" rows="3" [(ngModel)]="rejectReason" 
-                  placeholder="Expliquez la raison du rejet..."></textarea>
+                  placeholder="Explain the reason for rejection..."></textarea>
       </div>
       <div class="modal-footer">
         <button class="btn btn-secondary" (click)="closeModal()">
-          <i class="bi bi-x-circle me-1"></i> Annuler
+          <i class="bi bi-x-circle me-1"></i> Cancel
         </button>
         <button class="btn btn-danger" (click)="confirmReject()">
-          <i class="bi bi-check-lg me-1"></i> Rejeter
+          <i class="bi bi-check-lg me-1"></i> Reject
         </button>
       </div>
     </div>
   </div>
 </div>
 
-<!-- Overlay modal -->
+<!-- Modal Backdrop Overlay -->
 <div class="modal-backdrop fade show" *ngIf="showRiskModal || showActivateModal || showRejectModal" (click)="closeModal()"></div>

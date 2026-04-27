@@ -277,10 +277,22 @@ export class LoginComponent {
   }
 
   private redirectBasedOnRole(role: string) {
-    if (role === 'ADMIN') {
-      this.router.navigate(['/backoffice']);
-    } else {
-      this.router.navigate(['/public/home']);
+    switch (role) {
+      case 'ADMIN':
+        this.router.navigate(['/backoffice']);
+        break;
+      case 'AGENT_ASSURANCE':
+        this.router.navigate(['/public/agent/home']);
+        break;
+      case 'AGENT_FINANCE':
+        this.router.navigate(['/public/home']);
+        break;
+      case 'CLIENT':
+        this.router.navigate(['/public/home']);
+        break;
+      default:
+        this.router.navigate(['/public/home']);
+        break;
     }
   }
 

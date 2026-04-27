@@ -1,79 +1,241 @@
-<!-- agent-claims.component.html -->
-<div class="container">
-  <!-- Claims List -->
-  <div class="claims-list">
-    <div *ngFor="let claim of claims" 
-         class="claim-card" 
-         [class.approved]="claim.status === 'APPROVED'" 
-         [class.rejected]="claim.status === 'REJECTED'">
-      
-      <div class="claim-header">
-        <h3>Claim #{{ claim.claimId }}</h3>
-        <span class="status-badge" [class]="claim.status">
-          {{ getStatusLabel(claim.status) }}
-        </span>
-      </div>
-      
-      <div class="claim-body">
-        <p><strong>📅 Date:</strong> {{ claim.claimDate | date }}</p>
-        <p><strong>💰 Claimed Amount:</strong> {{ claim.claimedAmount }} DT</p>
-        <p *ngIf="claim.approvedAmount > 0">
-          <strong>✅ Approved Amount:</strong> {{ claim.approvedAmount }} DT
-        </p>
-        <p><strong>📝 Description:</strong> {{ claim.description }}</p>
-        <p *ngIf="claim.message" class="message">{{ claim.message }}</p>
-      </div>
-      
-      <!-- Actions for claims in review -->
-      <div class="claim-actions" *ngIf="claim.status === 'IN_REVIEW'">
-        <!-- Approval Form -->
-        <div class="approve-form">
-          <label>Amount to Approve:</label>
-          <input type="number" 
-                 [(ngModel)]="approvedAmounts[claim.claimId]" 
-                 [placeholder]="'Max ' + claim.claimedAmount + ' DT'">
-          <button class="btn-approve" (click)="approveClaim(claim.claimId)">
-            ✅ Approve
-          </button>
+<!-- agent-claims.component.html - Version Moderne -->
+<div class="claims-container">
+  <div class="container-fluid px-4 py-4" style="margin-top: 76px;">
+    
+    <!-- Hero Section -->
+    <div class="hero-section mb-5">
+      <div class="row align-items-center">
+        <div class="col-md-8">
+          <h1 class="hero-title">Insurance Claims Dashboard</h1>
+          <p class="hero-subtitle">Review, approve or reject client claims efficiently</p>
         </div>
-        
-        <!-- Rejection Form -->
-        <div class="reject-form">
-          <label>Rejection Reason:</label>
-          <input type="text" 
-                 [(ngModel)]="rejectionReasons[claim.claimId]" 
-                 placeholder="Enter rejection reason">
-          <button class="btn-reject" (click)="rejectClaim(claim.claimId)">
-            ❌ Reject
-          </button>
+        <div class="col-md-4 text-md-end">
+          <div class="stats-summary">
+            <div class="stat-item">
+              <span class="stat-value">{{ getTotalClaims() }}</span>
+              <span class="stat-label">Total Claims</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-value text-warning">{{ getPendingCount() }}</span>
+              <span class="stat-label">Pending</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-value text-success">{{ getApprovedCount() }}</span>
+              <span class="stat-label">Approved</span>
+            </div>
+          </div>
         </div>
       </div>
+    </div>
+
+    <!-- Filters Bar -->
+    <div class="filters-bar mb-4">
+      <div class="search-wrapper">
+        <i class="fas fa-search search-icon"></i>
+        <input 
+          type="text" 
+          class="search-input"
+          placeholder="Search by claim ID or client name..."
+          [(ngModel)]="searchTerm"
+          (input)="filterClaims()">
+      </div>
       
-      <!-- Compensation Section for approved claims -->
-      <div class="compensation-section" *ngIf="claim.status === 'APPROVED'">
-        <button class="btn-compensation" (click)="viewCompensation(claim.claimId)">
-          💰 View Compensation Details
+      <div class="filter-group">
+        <button 
+          class="filter-chip" 
+          [class.active]="selectedStatus === 'ALL'"
+          (click)="setFilter('ALL')">
+          All Claims
+        </button>
+        <button 
+          class="filter-chip" 
+          [class.active]="selectedStatus === 'IN_REVIEW'"
+          [class.warning]="selectedStatus === 'IN_REVIEW'"
+          (click)="setFilter('IN_REVIEW')">
+          <i class="fas fa-clock me-1"></i> Pending
+        </button>
+        <button 
+          class="filter-chip" 
+          [class.active]="selectedStatus === 'APPROVED'"
+          [class.success]="selectedStatus === 'APPROVED'"
+          (click)="setFilter('APPROVED')">
+          <i class="fas fa-check-circle me-1"></i> Approved
+        </button>
+        <button 
+          class="filter-chip" 
+          [class.active]="selectedStatus === 'REJECTED'"
+          [class.danger]="selectedStatus === 'REJECTED'"
+          (click)="setFilter('REJECTED')">
+          <i class="fas fa-times-circle me-1"></i> Rejected
         </button>
       </div>
     </div>
-  </div>
-  
-  <!-- Loading Message -->
-  <div *ngIf="loading" class="loading">
-    Loading claims...
-  </div>
-  
-  <!-- Error Message -->
-  <div *ngIf="error" class="error">
-    {{ error }}
-  </div>
-  
-  <!-- Compensation Modal -->
-  <div class="modal" *ngIf="selectedCompensation">
-    <div class="modal-content">
-      <span class="close" (click)="closeModal()">&times;</span>
-      <h3>📊 Compensation Details</h3>
-      <pre>{{ selectedCompensation }}</pre>
+
+    <!-- Loading State -->
+    <div *ngIf="loading" class="loading-state">
+      <div class="spinner-grow text-primary me-3" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+      <span>Loading claims...</span>
     </div>
+
+    <!-- Error State -->
+    <div *ngIf="error" class="error-state">
+      <i class="fas fa-exclamation-triangle fa-2x mb-3"></i>
+      <h4>Something went wrong</h4>
+      <p>{{ error }}</p>
+      <!-- Dans agent-claims.component.html - Correction du bouton retry -->
+      <button class="btn-retry" (click)="loadClaims()">
+        <i class="fas fa-sync-alt me-2"></i> Try Again
+      </button>
+    </div>
+
+    <!-- Claims Grid -->
+    <div *ngIf="!loading && !error" class="claims-grid">
+      <div *ngFor="let claim of filteredClaims" class="claim-card" 
+           [class.approved]="claim.status === 'APPROVED'"
+           [class.rejected]="claim.status === 'REJECTED'"
+           [class.in-review]="claim.status === 'IN_REVIEW'">
+        
+        <!-- Card Header -->
+        <div class="card-header">
+          <div class="claim-id-wrapper">
+            <i class="fas fa-file-alt"></i>
+            <span class="claim-id">#{{ claim.claimId }}</span>
+          </div>
+          <div class="status-indicator" [class]="claim.status.toLowerCase()">
+            <span class="status-dot"></span>
+            <span>{{ getStatusLabel(claim.status) }}</span>
+          </div>
+        </div>
+
+        <!-- Card Body -->
+        <div class="card-body">
+          <!-- Client Info -->
+          <div class="client-info">
+            <div class="client-avatar">
+              <i class="fas fa-user-circle"></i>
+            </div>
+            <div class="client-details">
+              <h4>{{ claim.client?.firstName }} {{ claim.client?.lastName }}</h4>
+              <p class="client-email">{{ claim.client?.email }}</p>
+            </div>
+          </div>
+
+          <!-- Claim Details -->
+          <div class="claim-details">
+            <div class="detail-row">
+              <span class="detail-label">
+                <i class="fas fa-calendar-alt"></i> Date
+              </span>
+              <span class="detail-value">{{ claim.claimDate | date:'dd MMM yyyy' }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">
+                <i class="fas fa-money-bill-wave"></i> Claimed Amount
+              </span>
+              <span class="detail-value amount claimed">{{ claim.claimedAmount | currency:'TND':'symbol':'1.2-2' }}</span>
+            </div>
+            <div class="detail-row" *ngIf="claim.approvedAmount > 0">
+              <span class="detail-label">
+                <i class="fas fa-check-circle"></i> Approved Amount
+              </span>
+              <span class="detail-value amount approved">{{ claim.approvedAmount | currency:'TND':'symbol':'1.2-2' }}</span>
+            </div>
+            <div class="detail-row full-width">
+              <span class="detail-label">
+                <i class="fas fa-align-left"></i> Description
+              </span>
+              <span class="detail-value description">{{ claim.description }}</span>
+            </div>
+            <div class="detail-row full-width" *ngIf="claim.message">
+              <span class="detail-label">
+                <i class="fas fa-comment-dots"></i> Message
+              </span>
+              <span class="detail-value message-text">{{ claim.message }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card Actions -->
+        <div class="card-actions" *ngIf="claim.status === 'IN_REVIEW'">
+          <div class="action-group">
+            <div class="action-field">
+              <label>
+                <i class="fas fa-hand-holding-usd"></i> Approval Amount
+              </label>
+              <input 
+                type="number" 
+                class="amount-input"
+                [(ngModel)]="approvedAmounts[claim.claimId]" 
+                [placeholder]="'Max ' + claim.claimedAmount + ' DT'"
+                (keyup.enter)="approveClaim(claim.claimId)">
+            </div>
+            <button class="btn-approve" (click)="approveClaim(claim.claimId)">
+              <i class="fas fa-check me-2"></i> Approve
+            </button>
+          </div>
+          
+          <div class="action-group">
+            <div class="action-field">
+              <label>
+                <i class="fas fa-ban"></i> Rejection Reason
+              </label>
+              <input 
+                type="text" 
+                class="reason-input"
+                [(ngModel)]="rejectionReasons[claim.claimId]" 
+                placeholder="Enter reason for rejection"
+                (keyup.enter)="rejectClaim(claim.claimId)">
+            </div>
+            <button class="btn-reject" (click)="rejectClaim(claim.claimId)">
+              <i class="fas fa-times me-2"></i> Reject
+            </button>
+          </div>
+        </div>
+
+        <!-- Compensation Button -->
+        <div class="card-footer" *ngIf="claim.status === 'APPROVED'">
+          <button class="btn-compensation" (click)="viewCompensation(claim.claimId)">
+            <i class="fas fa-chart-line me-2"></i> View Compensation Details
+            <i class="fas fa-arrow-right ms-2"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Empty State -->
+      <div *ngIf="filteredClaims.length === 0" class="empty-state">
+        <div class="empty-icon">
+          <i class="fas fa-inbox"></i>
+        </div>
+        <h3>No claims found</h3>
+        <p>No claims match your current filter criteria.</p>
+        <button class="btn-clear" (click)="clearFilters()">
+          <i class="fas fa-eraser me-2"></i> Clear Filters
+        </button>
+      </div>
+    </div>
+
+    <!-- Compensation Modal -->
+    <div class="modal-overlay" *ngIf="selectedCompensation" (click)="closeModal()">
+      <div class="modal-container" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <div class="modal-title">
+            <i class="fas fa-chart-pie"></i>
+            <h3>Compensation Details</h3>
+          </div>
+          <button class="modal-close" (click)="closeModal()">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <div class="modal-body">
+          <pre class="compensation-data">{{ selectedCompensation | json }}</pre>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-secondary" (click)="closeModal()">Close</button>
+        </div>
+      </div>
+    </div>
+
   </div>
 </div>

@@ -1,7 +1,6 @@
 <!-- contract-list.component.html -->
 <div class="contract-management-container">
   <!-- Header Section -->
-  <!-- Header Section -->
   <div class="page-header">
     <div class="header-content">
       <div>
@@ -20,7 +19,6 @@
       </div>
     </div>
   </div>
-
 
   <!-- Main Card -->
   <div class="contract-card">
@@ -148,6 +146,14 @@
                 <button class="action-btn view-risk" (click)="viewRisk(contract)" title="View Risk Assessment">
                   <i class="bi bi-shield-check"></i>
                 </button>
+                
+                <!-- 🔥 NOUVEAU BOUTON : Envoyer rappel paiement avec choix des jours -->
+                <button class="action-btn reminder" 
+                        (click)="openReminderModal(contract)" 
+                        title="Send payment reminder">
+                  <i class="bi bi-envelope-paper"></i>
+                </button>
+                
                 <button *ngIf="contract.status === 'INACTIVE'" 
                         class="action-btn activate" 
                         (click)="activateContract(contract)" 
@@ -277,6 +283,105 @@
     <div class="modal-footer">
       <button class="btn-secondary" (click)="closeModal()">Cancel</button>
       <button class="btn-primary" (click)="confirmSimulate()">Simulate</button>
+    </div>
+  </div>
+</div>
+
+<!-- 🔥 NOUVEAU MODAL : Choix des jours pour le rappel de paiement -->
+<div class="modal-overlay" *ngIf="showReminderModal" (click)="closeReminderModal()">
+  <div class="modal-container" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <div class="modal-title">
+        <i class="bi bi-envelope-paper"></i>
+        <span>Send Payment Reminder</span>
+      </div>
+      <button class="modal-close" (click)="closeReminderModal()">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="reminder-form">
+        <div class="contract-info">
+          <p><strong>Contract #{{ selectedContractForReminder?.contractId }}</strong></p>
+          <p>Client: {{ selectedContractForReminder?.client?.firstName }} {{ selectedContractForReminder?.client?.lastName }}</p>
+          <p>Email: {{ selectedContractForReminder?.client?.email }}</p>
+          <p>Premium: {{ selectedContractForReminder?.premium }} DT</p>
+          <p>Remaining: {{ selectedContractForReminder?.remainingAmount }} DT</p>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Days before payment due:</label>
+          <div class="days-buttons">
+            <button type="button" 
+                    class="day-btn" 
+                    [class.active]="selectedDaysBefore === 30"
+                    (click)="selectedDaysBefore = 30">
+              30 days
+            </button>
+            <button type="button" 
+                    class="day-btn" 
+                    [class.active]="selectedDaysBefore === 15"
+                    (click)="selectedDaysBefore = 15">
+              15 days
+            </button>
+            <button type="button" 
+                    class="day-btn" 
+                    [class.active]="selectedDaysBefore === 7"
+                    (click)="selectedDaysBefore = 7">
+              7 days
+            </button>
+            <button type="button" 
+                    class="day-btn" 
+                    [class.active]="selectedDaysBefore === 3"
+                    (click)="selectedDaysBefore = 3">
+              3 days
+            </button>
+            <button type="button" 
+                    class="day-btn urgent" 
+                    [class.active]="selectedDaysBefore === 1"
+                    (click)="selectedDaysBefore = 1">
+              1 day (URGENT)
+            </button>
+            <button type="button" 
+                    class="day-btn today" 
+                    [class.active]="selectedDaysBefore === 0"
+                    (click)="selectedDaysBefore = 0">
+              Today (⚠️ URGENT)
+            </button>
+          </div>
+          <p class="form-hint">Select how many days before the payment due date the reminder should be sent</p>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Or enter custom days:</label>
+          <input 
+            type="number" 
+            class="form-input" 
+            [(ngModel)]="customDaysBefore" 
+            min="0" 
+            max="365"
+            (change)="setCustomDays()"
+            placeholder="Enter number of days (0-365)">
+        </div>
+
+        <div class="reminder-preview" *ngIf="selectedDaysBefore !== null">
+          <div class="preview-header">
+            <i class="bi bi-info-circle"></i>
+            <span>Reminder Preview</span>
+          </div>
+          <p>⚠️ A reminder will be sent <strong>{{ getReminderText() }}</strong> before the next payment due date.</p>
+          <p class="preview-note">The client will receive an email and SMS (if phone number is available).</p>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" (click)="closeReminderModal()">
+        <i class="bi bi-x-circle"></i> Cancel
+      </button>
+      <button class="btn-primary" (click)="sendReminderWithDays()" [disabled]="isSendingReminder">
+        <i class="bi" [class.bi-envelope-paper]="!isSendingReminder" [class.bi-hourglass-split]="isSendingReminder"></i>
+        {{ isSendingReminder ? 'Sending...' : 'Send Reminder' }}
+      </button>
     </div>
   </div>
 </div>

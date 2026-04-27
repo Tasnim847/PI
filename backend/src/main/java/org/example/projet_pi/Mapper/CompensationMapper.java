@@ -23,8 +23,20 @@ public class CompensationMapper {
         dto.setStatus(compensation.getStatus());
         dto.setCalculationDate(compensation.getCalculationDate());
 
+        // 🔥 NOUVEAU : Ajouter les infos de scoring
+        dto.setRiskScore(compensation.getRiskScore());
+        dto.setRiskLevel(compensation.getRiskLevel());
+        dto.setDecisionSuggestion(compensation.getDecisionSuggestion());
+        dto.setScoringDetails(compensation.getScoringDetails());
+        dto.setAdjustedAmount(compensation.getAdjustedAmount());
+
         if (compensation.getClaim() != null) {
             dto.setClaimId(compensation.getClaim().getClaimId());
+
+            // 🔥 NOUVEAU : Récupérer les informations du client via le claim
+            if (compensation.getClaim().getClient() != null) {
+                dto.setClient(ClientMapper.toDTO(compensation.getClaim().getClient()));
+            }
         }
 
         return dto;
@@ -47,6 +59,13 @@ public class CompensationMapper {
         compensation.setStatus(dto.getStatus());
         compensation.setCalculationDate(dto.getCalculationDate());
         compensation.setClaim(claim);
+
+        // 🔥 NOUVEAU : Ajouter les infos de scoring
+        compensation.setRiskScore(dto.getRiskScore());
+        compensation.setRiskLevel(dto.getRiskLevel());
+        compensation.setDecisionSuggestion(dto.getDecisionSuggestion());
+        compensation.setScoringDetails(dto.getScoringDetails());
+        compensation.setAdjustedAmount(dto.getAdjustedAmount());
 
         return compensation;
     }

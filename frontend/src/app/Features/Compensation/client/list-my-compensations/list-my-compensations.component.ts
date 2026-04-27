@@ -1,38 +1,36 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterModule } from '@angular/router';
 import { CompensationService } from '../../services/compensation.service';
 import { Compensation } from '../../../../shared';
-import { ToastrService } from 'ngx-toastr';
 import { loadStripe, Stripe } from '@stripe/stripe-js';
 import { environment } from '../../../../../environments/environment';
 
 @Component({
   selector: 'app-list-my-compensations',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './list-my-compensations.component.html',
-  styleUrl: './list-my-compensations.component.css'
+  styleUrls: ['./list-my-compensations.component.css']
 })
 export class ListMyCompensationsComponent implements OnInit {
   compensations: Compensation[] = [];
+  filteredCompensations: Compensation[] = [];
   loading = false;
   error = '';
+  successMessage = '';
   selectedCompensation: any = null;
   showDetails = false;
-  paymentStatus: any = null;
-  Math = Math;
 
   // Payment properties
   selectedCompensationForPayment: Compensation | null = null;
   processingPayment = false;
-  paymentMethod: string = 'CARD'; // 'CARD' ou 'CASH'
+  paymentMethod: string = 'CARD';
   
   // Stripe
   stripe: Stripe | null = null;
   
-  // Card details (pour affichage uniquement)
+  // Card details
   cardDetails = {
     cardNumber: '',
     cardHolder: '',
@@ -40,25 +38,16 @@ export class ListMyCompensationsComponent implements OnInit {
     cvv: ''
   };
 
-  statusColors: { [key: string]: string } = {
-    'PENDING': 'badge bg-warning',
-    'CALCULATED': 'badge bg-info',
-    'PAID': 'badge bg-success',
-    'CANCELLED': 'badge bg-danger'
-  };
+  // Filters
+  filterStatus: string = 'ALL';
+  statusOptions = ['ALL', 'CALCULATED', 'PAID', 'PENDING', 'CANCELLED'];
 
-  riskLevelColors: { [key: string]: string } = {
-    'TRES_FAIBLE': 'text-success',
-    'FAIBLE': 'text-info',
-    'MOYEN': 'text-warning',
-    'ELEVE': 'text-danger',
-    'TRES_ELEVE': 'text-danger fw-bold'
-  };
+  // Pagination
+  currentPage = 1;
+  itemsPerPage = 6;
+  totalPages = 1;
 
-  constructor(
-    private compensationService: CompensationService,
-    private toastr: ToastrService
-  ) {}
+  constructor(private compensationService: CompensationService) {}
 
   async ngOnInit(): Promise<void> {
     await this.initStripe();
@@ -67,25 +56,24 @@ export class ListMyCompensationsComponent implements OnInit {
 
   async initStripe(): Promise<void> {
     if (!environment.stripePublicKey) {
-      console.error('❌ Stripe key not configured');
+      console.error('Stripe key not configured');
       return;
     }
     
     try {
       this.stripe = await loadStripe(environment.stripePublicKey);
-      if (this.stripe) {
-        console.log('✅ Stripe initialized successfully');
-      }
     } catch (error) {
-      console.error('❌ Stripe error:', error);
+      console.error('Stripe error:', error);
     }
   }
 
   loadCompensations(): void {
     this.loading = true;
+    this.error = '';
     this.compensationService.getMyCompensations().subscribe({
       next: (data) => {
         this.compensations = data;
+        this.applyFilter();
         this.loading = false;
       },
       error: (err) => {
@@ -93,6 +81,37 @@ export class ListMyCompensationsComponent implements OnInit {
         this.loading = false;
       }
     });
+  }
+
+  applyFilter(): void {
+    if (this.filterStatus === '' || this.filterStatus === 'ALL') {
+      this.filteredCompensations = [...this.compensations];
+    } else {
+      this.filteredCompensations = this.compensations.filter(
+        compensation => compensation.status === this.filterStatus
+      );
+    }
+    
+    this.totalPages = Math.ceil(this.filteredCompensations.length / this.itemsPerPage);
+    this.currentPage = 1;
+  }
+
+  getPaginatedCompensations(): Compensation[] {
+    const startIndex = (this.currentPage - 1) * this.itemsPerPage;
+    const endIndex = startIndex + this.itemsPerPage;
+    return this.filteredCompensations.slice(startIndex, endIndex);
+  }
+
+  previousPage(): void {
+    if (this.currentPage > 1) {
+      this.currentPage--;
+    }
+  }
+
+  nextPage(): void {
+    if (this.currentPage < this.totalPages) {
+      this.currentPage++;
+    }
   }
 
   viewCompensationDetails(compensationId: number): void {
@@ -109,7 +128,8 @@ export class ListMyCompensationsComponent implements OnInit {
 
   selectCompensationForPayment(compensation: Compensation): void {
     if (compensation.status !== 'CALCULATED') {
-      this.toastr.warning('This compensation cannot be paid');
+      this.error = 'This compensation cannot be paid';
+      setTimeout(() => this.error = '', 3000);
       return;
     }
     
@@ -137,11 +157,10 @@ export class ListMyCompensationsComponent implements OnInit {
       next: async (response) => {
         if (response.success && response.clientSecret && this.stripe) {
           try {
-            // Afficher le formulaire Stripe
             const result = await this.stripe.confirmCardPayment(response.clientSecret, {
               payment_method: {
                 card: {
-                  token: 'tok_visa', // En développement, utiliser un token de test
+                  token: 'tok_visa',
                 },
                 billing_details: {
                   name: this.cardDetails.cardHolder || 'Client',
@@ -151,40 +170,40 @@ export class ListMyCompensationsComponent implements OnInit {
             
             if (result.error) {
               this.processingPayment = false;
-              this.toastr.error('Payment error: ' + result.error.message);
+              this.error = 'Payment error: ' + result.error.message;
             } else if (result.paymentIntent?.status === 'succeeded') {
-              // Confirmer le paiement
               this.compensationService.confirmCompensationPayment(result.paymentIntent.id).subscribe({
                 next: (confirmResponse) => {
                   this.processingPayment = false;
                   if (confirmResponse.success) {
-                    this.toastr.success('✅ Payment successful!');
+                    this.successMessage = 'Payment successful!';
                     this.loadCompensations();
                     this.cancelPayment();
+                    setTimeout(() => this.successMessage = '', 5000);
                   } else {
-                    this.toastr.error(confirmResponse.error || 'Confirmation failed');
+                    this.error = confirmResponse.error || 'Confirmation failed';
                   }
                 },
                 error: (err) => {
                   this.processingPayment = false;
-                  this.toastr.error('Confirmation error: ' + err.message);
+                  this.error = 'Confirmation error: ' + err.message;
                 }
               });
             }
           } catch (error) {
             this.processingPayment = false;
             console.error('Stripe error:', error);
-            this.toastr.error('Payment processing error');
+            this.error = 'Payment processing error';
           }
         } else {
           this.processingPayment = false;
-          this.toastr.error(response.error || 'Failed to initialize payment');
+          this.error = response.error || 'Failed to initialize payment';
         }
       },
       error: (err) => {
         this.processingPayment = false;
         console.error('Payment error:', err);
-        this.toastr.error(err.error?.error || 'Payment initialization failed');
+        this.error = err.error?.error || 'Payment initialization failed';
       }
     });
   }
@@ -205,29 +224,30 @@ export class ListMyCompensationsComponent implements OnInit {
         this.processingPayment = false;
         
         if (response.success) {
-          this.toastr.success(response.message || 'Cash payment recorded successfully!');
+          this.successMessage = response.message || 'Cash payment recorded successfully!';
           this.loadCompensations();
           this.cancelPayment();
+          setTimeout(() => this.successMessage = '', 5000);
         } else {
-          this.toastr.error(response.error || 'Payment failed');
+          this.error = response.error || 'Payment failed';
         }
       },
       error: (err) => {
         this.processingPayment = false;
         console.error('Payment error:', err);
-        this.toastr.error(err.error?.error || 'Payment failed');
+        this.error = err.error?.error || 'Payment failed';
       }
     });
   }
 
   processPayment(): void {
     if (!this.selectedCompensationForPayment) {
-      this.toastr.warning('Please select a compensation to pay');
+      this.error = 'Please select a compensation to pay';
       return;
     }
     
     if (this.selectedCompensationForPayment.status !== 'CALCULATED') {
-      this.toastr.error('This compensation has already been paid');
+      this.error = 'This compensation has already been paid';
       this.cancelPayment();
       return;
     }
@@ -244,20 +264,69 @@ export class ListMyCompensationsComponent implements OnInit {
     this.selectedCompensation = null;
   }
 
-  getStatusColor(status: string): string {
-    return this.statusColors[status] || 'badge bg-secondary';
+  // Statistics methods
+  getCalculatedCount(): number {
+    return this.compensations.filter(c => c.status === 'CALCULATED').length;
   }
 
-  getRiskLevelColor(riskLevel: string): string {
-    return this.riskLevelColors[riskLevel] || '';
+  getPaidCount(): number {
+    return this.compensations.filter(c => c.status === 'PAID').length;
   }
 
-  formatDate(date: Date): string {
-    return new Date(date).toLocaleDateString('fr-FR');
+  getTotalOutOfPocket(): number {
+    return this.compensations.reduce((sum, c) => sum + (c.clientOutOfPocket || 0), 0);
+  }
+
+  // Status styling methods
+  getStatusClass(status: string): string {
+    const statusMap: { [key: string]: string } = {
+      'CALCULATED': 'calculated',
+      'PAID': 'paid',
+      'PENDING': 'pending',
+      'CANCELLED': 'cancelled'
+    };
+    return `compensation-status ${statusMap[status] || ''}`;
+  }
+
+  getRiskScoreClass(score: number): string {
+    if (score >= 70) return 'high';
+    if (score >= 40) return 'medium';
+    return 'low';
+  }
+
+  getRiskLevelClass(level: string): string {
+    const levelMap: { [key: string]: string } = {
+      'TRES_FAIBLE': 'very-low',
+      'FAIBLE': 'low',
+      'MOYEN': 'medium',
+      'ELEVE': 'high',
+      'TRES_ELEVE': 'very-high'
+    };
+    return `risk-level ${levelMap[level] || ''}`;
+  }
+
+  getDecisionClass(decision: string): string {
+    const decisionMap: { [key: string]: string } = {
+      'AUTO_APPROVE': 'approve',
+      'AUTO_REJECT': 'reject',
+      'MANUAL_REVIEW': 'review'
+    };
+    return `decision ${decisionMap[decision] || ''}`;
+  }
+
+  formatDate(date: Date | string): string {
+    if (!date) return 'N/A';
+    return new Date(date).toLocaleDateString('fr-FR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    });
   }
 
   formatAmount(amount: number): string {
-    if (amount === undefined || amount === null) return '0.00 DT';
-    return amount.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' DT';
+    return amount?.toLocaleString('fr-FR', { 
+      minimumFractionDigits: 2, 
+      maximumFractionDigits: 2 
+    }) + ' €';
   }
 }

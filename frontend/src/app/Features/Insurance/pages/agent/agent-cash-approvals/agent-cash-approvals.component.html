@@ -1,15 +1,11 @@
 <div class="cash-approvals-page">
-  <div class="container py-5">
+  <div class="container py-4">
 
     <!-- HERO SECTION -->
     <div class="hero-modern text-center mb-5">
-      <div class="badge-hero">
-        <i class="fas fa-money-bill-wave"></i>
-        Agent Dashboard
-      </div>
       <h1 class="hero-title">Cash Payment Approvals</h1>
       <p class="hero-subtitle">
-        Gérez et validez les demandes de paiement en espèces de vos clients
+        Manage and validate your clients' cash payment requests
       </p>
     </div>
 
@@ -21,11 +17,11 @@
         </div>
         <div class="stat-info">
           <h3>{{ pendingRequests.length }}</h3>
-          <p>En attente</p>
+          <p>Pending</p>
         </div>
         <div class="stat-trend">
           <span class="trend-value">+{{ pendingRequests.length }}</span>
-          <span class="trend-label">à traiter</span>
+          <span class="trend-label">to process</span>
         </div>
       </div>
 
@@ -35,7 +31,7 @@
         </div>
         <div class="stat-info">
           <h3>{{ approvedCount }}</h3>
-          <p>Approuvées</p>
+          <p>Approved</p>
         </div>
         <div class="stat-percentage">
           <span class="percentage-value">{{ getPercentage(approvedCount) }}%</span>
@@ -48,7 +44,7 @@
         </div>
         <div class="stat-info">
           <h3>{{ rejectedCount }}</h3>
-          <p>Refusées</p>
+          <p>Rejected</p>
         </div>
         <div class="stat-percentage">
           <span class="percentage-value">{{ getPercentage(rejectedCount) }}%</span>
@@ -62,7 +58,7 @@
         <i class="fas fa-search"></i>
         <input
           type="text"
-          placeholder="Rechercher par nom, email, contrat..."
+          placeholder="Search by name, email, contract..."
           [(ngModel)]="searchTerm"
           (input)="onSearch()"
         />
@@ -76,25 +72,25 @@
           class="filter-btn"
           [class.active]="currentFilter === 'all'"
           (click)="setFilter('all')">
-          <i class="fas fa-th"></i> Toutes ({{ allRequests.length }})
+          <i class="fas fa-th"></i> All ({{ allRequests.length }})
         </button>
         <button 
           class="filter-btn"
           [class.active]="currentFilter === 'pending'"
           (click)="setFilter('pending')">
-          <i class="fas fa-clock"></i> En attente ({{ pendingRequests.length }})
+          <i class="fas fa-clock"></i> Pending ({{ pendingRequests.length }})
         </button>
         <button 
           class="filter-btn"
           [class.active]="currentFilter === 'approved'"
           (click)="setFilter('approved')">
-          <i class="fas fa-check-circle"></i> Approuvées ({{ approvedCount }})
+          <i class="fas fa-check-circle"></i> Approved ({{ approvedCount }})
         </button>
         <button 
           class="filter-btn"
           [class.active]="currentFilter === 'rejected'"
           (click)="setFilter('rejected')">
-          <i class="fas fa-times-circle"></i> Refusées ({{ rejectedCount }})
+          <i class="fas fa-times-circle"></i> Rejected ({{ rejectedCount }})
         </button>
       </div>
     </div>
@@ -129,15 +125,15 @@
             <div class="details-list">
               <div class="detail-row">
                 <i class="fas fa-tag"></i>
-                <span>Contrat #{{ request.contractId }}</span>
+                <span>Contract #{{ request.contractId }}</span>
               </div>
               <div class="detail-row">
                 <i class="fas fa-calendar"></i>
-                <span>Demandé le: {{ formatDate(request.requestedAt) }}</span>
+                <span>Requested on: {{ formatDate(request.requestedAt) }}</span>
               </div>
               <div class="detail-row" *ngIf="request.paymentId">
                 <i class="fas fa-receipt"></i>
-                <span>Paiement #{{ request.paymentId }}</span>
+                <span>Payment #{{ request.paymentId }}</span>
               </div>
             </div>
 
@@ -149,11 +145,11 @@
             <div class="timestamps" *ngIf="request.status !== 'PENDING'">
               <div class="timestamp" *ngIf="request.approvedAt">
                 <i class="fas fa-check-circle text-success"></i>
-                <span>Approuvé le: {{ formatDateTime(request.approvedAt) }}</span>
+                <span>Approved on: {{ formatDateTime(request.approvedAt) }}</span>
               </div>
               <div class="timestamp" *ngIf="request.rejectedAt">
                 <i class="fas fa-times-circle text-danger"></i>
-                <span>Refusé le: {{ formatDateTime(request.rejectedAt) }}</span>
+                <span>Rejected on: {{ formatDateTime(request.rejectedAt) }}</span>
               </div>
             </div>
           </div>
@@ -161,14 +157,14 @@
           <div class="card-footer-modern" *ngIf="request.status === 'PENDING'">
             <button class="btn-approve" (click)="approveRequest(request)" [disabled]="processingRequestId === request.id">
               <i class="fas fa-check"></i>
-              <span *ngIf="processingRequestId !== request.id">Approuver</span>
+              <span *ngIf="processingRequestId !== request.id">Approve</span>
               <span *ngIf="processingRequestId === request.id">
-                <i class="fas fa-spinner fa-spin"></i> Traitement...
+                <i class="fas fa-spinner fa-spin"></i> Processing...
               </span>
             </button>
             <button class="btn-reject" (click)="rejectRequest(request)" [disabled]="processingRequestId === request.id">
               <i class="fas fa-times"></i>
-              Refuser
+              Reject
             </button>
           </div>
         </div>
@@ -180,14 +176,14 @@
       <div class="empty-icon">
         <i class="fas fa-inbox"></i>
       </div>
-      <h3 class="text-muted">Aucune demande trouvée</h3>
-      <p class="text-muted">Essayez de modifier vos critères de recherche ou de filtre</p>
+      <h3 class="text-muted">No requests found</h3>
+      <p class="text-muted">Try adjusting your search or filter criteria</p>
     </div>
 
     <!-- AUTO-REFRESH INFO -->
     <div class="auto-refresh-info">
       <i class="fas fa-sync-alt fa-spin"></i>
-      <span>Mise à jour automatique toutes les 10 secondes</span>
+      <span>Auto-refresh every 10 seconds</span>
     </div>
 
   </div>

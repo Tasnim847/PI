@@ -35,6 +35,8 @@ public class CompensationDTO {
     private String scoringDetails;
     private Double adjustedAmount;
 
+    private ClientDTO client;
+
     // Constructeur simplifié pour la rétrocompatibilité
     public CompensationDTO(Long compensationId, Double amount, Date paymentDate, Long claimId) {
         this.compensationId = compensationId;

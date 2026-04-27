@@ -1,191 +1,205 @@
-<!-- product-detail.component.html -->
+<!-- product-detail.component.html - Version Moderne & Épurée -->
 <div class="product-detail-page" *ngIf="product">
-  <!-- Header moderne sans image de fond -->
-  <div class="detail-header">
+  
+  <!-- Header minimaliste -->
+  <div class="detail-header-minimal">
     <div class="container">
-      <!-- Bouton Back to Products -->
-      <div class="back-button-container fade-in">
-        <button class="btn-back-to-products" (click)="goBackToProducts()">
+      <div class="back-button-wrapper">
+        <button class="btn-back-minimal" (click)="goBackToProducts()">
           <i class="fas fa-arrow-left"></i>
           <span>Back to Products</span>
         </button>
       </div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="container py-4">
+    <div class="row g-5">
       
-      <div class="header-content slide-up">
-        <div class="product-type-badge">
-          <span class="badge-modern">
+      <!-- Colonne Image -->
+      <div class="col-lg-6">
+        <div class="product-image-wrapper">
+          <div class="product-image-container">
+            <img 
+              [src]="getImageUrl()" 
+              [alt]="product.name"
+              (error)="onImageError($event)"
+              class="product-image"
+            >
+            <div class="image-overlay">
+              <button class="btn-zoom" (click)="zoomImage()">
+                <i class="fas fa-search-plus"></i>
+              </button>
+            </div>
+          </div>
+          
+          <!-- Features badges simplifiés -->
+          <div class="product-features">
+            <span class="feature-item">
+              <i class="fas fa-shield-alt"></i> Guaranteed
+            </span>
+            <span class="feature-item">
+              <i class="fas fa-clock"></i> Instant coverage
+            </span>
+            <span class="feature-item">
+              <i class="fas fa-tag"></i> Best price
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Colonne Informations -->
+      <div class="col-lg-6">
+        <!-- Badges -->
+        <div class="product-badges">
+          <span class="badge-category">
             <i class="fas fa-tag"></i> {{ getTypeLabel() }}
           </span>
           <span class="badge-status" [class.active]="product.status === 'ACTIVE'">
             <i class="fas fa-circle"></i> {{ getStatusLabel() }}
           </span>
         </div>
-        <h1 class="product-title">{{ product.name }}</h1>
-        <p class="product-subtitle">{{ product.description }}</p>
-      </div>
-    </div>
-  </div>
 
-  <!-- Reste du template inchangé... -->
-  <div class="container py-5">
-    <div class="row g-4">
-      <!-- Colonne image -->
-      <div class="col-lg-6 fade-in-left">
-        <div class="product-image-card">
-          <div class="image-gallery">
-            <div class="main-image">
-              <img 
-                [src]="getImageUrl()" 
-                [alt]="product.name"
-                (error)="onImageError($event)"
-                class="product-main-image"
-              >
-              <div class="image-actions">
-                <button class="image-action-btn" (click)="zoomImage()">
-                  <i class="fas fa-search-plus"></i>
-                </button>
-              </div>
-            </div>
+        <!-- Titre -->
+        <h1 class="product-name">{{ product.name }}</h1>
+        <p class="product-description-short">{{ product.description }}</p>
+
+        <!-- Prix -->
+        <div class="price-section">
+          <div class="price-main">
+            <span class="price-currency">{{ getCurrencySymbol() }}</span>
+            <span class="price-amount">{{ formatPrice(product.basePrice) }}</span>
+            <span class="price-period">/month</span>
           </div>
-          
-          <div class="features-badges">
-            <div class="feature-badge">
-              <i class="fas fa-shield-alt"></i> Guaranteed
+          <div class="price-note">Taxes included • No hidden fees</div>
+        </div>
+
+        <!-- Actions principales -->
+        <div class="actions-section">
+          <button class="btn-subscribe-main" (click)="subscribeNow()">
+            <i class="fas fa-file-signature"></i> Subscribe now
+          </button>
+          <button class="btn-contact-main" (click)="contactUs()">
+            <i class="fas fa-headset"></i> Contact advisor
+          </button>
+        </div>
+
+        <!-- Actions secondaires -->
+        <div class="actions-secondary">
+          <button class="btn-icon" (click)="addToFavorites()">
+            <i class="far fa-heart"></i>
+            <span>Save</span>
+          </button>
+          <button class="btn-icon" (click)="shareProduct()">
+            <i class="fas fa-share-alt"></i>
+            <span>Share</span>
+          </button>
+        </div>
+
+        <!-- Détails techniques -->
+        <div class="details-section">
+          <h3 class="details-title">
+            <i class="fas fa-chart-line"></i> Technical details
+          </h3>
+          <div class="details-grid">
+            <div class="detail-item">
+              <span class="detail-icon"><i class="fas fa-tag"></i></span>
+              <span class="detail-label">Category</span>
+              <span class="detail-value">{{ getTypeLabel() }}</span>
             </div>
-            <div class="feature-badge">
-              <i class="fas fa-clock"></i> Instant coverage
+            <div class="detail-item" *ngIf="product.otherType">
+              <span class="detail-icon"><i class="fas fa-cog"></i></span>
+              <span class="detail-label">Specificity</span>
+              <span class="detail-value">{{ product.otherType }}</span>
             </div>
-            <div class="feature-badge">
-              <i class="fas fa-euro-sign"></i> Best price
+            <div class="detail-item">
+              <span class="detail-icon"><i class="fas fa-calendar-alt"></i></span>
+              <span class="detail-label">Availability</span>
+              <span class="detail-value">Immediate</span>
             </div>
           </div>
         </div>
-      </div>
 
-      <!-- Colonne informations -->
-      <div class="col-lg-6 fade-in-right">
-        <div class="product-info-card">
-          <!-- Prix -->
-          <div class="price-container">
-            <div class="price-wrapper">
-              <div class="current-price">
-                <span class="currency">{{ getCurrencySymbol() }}</span>
-                <span class="amount">{{ formatPrice(product.basePrice) }}</span>
-                <span class="period">/month</span>
-              </div>
-              <div class="price-actions">
-                <button class="btn-favorite" (click)="addToFavorites()">
-                  <i class="far fa-heart"></i>
-                </button>
-                <button class="btn-share" (click)="shareProduct()">
-                  <i class="fas fa-share-alt"></i>
-                </button>
-              </div>
-            </div>
-            <div class="tax-info">Taxes included • No hidden fees</div>
+        <!-- Trust badges -->
+        <div class="trust-section">
+          <div class="trust-item">
+            <i class="fas fa-lock"></i>
+            <span>Secure payment</span>
           </div>
-
-          <!-- Description -->
-          <div class="info-section">
-            <h3 class="section-title">
-              <i class="fas fa-info-circle"></i> About this insurance
-            </h3>
-            <p class="product-description">{{ product.description }}</p>
+          <div class="trust-item">
+            <i class="fas fa-headset"></i>
+            <span>24/7 Support</span>
           </div>
-
-          
-
-          <!-- Détails techniques -->
-          <div class="info-section">
-            <h3 class="section-title">
-              <i class="fas fa-chart-line"></i> Technical details
-            </h3>
-            <div class="details-table">
-              <div class="detail-item">
-                <div class="detail-icon">
-                  <i class="fas fa-tag"></i>
-                </div>
-                <div class="detail-info">
-                  <span class="detail-label">Category</span>
-                  <span class="detail-value">{{ getTypeLabel() }}</span>
-                </div>
-              </div>
-              <div class="detail-item" *ngIf="product.otherType">
-                <div class="detail-icon">
-                  <i class="fas fa-cog"></i>
-                </div>
-                <div class="detail-info">
-                  <span class="detail-label">Specificity</span>
-                  <span class="detail-value">{{ product.otherType }}</span>
-                </div>
-              </div>
-              <div class="detail-item">
-                <div class="detail-icon">
-                  <i class="fas fa-calendar-alt"></i>
-                </div>
-                <div class="detail-info">
-                  <span class="detail-label">Availability</span>
-                  <span class="detail-value">Immediate</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Actions -->
-          <div class="actions-container">
-            <button class="btn-subscribe" (click)="subscribeNow()">
-              <i class="fas fa-file-signature"></i> Subscribe now
-            </button>
-            <button class="btn-contact" (click)="contactUs()">
-              <i class="fas fa-headset"></i> Contact advisor
-            </button>
-          </div>
-
-          <!-- Trust badges -->
-          <div class="trust-badges">
-            <div class="trust-item">
-              <i class="fas fa-lock"></i>
-              <span>Secure payment</span>
-            </div>
-            <div class="trust-item">
-              <i class="fas fa-headset"></i>
-              <span>24/7 Support</span>
-            </div>
-            <div class="trust-item">
-              <i class="fas fa-check-circle"></i>
-              <span>100% Digital</span>
-            </div>
+          <div class="trust-item">
+            <i class="fas fa-check-circle"></i>
+            <span>100% Digital</span>
           </div>
         </div>
       </div>
     </div>
 
+    <!-- Benefits Section -->
+    <div class="benefits-section-modern mt-5">
+      <div class="section-header">
+        <h2>Why choose this insurance?</h2>
+        <p>Discover the advantages that make the difference</p>
+      </div>
+      <div class="benefits-grid">
+        <div class="benefit-card-modern">
+          <div class="benefit-icon-wrap">
+            <i class="fas fa-rocket"></i>
+          </div>
+          <h3>Fast & Easy</h3>
+          <p>100% online subscription in just a few clicks</p>
+        </div>
+        <div class="benefit-card-modern">
+          <div class="benefit-icon-wrap">
+            <i class="fas fa-hand-holding-heart"></i>
+          </div>
+          <h3>Tailored Coverage</h3>
+          <p>Customizable contracts adapted to your needs</p>
+        </div>
+        <div class="benefit-card-modern">
+          <div class="benefit-icon-wrap">
+            <i class="fas fa-headset"></i>
+          </div>
+          <h3>Premium Support</h3>
+          <p>Dedicated advisor available 7 days a week</p>
+        </div>
+        <div class="benefit-card-modern">
+          <div class="benefit-icon-wrap">
+            <i class="fas fa-shield-alt"></i>
+          </div>
+          <h3>Full Protection</h3>
+          <p>Comprehensive coverage for complete peace of mind</p>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 
 <!-- Loading state -->
 <div *ngIf="isLoading" class="loading-overlay">
-  <div class="loading-spinner">
-    <div class="spinner-ring"></div>
-    <div class="spinner-ring"></div>
-    <div class="spinner-ring"></div>
+  <div class="loading-spinner-modern">
+    <div class="spinner"></div>
     <p>Loading product details...</p>
   </div>
 </div>
 
 <!-- Error state -->
 <div *ngIf="errorMessage" class="error-container">
-  <div class="error-card">
-    <div class="error-icon">
-      <i class="fas fa-exclamation-triangle"></i>
+  <div class="error-card-minimal">
+    <div class="error-icon-minimal">
+      <i class="fas fa-box-open"></i>
     </div>
-    <h3>Unable to load product</h3>
+    <h3>Product not found</h3>
     <p>{{ errorMessage }}</p>
-    <div class="error-actions">
-      <button class="btn-retry" (click)="loadProduct()">
+    <div class="error-actions-minimal">
+      <button class="btn-retry-minimal" (click)="loadProduct()">
         <i class="fas fa-redo-alt"></i> Try again
       </button>
-      <button class="btn-back" (click)="goBackToProducts()">
+      <button class="btn-back-minimal-outline" (click)="goBackToProducts()">
         <i class="fas fa-arrow-left"></i> Back to products
       </button>
     </div>

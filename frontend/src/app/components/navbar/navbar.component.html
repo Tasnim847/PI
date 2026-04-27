@@ -18,7 +18,11 @@
       <ul class="navbar-nav me-auto mb-2 mb-lg-0">
         <!-- Home - visible pour tous -->
         <li class="nav-item">
-          <a class="nav-link" routerLink="/public/home" routerLinkActive="active">Home</a>
+          <a class="nav-link" 
+            [routerLink]="getHomeLink()" 
+            routerLinkActive="active">
+            Home
+          </a>
         </li>
 
         <!-- Credit - visible pour CLIENT et AGENT_FINANCE seulement -->
@@ -70,10 +74,13 @@
           </a>
         </li>
 
-        <!-- Compensation - visible pour CLIENT et AGENT_ASSURANCE seulement -->
+        <!-- Compensation - visible pour CLIENT et AGENT_ASSURANCE -->
         <li class="nav-item" *ngIf="isCompensationVisible()">
-          <a class="nav-link" routerLink="/public/compensations" routerLinkActive="active">Compensation</a>
+          <a class="nav-link" [routerLink]="getCompensationLink()" routerLinkActive="active">
+            Compensation
+          </a>
         </li>
+
       </ul>
       <div class="d-flex align-items-center">
         <div class="dropdown">

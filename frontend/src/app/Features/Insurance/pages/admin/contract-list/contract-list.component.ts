@@ -348,4 +348,162 @@ export class ContractListComponent implements OnInit {
   goToDashboard(): void {
     this.router.navigate(['/backoffice/insurance/admin-dashboard']);
   }
+
+  // Ajoutez cette méthode dans votre ContractListComponent
+  /**
+    * Envoyer un email de rappel de paiement pour un contrat spécifique
+    * Utilise l'endpoint /api/reminders/check-contract/{contractId}
+   */
+  sendPaymentReminder(contract: any): void {
+    if (!contract || !contract.contractId) {
+      this.toastr.error('Contrat invalide');
+      return;
+    }
+
+    if (!confirm(`Envoyer un rappel de paiement pour le contrat #${contract.contractId} ?`)) {
+      return;
+    }
+
+    this.isLoading = true;
+    this.toastr.info(`📧 Vérification et envoi des rappels...`);
+
+    // Utiliser l'endpoint existant qui fonctionne déjà
+    this.contractService.checkContractLatePayments(contract.contractId).subscribe({
+      next: (response: any) => {
+        this.isLoading = false;
+      
+        if (response && typeof response === 'object') {
+          if (response.message) {
+            this.toastr.success(response.message, 'Succès');
+          } else {
+            this.toastr.success(`✅ Vérification terminée pour le contrat #${contract.contractId}`, 'Succès');
+          }
+        } else if (typeof response === 'string') {
+          this.toastr.success(response, 'Succès');
+        }
+      
+        this.loadContracts();
+      },
+      error: (err) => {
+        this.isLoading = false;
+        this.toastr.error('Erreur lors de l\'envoi', 'Erreur');
+      }
+    });
+  }
+
+
+
+  // Ajoutez ces propriétés dans votre composant :
+
+  showReminderModal = false;
+  selectedContractForReminder: any = null;
+  selectedDaysBefore: number = 7; // Valeur par défaut
+  customDaysBefore: number | null = null;
+  isSendingReminder = false;
+
+  // Ajoutez ces méthodes :
+
+  /**
+   * Ouvrir le modal de choix des jours pour le rappel
+  */
+  openReminderModal(contract: any): void {
+    this.selectedContractForReminder = contract;
+    this.selectedDaysBefore = 7; // Valeur par défaut
+    this.customDaysBefore = null;
+    this.showReminderModal = true;
+  }
+
+/**
+ * Fermer le modal de rappel
+ */
+  closeReminderModal(): void {
+    this.showReminderModal = false;
+    this.selectedContractForReminder = null;
+    this.selectedDaysBefore = 7;
+    this.customDaysBefore = null;
+    this.isSendingReminder = false;
+  }
+
+  /**
+  * Définir les jours personnalisés
+  */
+  setCustomDays(): void {
+    if (this.customDaysBefore !== null && this.customDaysBefore >= 0 && this.customDaysBefore <= 365) {
+      this.selectedDaysBefore = this.customDaysBefore;
+    }
+  }
+
+  /**
+    * Obtenir le texte du rappel en fonction des jours
+  */
+  getReminderText(): string {
+    if (this.selectedDaysBefore === 0) {
+      return "AUJOURD'HUI";
+    } else if (this.selectedDaysBefore === 1) {
+      return "DEMAIN";
+    } else {
+      return `${this.selectedDaysBefore} JOURS`;
+    }
+  }
+
+  /**
+    * Envoyer le rappel avec le nombre de jours sélectionné
+  */
+  sendReminderWithDays(): void {
+    if (!this.selectedContractForReminder || !this.selectedContractForReminder.contractId) {
+      this.toastr.error('Contrat invalide');
+      this.closeReminderModal();
+      return;
+    }
+
+    if (this.selectedDaysBefore === null || this.selectedDaysBefore < 0) {
+      this.toastr.error('Veuillez sélectionner un nombre de jours valide');
+      return;
+    }
+
+    this.isSendingReminder = true;
+     this.toastr.info(`📧 Envoi du rappel (J-${this.selectedDaysBefore}) pour le contrat #${this.selectedContractForReminder.contractId}...`, 'Envoi en cours');
+
+    // Appel à l'endpoint de test avec les jours spécifiques
+    this.contractService.sendTestReminder(this.selectedContractForReminder.contractId, this.selectedDaysBefore).subscribe({
+      next: (response: any) => {
+        this.isSendingReminder = false;
+      
+        console.log('Réponse du backend:', response);
+      
+        if (response.success) {
+          const message = `✅ ${response.message}\n📧 Client: ${response.client}\n💰 Montant: ${response.paymentAmount} DT\n📅 Échéance: ${new Date(response.paymentDate).toLocaleDateString('fr-FR')}\n⏰ Jours avant: ${response.daysBefore}`;
+        
+          this.toastr.success(message, 'Rappel envoyé !', {
+            timeOut: 8000,
+            enableHtml: true
+          });
+        
+          this.closeReminderModal();
+        
+          // Recharger les contrats
+          setTimeout(() => {
+            this.loadContracts();
+          }, 2000);
+        } else {
+          this.toastr.error(response.error || 'Erreur lors de l\'envoi du rappel', 'Erreur');
+        }
+      },
+      error: (err) => {
+        this.isSendingReminder = false;
+        console.error('Erreur lors de l\'envoi du rappel:', err);
+      
+        let errorMessage = 'Erreur lors de l\'envoi du rappel';
+        if (err.error?.error) {
+          errorMessage = err.error.error;
+        } else if (err.error?.message) {
+          errorMessage = err.error.message;
+        } else if (typeof err.error === 'string') {
+          errorMessage = err.error;
+        }
+      
+        this.toastr.error(errorMessage, 'Erreur');
+      }
+    });
+  }
 }
