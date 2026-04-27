@@ -6,6 +6,7 @@ import { Repayment } from './repayment.model';
 
 export interface Credit {
     creditId: number;
+    clientId?: number; // ID du client (exposé par le backend)
     amount: number;
     interestRate: number;
     monthlyPayment: number;

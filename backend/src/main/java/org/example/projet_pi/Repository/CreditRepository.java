@@ -20,41 +20,23 @@ public interface CreditRepository extends JpaRepository<Credit, Long> {
     List<Credit> findByClient_Email(String email);
 
     // 🔴 NOUVELLES MÉTHODES POUR LES NOTIFICATIONS EMAIL
-
-    /**
-     * Trouver les crédits avec une date d'échéance spécifique et certains statuts
-     * Utilisé pour les rappels 3 jours avant échéance
-     */
     List<Credit> findByDueDateAndStatusIn(LocalDate dueDate, List<CreditStatus> statuses);
-
-    /**
-     * Trouver les crédits avec date d'échéance avant une date et certains statuts
-     * Utilisé pour les notifications de retard
-     */
     List<Credit> findByDueDateBeforeAndStatusIn(LocalDate date, List<CreditStatus> statuses);
 
-    /**
-     * Version avec @Query pour plus de contrôle (optionnel)
-     */
     @Query("SELECT c FROM Credit c WHERE c.dueDate = :dueDate AND c.status IN :statuses")
     List<Credit> findCreditsByDueDateAndStatus(
             @Param("dueDate") LocalDate dueDate,
             @Param("statuses") List<CreditStatus> statuses
     );
 
-    /**
-     * Trouver les crédits d'un client spécifique avec date d'échéance dans le futur
-     */
     List<Credit> findByClientAndDueDateAfterAndStatusIn(
             Client client,
             LocalDate date,
             List<CreditStatus> statuses
     );
 
-    /**
-     * Trouver tous les crédits actifs (APPROVED ou IN_REPAYMENT)
-     */
     List<Credit> findByStatusIn(List<CreditStatus> statuses);
+
     // ✅ AJOUT : Récupérer tous les crédits avec leurs clients
     @Query("SELECT c FROM Credit c LEFT JOIN FETCH c.client")
     List<Credit> findAllWithClient();
@@ -62,4 +44,12 @@ public interface CreditRepository extends JpaRepository<Credit, Long> {
     // ✅ AJOUT : Récupérer un crédit spécifique avec son client
     @Query("SELECT c FROM Credit c LEFT JOIN FETCH c.client WHERE c.creditId = :creditId")
     Optional<Credit> findByIdWithClient(@Param("creditId") Long creditId);
+    
+    // ✅ AJOUT : Récupérer tous les crédits d'un client par son ID
+    @Query("SELECT c FROM Credit c WHERE c.client.id = :clientId")
+    List<Credit> findByClientId(@Param("clientId") Long clientId);
+    
+    // ✅ AJOUT : Récupérer les crédits d'un client par ID et statut
+    @Query("SELECT c FROM Credit c WHERE c.client.id = :clientId AND c.status = :status")
+    List<Credit> findByClientIdAndStatus(@Param("clientId") Long clientId, @Param("status") CreditStatus status);
 }
