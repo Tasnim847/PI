@@ -52,6 +52,8 @@ import { AgentAccountComponent } from './components/agent-account/agent-account.
 import { AgentCashApprovalsComponent } from './Features/Insurance/pages/agent/agent-cash-approvals/agent-cash-approvals.component';
 import { AgentCompensationListComponent } from './Features/Compensation/agent/agent-compensation-list/agent-compensation-list.component';
 import { HomeAgentComponent } from './Features/Home agent/home-agent/home-agent.component';
+import { AdminCompensationDetailsComponent } from './Features/Compensation/admin/admin-compensation-details/admin-compensation-details.component';
+import { CompensationDetailsComponent } from './Features/Compensation/client/compensation-details/compensation-details.component';
 
 export const routes: Routes = [
 
@@ -208,6 +210,12 @@ export const routes: Routes = [
         data: { roles: ['CLIENT'] }
       },
       { 
+        path: 'compensations/:id/details', 
+        component: CompensationDetailsComponent,
+        canActivate: [roleGuard],
+        data: { roles: ['CLIENT'] }
+      },
+      { 
         path: 'agent/compensations', 
         component: AgentCompensationListComponent,
         canActivate: [roleGuard],
@@ -263,6 +271,7 @@ export const routes: Routes = [
         data: { roles: ['ADMIN'] }
       },
       { path: 'compensation', component: ListAllCompensationsComponent },
+      { path: 'compensation/:id', component: AdminCompensationDetailsComponent },
       { path: 'transaction', component: TransactionPageComponent }
     ]
   },

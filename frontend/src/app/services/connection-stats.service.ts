@@ -19,7 +19,7 @@ export interface ConnectionStats {
 })
 export class ConnectionStatsService {
   // Utilise le même port que ton AdminService (8082)
-  private apiUrl = 'http://localhost:8083/api/admin';
+  private apiUrl = 'http://localhost:8081/api/admin';
 
   constructor(private http: HttpClient) {}
 

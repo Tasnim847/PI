@@ -39,7 +39,7 @@ export interface DashboardKpiResponse {
 })
 export class ComplaintKpiService {
   
-  private apiUrl = 'http://localhost:8083/complaints';
+  private apiUrl = 'http://localhost:8081/complaints';
 
   constructor(private http: HttpClient) {}
 

@@ -2,7 +2,7 @@
   <!-- Header -->
   <div class="d-flex justify-content-between align-items-center mb-4">
     <h2>
-      Gestion des Compensations
+      Compensation Management
     </h2>
     <button class="btn btn-primary" (click)="loadAllCompensations()" [disabled]="loading">
       <i class="fas fa-sync-alt me-1" [class.fa-spin]="loading"></i>
@@ -22,7 +22,7 @@
     <button type="button" class="btn-close" (click)="errorMessage = ''"></button>
   </div>
 
-  <!-- Statistiques principales -->
+  <!-- Main Statistics -->
   <div class="row mb-4" *ngIf="compensations.length > 0">
     <div class="col-md-3">
       <div class="card bg-primary text-white">
@@ -35,7 +35,7 @@
     <div class="col-md-3">
       <div class="card bg-success text-white">
         <div class="card-body">
-          <h6 class="card-title">Montant Total</h6>
+          <h6 class="card-title">Total Amount</h6>
           <h3>{{ formatAmount(getTotalAmount()) }}</h3>
         </div>
       </div>
@@ -43,7 +43,7 @@
     <div class="col-md-3">
       <div class="card bg-info text-white">
         <div class="card-body">
-          <h6 class="card-title">Moyenne</h6>
+          <h6 class="card-title">Average</h6>
           <h3>{{ formatAmount(getAverageAmount()) }}</h3>
         </div>
       </div>
@@ -54,19 +54,19 @@
         'bg-secondary': getCountByStatus('PENDING') === 0
       }" class="text-white">
         <div class="card-body">
-          <h6 class="card-title">En attente</h6>
+          <h6 class="card-title">Pending</h6>
           <h3>{{ getCountByStatus('PENDING') }}</h3>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- 📊 NOUVEAU: Distribution des niveaux de risque -->
+  <!-- Risk Level Distribution -->
   <div class="row mb-4" *ngIf="compensations.length > 0">
     <div class="col-md-12">
       <div class="card">
         <div class="card-header bg-dark text-white">
-          <i class="fas fa-chart-pie me-2"></i>Distribution des niveaux de risque
+          <i class="fas fa-chart-pie me-2"></i>Risk Level Distribution
         </div>
         <div class="card-body">
           <div class="row">
@@ -79,7 +79,7 @@
               </div>
             </div>
           </div>
-          <!-- Barre de progression cumulative -->
+          <!-- Cumulative progress bar -->
           <div class="mt-4" *ngIf="filteredCompensations.length > 0">
             <div class="progress" style="height: 30px;">
               <div *ngFor="let level of riskLevels" 
@@ -101,9 +101,9 @@
               </div>
             </div>
             <div class="d-flex justify-content-between mt-2 text-muted small">
-              <span>🟢 Risque faible</span>
-              <span>🟡 Risque modéré</span>
-              <span>🔴 Risque élevé</span>
+              <span>🟢 Low Risk</span>
+              <span>🟡 Moderate Risk</span>
+              <span>🔴 High Risk</span>
             </div>
           </div>
         </div>
@@ -111,56 +111,56 @@
     </div>
   </div>
 
-  <!-- Filtres -->
+  <!-- Filters -->
   <div class="card mb-4">
     <div class="card-body">
       <div class="row">
         <div class="col-md-3">
-          <label class="form-label">Statut</label>
+          <label class="form-label">Status</label>
           <select class="form-select" [(ngModel)]="filterStatus">
-            <option value="">Tous</option>
-            <option value="PENDING">En attente</option>
-            <option value="CALCULATED">Calculée</option>
-            <option value="PAID">Payée</option>
-            <option value="CANCELLED">Annulée</option>
+            <option value="">All</option>
+            <option value="PENDING">Pending</option>
+            <option value="CALCULATED">Calculated</option>
+            <option value="PAID">Paid</option>
+            <option value="CANCELLED">Cancelled</option>
           </select>
         </div>
         <div class="col-md-3">
-          <label class="form-label">Niveau de risque</label>
+          <label class="form-label">Risk Level</label>
           <select class="form-select" [(ngModel)]="filterRiskLevel">
-            <option value="">Tous</option>
+            <option value="">All</option>
             <option *ngFor="let level of riskLevels" [value]="level">
               {{ getRiskIcon(level) }} {{ getRiskLabel(level) }}
             </option>
           </select>
         </div>
         <div class="col-md-4">
-          <label class="form-label">Recherche</label>
-          <input type="text" class="form-control" placeholder="ID, message, niveau de risque..."
+          <label class="form-label">Search</label>
+          <input type="text" class="form-control" placeholder="ID, message, risk level..."
                  [(ngModel)]="searchTerm">
         </div>
         <div class="col-md-2 d-flex align-items-end">
           <button class="btn btn-secondary w-100" (click)="filterStatus = ''; filterRiskLevel = ''; searchTerm = ''">
-            <i class="fas fa-eraser me-1"></i> Effacer
+            <i class="fas fa-eraser me-1"></i> Clear
           </button>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Tableau des compensations -->
+  <!-- Compensations Table -->
   <div class="card">
     <div class="card-body">
       <div *ngIf="loading" class="text-center py-5">
         <div class="spinner-border text-primary" role="status">
-          <span class="visually-hidden">Chargement...</span>
+          <span class="visually-hidden">Loading...</span>
         </div>
-        <p class="mt-2">Chargement des compensations...</p>
+        <p class="mt-2">Loading compensations...</p>
       </div>
 
       <div *ngIf="!loading && filteredCompensations.length === 0" class="text-center py-5">
         <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
-        <p class="text-muted">Aucune compensation trouvée</p>
+        <p class="text-muted">No compensations found</p>
       </div>
 
       <div class="table-responsive" *ngIf="!loading && filteredCompensations.length > 0">
@@ -169,12 +169,12 @@
             <tr>
               <th>ID</th>
               <th>Claim ID</th>
-              <th>Montant Assurance</th>
-              <th>Reste à charge</th>
-              <th>Statut</th>
-              <th>Score Risque</th>
-              <th>Niveau Risque</th>
-              <th>Date calcul</th>
+              <th>Insurance Amount</th>
+              <th>Out of Pocket</th>
+              <th>Status</th>
+              <th>Risk Score</th>
+              <th>Risk Level</th>
+              <th>Calculation Date</th>
               <th>Actions</th>
             </tr>
           </thead>
@@ -209,17 +209,17 @@
               <td>{{ formatDate(comp.calculationDate) }}</td>
               <td>
                 <div class="btn-group btn-group-sm">
-                  <button class="btn btn-info" (click)="viewDetails(comp)" title="Voir détails avec scoring">
+                  <button class="btn btn-info" (click)="viewDetails(comp)" title="View details with scoring">
                     <i class="fas fa-chart-line"></i>
                   </button>
                   <button class="btn btn-success" (click)="markAsPaid(comp)" 
                           [disabled]="comp.status === 'PAID' || comp.status === 'CANCELLED'"
-                          title="Marquer comme payée">
+                          title="Mark as paid">
                     <i class="fas fa-check"></i>
                   </button>
                   <button class="btn btn-warning" (click)="recalculate(comp)" 
                           [disabled]="!comp.claim?.claimId"
-                          title="Recalculer">
+                          title="Recalculate">
                     <i class="fas fa-calculator"></i>
                   </button>
                 </div>
@@ -234,7 +234,7 @@
         <ul class="pagination justify-content-center mb-0 mt-3">
           <li class="page-item" [class.disabled]="currentPage === 1">
             <a class="page-link" (click)="changePage(currentPage - 1)" href="javascript:void(0)">
-              Précédent
+              Previous
             </a>
           </li>
           <li class="page-item" *ngFor="let page of [].constructor(totalPages); let i = index"
@@ -245,7 +245,7 @@
           </li>
           <li class="page-item" [class.disabled]="currentPage === totalPages">
             <a class="page-link" (click)="changePage(currentPage + 1)" href="javascript:void(0)">
-              Suivant
+              Next
             </a>
           </li>
         </ul>
@@ -254,7 +254,7 @@
   </div>
 </div>
 
-<!-- Modal Détails avec Scoring -->
+<!-- Scoring Details Modal -->
 <div class="modal fade" [class.show]="showDetailsModal" [style.display]="showDetailsModal ? 'block' : 'none'" 
      tabindex="-1" *ngIf="showDetailsModal">
   <div class="modal-dialog modal-lg modal-dialog-scrollable">
@@ -262,7 +262,7 @@
       <div class="modal-header bg-primary text-white">
         <h5 class="modal-title">
           <i class="fas fa-chart-line me-2"></i>
-          Détails de la Compensation #{{ selectedCompensation?.compensationId }}
+          Compensation Details #{{ selectedCompensation?.compensationId }}
         </h5>
         <button type="button" class="btn-close btn-close-white" (click)="closeModal()"></button>
       </div>
@@ -270,31 +270,31 @@
         <!-- Loading -->
         <div *ngIf="loadingScoring" class="text-center py-4">
           <div class="spinner-border text-primary" role="status">
-            <span class="visually-hidden">Chargement...</span>
+            <span class="visually-hidden">Loading...</span>
           </div>
-          <p class="mt-2">Chargement des détails du scoring...</p>
+          <p class="mt-2">Loading scoring details...</p>
         </div>
 
-        <!-- Contenu -->
+        <!-- Content -->
         <div *ngIf="!loadingScoring && scoringDetails">
-          <!-- Section Compensation -->
+          <!-- Compensation Section -->
           <div class="card mb-3">
             <div class="card-header bg-info text-white">
-              <h6 class="mb-0"><i class="fas fa-coins me-2"></i>Détails de la compensation</h6>
+              <h6 class="mb-0"><i class="fas fa-coins me-2"></i>Compensation Details</h6>
             </div>
             <div class="card-body">
               <div class="row">
                 <div class="col-md-6">
-                  <p><strong>ID Compensation:</strong> {{ selectedCompensation?.compensationId }}</p>
-                  <p><strong>Montant assurance:</strong> <span class="text-success fw-bold">{{ formatAmount(selectedCompensation?.amount) }}</span></p>
-                  <p><strong>Reste à charge:</strong> <span class="text-danger">{{ formatAmount(selectedCompensation?.clientOutOfPocket) }}</span></p>
-                  <p><strong>Statut:</strong> <span class="badge" [class]="getStatusClass(selectedCompensation?.status || '')">{{ getStatusLabel(selectedCompensation?.status || '') }}</span></p>
+                  <p><strong>Compensation ID:</strong> {{ selectedCompensation?.compensationId }}</p>
+                  <p><strong>Insurance Amount:</strong> <span class="text-success fw-bold">{{ formatAmount(selectedCompensation?.amount) }}</span></p>
+                  <p><strong>Out of Pocket:</strong> <span class="text-danger">{{ formatAmount(selectedCompensation?.clientOutOfPocket) }}</span></p>
+                  <p><strong>Status:</strong> <span class="badge" [class]="getStatusClass(selectedCompensation?.status || '')">{{ getStatusLabel(selectedCompensation?.status || '') }}</span></p>
                 </div>
                 <div class="col-md-6">
-                  <p><strong>Montant réclamé:</strong> {{ formatAmount(selectedCompensation?.originalClaimedAmount) }}</p>
-                  <p><strong>Montant approuvé:</strong> {{ formatAmount(selectedCompensation?.approvedAmount) }}</p>
-                  <p><strong>Franchise:</strong> {{ formatAmount(selectedCompensation?.deductible) }}</p>
-                  <p><strong>Plafond:</strong> {{ formatAmount(selectedCompensation?.coverageLimit) }}</p>
+                  <p><strong>Claimed Amount:</strong> {{ formatAmount(selectedCompensation?.originalClaimedAmount) }}</p>
+                  <p><strong>Approved Amount:</strong> {{ formatAmount(selectedCompensation?.approvedAmount) }}</p>
+                  <p><strong>Deductible:</strong> {{ formatAmount(selectedCompensation?.deductible) }}</p>
+                  <p><strong>Coverage Limit:</strong> {{ formatAmount(selectedCompensation?.coverageLimit) }}</p>
                 </div>
               </div>
               <div class="alert alert-secondary mt-2">
@@ -303,17 +303,17 @@
             </div>
           </div>
 
-          <!-- Section Scoring -->
+          <!-- Scoring Section -->
           <div class="card mb-3">
             <div class="card-header" [ngClass]="{
               'bg-success': scoringDetails.claimScore?.riskScore >= 70,
               'bg-warning': scoringDetails.claimScore?.riskScore >= 40 && scoringDetails.claimScore?.riskScore < 70,
               'bg-danger': scoringDetails.claimScore?.riskScore < 40
             }" class="text-white">
-              <h6 class="mb-0"><i class="fas fa-chart-simple me-2"></i>Scoring avancé du risque</h6>
+              <h6 class="mb-0"><i class="fas fa-chart-simple me-2"></i>Advanced Risk Scoring</h6>
             </div>
             <div class="card-body">
-              <!-- Score principal -->
+              <!-- Main Score -->
               <div class="text-center mb-4">
                 <div class="display-4 fw-bold" [ngClass]="{
                   'text-success': scoringDetails.claimScore?.riskScore >= 70,
@@ -329,68 +329,68 @@
                 </div>
               </div>
 
-              <!-- Facteurs de risque -->
+              <!-- Risk Factors -->
               <div class="row">
                 <div class="col-md-6">
-                  <p><strong>🎯 Décision suggérée:</strong></p>
+                  <p><strong>🎯 Suggested Decision:</strong></p>
                   <span class="badge" [ngClass]="{
                     'bg-success': scoringDetails.claimScore?.decisionSuggestion === 'AUTO_APPROVE',
                     'bg-warning': scoringDetails.claimScore?.decisionSuggestion === 'MANUAL_REVIEW',
                     'bg-danger': scoringDetails.claimScore?.decisionSuggestion === 'AUTO_REJECT'
                   }" style="font-size: 0.9rem;">
-                    {{ scoringDetails.claimScore?.decisionSuggestion === 'AUTO_APPROVE' ? '✅ Approbation auto' : 
-                       scoringDetails.claimScore?.decisionSuggestion === 'AUTO_REJECT' ? '❌ Rejet auto' : 
-                       '⚠️ Revue manuelle' }}
+                    {{ scoringDetails.claimScore?.decisionSuggestion === 'AUTO_APPROVE' ? '✅ Auto Approve' : 
+                       scoringDetails.claimScore?.decisionSuggestion === 'AUTO_REJECT' ? '❌ Auto Reject' : 
+                       '⚠️ Manual Review' }}
                   </span>
                 </div>
                 <div class="col-md-6">
-                  <p><strong>🔍 Fraude suspectée:</strong></p>
+                  <p><strong>🔍 Suspected Fraud:</strong></p>
                   <span class="badge" [ngClass]="scoringDetails.claimScore?.isSuspicious ? 'bg-danger' : 'bg-success'">
-                    {{ scoringDetails.claimScore?.isSuspicious ? '⚠️ Suspect' : '✅ Normal' }}
+                    {{ scoringDetails.claimScore?.isSuspicious ? '⚠️ Suspicious' : '✅ Normal' }}
                   </span>
                 </div>
               </div>
 
               <hr>
 
-              <!-- Détails des facteurs -->
+              <!-- Factor Details -->
               <div class="row mt-3">
                 <div class="col-md-6">
-                  <p><strong>⏱️ Délai:</strong> {{ scoringDetails.claimScore?.delayInfo || 'N/A' }}</p>
+                  <p><strong>⏱️ Delay:</strong> {{ scoringDetails.claimScore?.delayInfo || 'N/A' }}</p>
                   <p><strong>📄 Documents:</strong> {{ scoringDetails.claimScore?.documentTypeInfo || 'N/A' }}</p>
                 </div>
                 <div class="col-md-6">
-                  <p><strong>📊 Fréquence:</strong> {{ scoringDetails.claimScore?.frequencyInfo || 'N/A' }}</p>
+                  <p><strong>📊 Frequency:</strong> {{ scoringDetails.claimScore?.frequencyInfo || 'N/A' }}</p>
                 </div>
               </div>
 
-              <!-- Recommandation -->
+              <!-- Recommendation -->
               <div class="alert alert-info mt-3">
-                <strong><i class="fas fa-lightbulb me-2"></i>Recommandation:</strong>
+                <strong><i class="fas fa-lightbulb me-2"></i>Recommendation:</strong>
                 <pre class="mt-2 mb-0" style="white-space: pre-wrap; font-family: inherit;">{{ scoringDetails.claimScore?.recommendation }}</pre>
               </div>
             </div>
           </div>
 
-          <!-- Intégration -->
+          <!-- Integration -->
           <div class="alert alert-success">
             <i class="fas fa-check-circle me-2"></i>
-            <strong>Statut d'intégration:</strong> {{ scoringDetails.integration?.status }}
+            <strong>Integration Status:</strong> {{ scoringDetails.integration?.status }}
             <br>
             <small>{{ scoringDetails.integration?.message }}</small>
           </div>
         </div>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" (click)="closeModal()">Fermer</button>
+        <button type="button" class="btn btn-secondary" (click)="closeModal()">Close</button>
         <button type="button" class="btn btn-primary" (click)="recalculate(selectedCompensation!)" 
                 *ngIf="selectedCompensation && selectedCompensation.status !== 'PAID'">
-          <i class="fas fa-calculator me-1"></i> Recalculer
+          <i class="fas fa-calculator me-1"></i> Recalculate
         </button>
       </div>
     </div>
   </div>
 </div>
 
-<!-- Overlay modal -->
+<!-- Modal Overlay -->
 <div class="modal-backdrop fade" *ngIf="showDetailsModal" (click)="closeModal()"></div>

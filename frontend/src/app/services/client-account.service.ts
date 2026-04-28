@@ -16,7 +16,7 @@ export interface ClientAccount {
 
 @Injectable({ providedIn: 'root' })
 export class ClientAccountService {
-  private baseUrl = 'http://localhost:8083/api/client';
+  private baseUrl = 'http://localhost:8081/api/client';
 
   constructor(private http: HttpClient) {}
 

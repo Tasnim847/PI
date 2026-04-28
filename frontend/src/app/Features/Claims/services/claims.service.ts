@@ -10,8 +10,8 @@ import { Claim } from '../../../shared';
   providedIn: 'root'
 })
 export class ClaimsService {
-  private apiUrl = 'http://localhost:8083/claims';
-  private scoringApiUrl = 'http://localhost:8083/api/scoring';
+  private apiUrl = 'http://localhost:8081/claims';
+  private scoringApiUrl = 'http://localhost:8081/api/scoring';
 
 
   constructor(private http: HttpClient) { }

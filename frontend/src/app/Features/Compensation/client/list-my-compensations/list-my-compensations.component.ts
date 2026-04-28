@@ -5,6 +5,7 @@ import { CompensationService } from '../../services/compensation.service';
 import { Compensation } from '../../../../shared';
 import { loadStripe, Stripe } from '@stripe/stripe-js';
 import { environment } from '../../../../../environments/environment';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-list-my-compensations',
@@ -19,8 +20,6 @@ export class ListMyCompensationsComponent implements OnInit {
   loading = false;
   error = '';
   successMessage = '';
-  selectedCompensation: any = null;
-  showDetails = false;
 
   // Payment properties
   selectedCompensationForPayment: Compensation | null = null;
@@ -47,7 +46,9 @@ export class ListMyCompensationsComponent implements OnInit {
   itemsPerPage = 6;
   totalPages = 1;
 
-  constructor(private compensationService: CompensationService) {}
+  constructor(private compensationService: CompensationService,
+    private router: Router  
+  ) {}
 
   async ngOnInit(): Promise<void> {
     await this.initStripe();
@@ -115,15 +116,8 @@ export class ListMyCompensationsComponent implements OnInit {
   }
 
   viewCompensationDetails(compensationId: number): void {
-    this.compensationService.getMyCompensationDetails(compensationId).subscribe({
-      next: (data) => {
-        this.selectedCompensation = data;
-        this.showDetails = true;
-      },
-      error: (err) => {
-        this.error = 'Error loading details: ' + err.message;
-      }
-    });
+    // Navigation avec le chemin complet incluant /public
+    this.router.navigate([`/public/compensations/${compensationId}/details`]);
   }
 
   selectCompensationForPayment(compensation: Compensation): void {
@@ -210,19 +204,19 @@ export class ListMyCompensationsComponent implements OnInit {
 
   processCashPayment(): void {
     if (!this.selectedCompensationForPayment) return;
-    
+  
     const confirmMessage = `Confirm cash payment of ${this.formatAmount(this.selectedCompensationForPayment.clientOutOfPocket)} for compensation #${this.selectedCompensationForPayment.compensationId}?`;
-    
+  
     if (!confirm(confirmMessage)) {
       return;
     }
-    
+  
     this.processingPayment = true;
-    
+  
     this.compensationService.payCompensationByCash(this.selectedCompensationForPayment.compensationId).subscribe({
       next: (response) => {
         this.processingPayment = false;
-        
+      
         if (response.success) {
           this.successMessage = response.message || 'Cash payment recorded successfully!';
           this.loadCompensations();
@@ -259,10 +253,7 @@ export class ListMyCompensationsComponent implements OnInit {
     }
   }
 
-  closeDetails(): void {
-    this.showDetails = false;
-    this.selectedCompensation = null;
-  }
+  
 
   // Statistics methods
   getCalculatedCount(): number {
@@ -275,6 +266,15 @@ export class ListMyCompensationsComponent implements OnInit {
 
   getTotalOutOfPocket(): number {
     return this.compensations.reduce((sum, c) => sum + (c.clientOutOfPocket || 0), 0);
+  }
+
+  // UNE SEULE méthode formatAmount (celle-ci est gardée)
+  formatAmount(amount: number): string {
+    if (amount === undefined || amount === null) return '0,000 DT';
+    return amount.toLocaleString('fr-TN', { 
+      minimumFractionDigits: 3, 
+      maximumFractionDigits: 3 
+    }) + ' DT';
   }
 
   // Status styling methods
@@ -323,10 +323,5 @@ export class ListMyCompensationsComponent implements OnInit {
     });
   }
 
-  formatAmount(amount: number): string {
-    return amount?.toLocaleString('fr-FR', { 
-      minimumFractionDigits: 2, 
-      maximumFractionDigits: 2 
-    }) + ' €';
-  }
+  
 }

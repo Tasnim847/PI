@@ -1,0 +1,356 @@
+<div class="compensation-dashboard-container">
+  <!-- Header -->
+  <div class="dashboard-header">
+    <div class="header-left">
+      <button class="back-btn" (click)="goBack()">
+        <i class="bi bi-arrow-left"></i>
+        Back
+      </button>
+      <div class="header-info">
+        <h1>Compensation Details</h1>
+        <p class="compensation-ref">Compensation #{{ compensationId }}</p>
+      </div>
+    </div>
+    <button class="btn-download" (click)="downloadReport()" *ngIf="!loading && compensationData">
+      <i class="bi bi-download"></i>
+      Download Report
+    </button>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading-state">
+    <div class="spinner"></div>
+    <p>Loading compensation details...</p>
+  </div>
+
+  <!-- Error Message -->
+  <div *ngIf="error && !loading" class="error-message">
+    <i class="bi bi-exclamation-triangle"></i>
+    <p>{{ error }}</p>
+  </div>
+
+  <!-- Dashboard Content -->
+  <div *ngIf="!loading && compensationData" class="dashboard-content">
+    
+    <!-- First Row: Score and Metrics -->
+    <div class="dashboard-row">
+      <!-- Global Score Card -->
+      <div class="score-card" [class.risk-high]="getGlobalScore() >= 70" [class.risk-medium]="getGlobalScore() >= 40 && getGlobalScore() < 70" [class.risk-low]="getGlobalScore() < 40">
+        <div class="score-header">
+          <h3>Global Risk Score</h3>
+          <i class="bi bi-shield-check"></i>
+        </div>
+        <div class="score-value">
+          <span class="score-number">{{ getGlobalScore() }}</span>
+          <span class="score-max">/100</span>
+        </div>
+        <div class="score-level">
+          <span class="level-badge" [class.risk-high]="getGlobalScore() >= 70" [class.risk-medium]="getGlobalScore() >= 40 && getGlobalScore() < 70" [class.risk-low]="getGlobalScore() < 40">
+            {{ getAlertLevelText() }}
+          </span>
+        </div>
+        <div class="evaluation-note" *ngIf="parsedDetails.decision">
+          <i class="bi bi-chat-text"></i>
+          <p>Decision: {{ parsedDetails.decision }}</p>
+        </div>
+      </div>
+
+      <!-- Coverage Rate -->
+      <div class="metric-card-large">
+        <div class="metric-header">
+          <i class="bi bi-percent"></i>
+          <h3>Coverage Rate</h3>
+        </div>
+        <div class="metric-big-value">{{ getCoverageRate() }}%</div>
+        <div class="progress-bar-container">
+          <div class="progress-bar-fill" [style.width.%]="getCoverageRate()" [class]="getIndicatorClass(getCoverageRate())"></div>
+        </div>
+      </div>
+
+      <!-- Status Card -->
+      <div class="info-card">
+        <h3><i class="bi bi-info-circle"></i> Status</h3>
+        <div class="status-badge-large" [class]="getStatusClass(compensationData.compensation?.status)">
+          {{ getStatusText(compensationData.compensation?.status) }}
+        </div>
+        <div class="info-row">
+          <label>Calculation Date:</label>
+          <span>{{ formatDate(compensationData.compensation?.calculationDate) }}</span>
+        </div>
+        <div class="info-row">
+          <label>Out of Pocket:</label>
+          <span class="amount-highlight">{{ formatAmount(compensationData.compensation?.clientOutOfPocket) }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Second Row: Financial Details -->
+    <div class="dashboard-row">
+      <div class="chart-card full-width">
+        <h3><i class="bi bi-cash-stack"></i> Financial Details</h3>
+        <div class="financial-grid">
+          <div class="financial-item">
+            <label>Initial Claimed Amount</label>
+            <strong>{{ formatAmount(compensationData.compensation?.originalClaimedAmount) }}</strong>
+          </div>
+          <div class="financial-item">
+            <label>Approved Amount</label>
+            <strong class="approved">{{ formatAmount(compensationData.compensation?.approvedAmount) }}</strong>
+          </div>
+          <div class="financial-item">
+            <label>Deductible</label>
+            <strong>{{ formatAmount(compensationData.compensation?.deductible) }}</strong>
+          </div>
+          <div class="financial-item">
+            <label>Coverage Limit</label>
+            <strong>{{ formatAmount(compensationData.compensation?.coverageLimit) }}</strong>
+          </div>
+          <div class="financial-item">
+            <label>Insurance Reimbursement</label>
+            <strong class="insurance">{{ formatAmount(compensationData.compensation?.amount) }}</strong>
+          </div>
+          <div class="financial-item">
+            <label>Out of Pocket</label>
+            <strong class="out-of-pocket">{{ formatAmount(compensationData.compensation?.clientOutOfPocket) }}</strong>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Third Row: Risk Score Details -->
+    <div *ngIf="compensationData.claimScore" class="dashboard-row">
+      <div class="chart-card">
+        <h3><i class="bi bi-shield-check"></i> Risk Score</h3>
+        <div class="gauge-container">
+          <div class="gauge-wrapper">
+            <div class="gauge-value">{{ compensationData.claimScore?.riskScore || 0 }}<span>/100</span></div>
+            <div class="gauge-progress">
+              <div class="gauge-fill" [style.width.%]="compensationData.claimScore?.riskScore || 0" [class]="getProgressBarClass(compensationData.claimScore?.riskScore)"></div>
+            </div>
+          </div>
+        </div>
+        <div class="risk-level-display">
+          <span class="risk-badge" [class]="getRiskLevelClass(compensationData.claimScore?.riskLevel)">
+            {{ getRiskLevelText(compensationData.claimScore?.riskLevel) }}
+          </span>
+          <span class="decision-badge" [class]="getDecisionClass(compensationData.claimScore?.decisionSuggestion)">
+            {{ getDecisionText(compensationData.claimScore?.decisionSuggestion) }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Category Scores Chart -->
+      <div class="chart-card">
+        <h3><i class="bi bi-bar-chart"></i> Category Scores</h3>
+        <div class="category-scores">
+          <div class="category-score-item">
+            <span>Amount Score</span>
+            <div class="score-bar-container">
+              <div class="score-bar-fill" [style.width.%]="compensationData.claimScore?.amountScore || 0" [class]="getScoreClass(compensationData.claimScore?.amountScore)"></div>
+            </div>
+            <strong>{{ compensationData.claimScore?.amountScore || 0 }}/100</strong>
+          </div>
+          <div class="category-score-item">
+            <span>Delay Score</span>
+            <div class="score-bar-container">
+              <div class="score-bar-fill" [style.width.%]="compensationData.claimScore?.delayScore || 0" [class]="getScoreClass(compensationData.claimScore?.delayScore)"></div>
+            </div>
+            <strong>{{ compensationData.claimScore?.delayScore || 0 }}/100</strong>
+          </div>
+          <div class="category-score-item">
+            <span>Frequency Score</span>
+            <div class="score-bar-container">
+              <div class="score-bar-fill" [style.width.%]="compensationData.claimScore?.frequencyScore || 0" [class]="getScoreClass(compensationData.claimScore?.frequencyScore)"></div>
+            </div>
+            <strong>{{ compensationData.claimScore?.frequencyScore || 0 }}/100</strong>
+          </div>
+          <div class="category-score-item">
+            <span>History Score</span>
+            <div class="score-bar-container">
+              <div class="score-bar-fill" [style.width.%]="compensationData.claimScore?.historyScore || 0" [class]="getScoreClass(compensationData.claimScore?.historyScore)"></div>
+            </div>
+            <strong>{{ compensationData.claimScore?.historyScore || 0 }}/100</strong>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Fourth Row: Intelligent Analysis Dashboard -->
+    <div *ngIf="compensationData.compensation?.message" class="analysis-section">
+      <h3><i class="bi bi-robot"></i> Intelligent Analysis</h3>
+      
+      <!-- Metrics Grid -->
+      <div class="report-stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon" [class.risk-high]="getGlobalScore() >= 70" [class.risk-medium]="getGlobalScore() >= 40 && getGlobalScore() < 70" [class.risk-low]="getGlobalScore() < 40">
+            <i class="bi bi-percent"></i>
+          </div>
+          <div class="stat-info">
+            <span class="stat-label">Coverage Rate</span>
+            <span class="stat-value">{{ getCoverageRate() }}%</span>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">
+            <i class="bi bi-graph-up"></i>
+          </div>
+          <div class="stat-info">
+            <span class="stat-label">Global Score</span>
+            <span class="stat-value">{{ getGlobalScore() }}/100</span>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" [class]="getAlertLevel()">
+            <i class="bi bi-flag"></i>
+          </div>
+          <div class="stat-info">
+            <span class="stat-label">Alert Level</span>
+            <span class="stat-value" [class]="getAlertLevel()">{{ getAlertLevelText() }}</span>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">
+            <i class="bi bi-pie-chart"></i>
+          </div>
+          <div class="stat-info">
+            <span class="stat-label">Factors Analyzed</span>
+            <span class="stat-value">{{ extractKeyFactors(compensationData.compensation?.message).length }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Analysis Grid -->
+      <div class="analysis-grid">
+        <!-- Intelligent Summary -->
+        <div class="analysis-card">
+          <div class="analysis-header" style="background: linear-gradient(135deg, #3498db, #2980b9);">
+            <i class="bi bi-chat-left-text"></i>
+            <h4>Intelligent Summary</h4>
+          </div>
+          <div class="analysis-body">
+            <div class="analysis-point" *ngIf="parsedDetails.montantInitial">
+              <i class="bi bi-cash point-icon"></i>
+              <span class="point-label">Initial Amount</span>
+              <span class="point-value">{{ parsedDetails.montantInitial }} DT</span>
+            </div>
+            <div class="analysis-point" *ngIf="parsedDetails.franchise">
+              <i class="bi bi-receipt point-icon"></i>
+              <span class="point-label">Deductible</span>
+              <span class="point-value">{{ parsedDetails.franchise }} DT</span>
+            </div>
+            <div class="analysis-point" *ngIf="parsedDetails.plafond">
+              <i class="bi bi-credit-card point-icon"></i>
+              <span class="point-label">Coverage Limit</span>
+              <span class="point-value">{{ parsedDetails.plafond }} DT</span>
+            </div>
+            <div class="analysis-point" *ngIf="parsedDetails.montantPris">
+              <i class="bi bi-check-circle point-icon"></i>
+              <span class="point-label">Covered Amount</span>
+              <span class="point-value">{{ parsedDetails.montantPris }} DT</span>
+            </div>
+            <div class="analysis-point" *ngIf="parsedDetails.reste">
+              <i class="bi bi-wallet2 point-icon"></i>
+              <span class="point-label">Out of Pocket</span>
+              <span class="point-value">{{ parsedDetails.reste }} DT</span>
+            </div>
+            <div class="analysis-point" *ngIf="parsedDetails.risque">
+              <i class="bi bi-shield point-icon"></i>
+              <span class="point-label">Risk Level</span>
+              <span class="point-value" [class]="getRiskClass(parsedDetails.risque)">{{ parsedDetails.risque }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Key Factors -->
+        <div class="analysis-card" *ngIf="extractKeyFactors(compensationData.compensation?.message).length > 0">
+          <div class="analysis-header" style="background: linear-gradient(135deg, #e67e22, #d35400);">
+            <i class="bi bi-diagram-3"></i>
+            <h4>Key Factors Identified</h4>
+          </div>
+          <div class="analysis-body">
+            <div class="factors-list">
+              <div *ngFor="let factor of extractKeyFactors(compensationData.compensation?.message)" class="factor-chip">
+                <i class="bi bi-check-circle-fill"></i>
+                <span>{{ factor }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recommendation -->
+        <div class="analysis-card" *ngIf="parsedRecommendation.decision">
+          <div class="analysis-header" style="background: linear-gradient(135deg, #27ae60, #229954);">
+            <i class="bi bi-lightbulb"></i>
+            <h4>Recommendation</h4>
+          </div>
+          <div class="analysis-body">
+            <div class="recommendation-text">
+              <i class="bi bi-chat-dots"></i>
+              <p>{{ parsedRecommendation.decision }}</p>
+            </div>
+            <div class="scores-summary" *ngIf="parsedRecommendation.scoreGlobal">
+              <div class="score-chip">
+                <span>Global Score</span>
+                <strong>{{ parsedRecommendation.scoreGlobal }}/100</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Detailed Scores -->
+      <div class="detailed-scores-section" *ngIf="parsedRecommendation.montantScore">
+        <h4><i class="bi bi-bar-chart"></i> Detailed Scores</h4>
+        <div class="scores-grid-detailed">
+          <div class="score-card-detailed" *ngIf="parsedRecommendation.montantScore">
+            <span>Amount</span>
+            <div class="score-bar">
+              <div class="score-bar-fill" [style.width.%]="parsedRecommendation.montantScore" [class]="getScoreClass(parsedRecommendation.montantScore)"></div>
+            </div>
+            <strong>{{ parsedRecommendation.montantScore }}/100</strong>
+          </div>
+          <div class="score-card-detailed" *ngIf="parsedRecommendation.delaiScore">
+            <span>Delay</span>
+            <div class="score-bar">
+              <div class="score-bar-fill" [style.width.%]="parsedRecommendation.delaiScore" [class]="getScoreClass(parsedRecommendation.delaiScore)"></div>
+            </div>
+            <strong>{{ parsedRecommendation.delaiScore }}/100</strong>
+          </div>
+          <div class="score-card-detailed" *ngIf="parsedRecommendation.documentsScore">
+            <span>Documents</span>
+            <div class="score-bar">
+              <div class="score-bar-fill" [style.width.%]="parsedRecommendation.documentsScore" [class]="getScoreClass(parsedRecommendation.documentsScore)"></div>
+            </div>
+            <strong>{{ parsedRecommendation.documentsScore }}/100</strong>
+          </div>
+          <div class="score-card-detailed" *ngIf="parsedRecommendation.frequenceScore">
+            <span>Frequency</span>
+            <div class="score-bar">
+              <div class="score-bar-fill" [style.width.%]="parsedRecommendation.frequenceScore" [class]="getScoreClass(parsedRecommendation.frequenceScore)"></div>
+            </div>
+            <strong>{{ parsedRecommendation.frequenceScore }}/100</strong>
+          </div>
+          <div class="score-card-detailed" *ngIf="parsedRecommendation.historiqueScore">
+            <span>History</span>
+            <div class="score-bar">
+              <div class="score-bar-fill" [style.width.%]="parsedRecommendation.historiqueScore" [class]="getScoreClass(parsedRecommendation.historiqueScore)"></div>
+            </div>
+            <strong>{{ parsedRecommendation.historiqueScore }}/100</strong>
+          </div>
+        </div>
+      </div>
+
+      <!-- Alerts -->
+      <div class="alerts-section" *ngIf="parsedRecommendation.alerts?.length > 0">
+        <h4><i class="bi bi-exclamation-triangle"></i> Alerts Detected</h4>
+        <div class="alerts-list">
+          <div *ngFor="let alert of parsedRecommendation.alerts" class="alert-item">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            <span>{{ alert }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>

@@ -8,7 +8,7 @@ import { Client } from '../../../shared';
   providedIn: 'root'
 })
 export class ClientService {
-  private baseUrl = 'http://localhost:8083/api';
+  private baseUrl = 'http://localhost:8081/api';
   private usersUrl = `${this.baseUrl}/users`;
   private clientsUrl = `${this.baseUrl}/clients`;
 

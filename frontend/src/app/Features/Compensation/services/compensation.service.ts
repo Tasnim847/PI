@@ -7,7 +7,7 @@ import { Compensation } from '../../../shared';
   providedIn: 'root'
 })
 export class CompensationService {
-  private apiUrl = 'http://localhost:8083/compensations';
+  private apiUrl = 'http://localhost:8081/compensations';
 
   constructor(private http: HttpClient) { }
 
@@ -84,5 +84,13 @@ export class CompensationService {
   // Get la liste des clients de l'agent
   getAgentClients(): Observable<any[]> {
     return this.http.get<any[]>(`${this.apiUrl}/agent/clients`, { headers: this.getHeaders() });
+  }
+
+  // Dans compensation.service.ts
+  // Dans compensation.service.ts - CORRECTION DE L'URL
+  getAdminCompensationDetails(compensationId: number): Observable<any> {
+    // ❌ MAUVAIS (actuel) : /admin/compensations/1/details
+    // ✅ BON : /compensations/1/with-scoring (déjà existant)
+    return this.http.get(`${this.apiUrl}/${compensationId}/with-scoring`, { headers: this.getHeaders() });
   }
 }

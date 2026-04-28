@@ -5,6 +5,7 @@ import { Compensation } from '../../../../shared';
 import { CompensationService } from '../../services/compensation.service';
 import { FormsModule } from '@angular/forms';
 import { ToastrService } from 'ngx-toastr';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-list-all-compensations',
@@ -40,7 +41,8 @@ export class ListAllCompensationsComponent implements OnInit {
   
   constructor(
     private compensationService: CompensationService,
-    private toastr: ToastrService
+    private toastr: ToastrService,
+    private router: Router
   ) {}
   
   ngOnInit(): void {
@@ -186,14 +188,13 @@ export class ListAllCompensationsComponent implements OnInit {
     }
   }
   
-  // Afficher les détails complets avec scoring
-  async viewDetails(compensation: Compensation): Promise<void> {
+  // Afficher les détails complets avec scoring (Modal)
+  async viewDetailsModal(compensation: Compensation): Promise<void> {
     this.selectedCompensation = compensation;
     this.showDetailsModal = true;
     this.loadingScoring = true;
     
     try {
-      // Charger les détails avec scoring
       this.scoringDetails = await this.compensationService.getCompensationWithScoring(compensation.compensationId).toPromise();
       this.loadingScoring = false;
     } catch (error) {
@@ -201,6 +202,11 @@ export class ListAllCompensationsComponent implements OnInit {
       this.loadingScoring = false;
       this.toastr.error('Impossible de charger les détails du scoring');
     }
+  }
+  
+  // ✅ NOUVELLE MÉTHODE: Navigation vers la page admin details
+  viewDetails(compensation: Compensation): void {
+    this.router.navigate(['/backoffice/compensation', compensation.compensationId]);
   }
   
   closeModal(): void {

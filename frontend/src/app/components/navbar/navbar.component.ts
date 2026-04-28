@@ -96,7 +96,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
       this.auth.getMe().subscribe({
         next: (user) => {
           if (user.photo) {
-            this.profilePhoto = `http://localhost:8083/uploads/${user.photo}`;
+            this.profilePhoto = `http://localhost:8081/uploads/${user.photo}`;
             localStorage.setItem('profilePhoto', this.profilePhoto);
           }
         },
@@ -152,6 +152,16 @@ export class NavbarComponent implements OnInit, OnDestroy {
   isCompensationVisible(): boolean {
     return this.userRole === 'CLIENT' || this.userRole === 'AGENT_ASSURANCE';
   }
+  
+  // Méthode pour obtenir le bon lien selon le rôle
+  getCompensationLink(): string {
+    if (this.userRole === 'AGENT_ASSURANCE') {
+      return '/public/agent/compensations';  // Page avec toutes les compensations
+    } else if (this.userRole === 'CLIENT') {
+      return '/public/compensations';         // Page avec ses propres compensations
+    }
+    return '/public/compensations';
+  }
 
   logout(event: Event) {
     event.stopPropagation();
@@ -163,12 +173,25 @@ export class NavbarComponent implements OnInit, OnDestroy {
   }
   // Ajoutez cette méthode
 
-getComplaintLink(): string {
+  getComplaintLink(): string {
     if (this.userRole === 'CLIENT') {
         return '/public/my-complaints';
     } else if (this.userRole === 'AGENT_ASSURANCE' || this.userRole === 'AGENT_FINANCE') {
         return '/public/agent/complaints';  // ← Changement ici : ajouter /public/
     }
     return '/public/my-complaints';
-}
+  }
+
+   getHomeLink(): string {
+    if (this.userRole === 'AGENT_ASSURANCE') {
+      return '/public/agent/home';
+    } else if (this.userRole === 'CLIENT') {
+      return '/public/home';
+    } else if (this.userRole === 'AGENT_FINANCE') {
+      return '/public/home';
+    } else if (this.userRole === 'ADMIN') {
+      return '/backoffice';
+    }
+    return '/public/home';
+  }
 }

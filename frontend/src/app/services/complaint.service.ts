@@ -9,7 +9,7 @@ import { Observable, map } from 'rxjs';
 })
 export class ComplaintService {
 
-  private apiUrl = 'http://localhost:8083/complaints';
+  private apiUrl = 'http://localhost:8081/complaints';
 
   constructor(private http: HttpClient) {}
 
