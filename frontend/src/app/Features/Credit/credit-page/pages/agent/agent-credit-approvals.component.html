@@ -1,0 +1,256 @@
+<div class="container-fluid mt-4">
+  <!-- HEADER -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h2><i class="bi bi-credit-card-2-front"></i> Credit Approvals</h2>
+      <p class="text-muted mb-0">Financial Agent - Manage credit requests</p>
+    </div>
+    <button class="btn btn-primary" (click)="refresh()">
+      <i class="bi bi-arrow-clockwise"></i> Refresh
+    </button>
+  </div>
+
+  <!-- STATS -->
+  <div class="row mb-4">
+    <div class="col-md-2">
+      <div class="stat-card total">
+        <div class="stat-value">{{ stats.total }}</div>
+        <div class="stat-label">Total</div>
+      </div>
+    </div>
+    <div class="col-md-2">
+      <div class="stat-card pending">
+        <div class="stat-value">{{ stats.pending }}</div>
+        <div class="stat-label">Pending</div>
+      </div>
+    </div>
+    <div class="col-md-2">
+      <div class="stat-card approved">
+        <div class="stat-value">{{ stats.approved }}</div>
+        <div class="stat-label">Approved</div>
+      </div>
+    </div>
+    <div class="col-md-2">
+      <div class="stat-card rejected">
+        <div class="stat-value">{{ stats.rejected }}</div>
+        <div class="stat-label">Rejected</div>
+      </div>
+    </div>
+    <div class="col-md-2">
+      <div class="stat-card repayment">
+        <div class="stat-value">{{ stats.inRepayment }}</div>
+        <div class="stat-label">In Repayment</div>
+      </div>
+    </div>
+    <div class="col-md-2">
+      <div class="stat-card closed">
+        <div class="stat-value">{{ stats.closed }}</div>
+        <div class="stat-label">Closed</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FILTERS -->
+  <div class="card mb-4">
+    <div class="card-body">
+      <div class="row g-3">
+        <div class="col-md-4">
+          <label class="form-label">Status</label>
+          <select class="form-select" [(ngModel)]="selectedStatus" (change)="onStatusChange()">
+            <option value="ALL">All Statuses</option>
+            <option value="PENDING">Pending</option>
+            <option value="APPROVED">Approved</option>
+            <option value="REJECTED">Rejected</option>
+            <option value="IN_REPAYMENT">In Repayment</option>
+            <option value="CLOSED">Closed</option>
+          </select>
+        </div>
+        <div class="col-md-8">
+          <label class="form-label">Search</label>
+          <input
+            type="text"
+            class="form-control"
+            placeholder="Search by ID, client name, email, amount..."
+            [(ngModel)]="searchTerm"
+            (input)="onSearch()"
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LOADING -->
+  <div *ngIf="isLoading" class="text-center py-5">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+  </div>
+
+  <!-- TABLE -->
+  <div *ngIf="!isLoading" class="card">
+    <div class="card-header bg-dark text-white">
+      <h5 class="mb-0"><i class="bi bi-table"></i> Credit Requests ({{ filteredCredits.length }})</h5>
+    </div>
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>ID</th>
+              <th>Client</th>
+              <th>Amount</th>
+              <th>Duration</th>
+              <th>Interest Rate</th>
+              <th>Monthly Payment</th>
+              <th>Due Date</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let credit of filteredCredits">
+              <td><strong>#{{ credit.creditId }}</strong></td>
+              <td>
+                <div>
+                  <strong>{{ getClientName(credit) }}</strong>
+                  <br>
+                  <small class="text-muted">{{ credit.clientEmail || 'N/A' }}</small>
+                </div>
+              </td>
+              <td><strong>{{ formatAmount(credit.amount) }}</strong></td>
+              <td>{{ credit.durationInMonths }} months</td>
+              <td>
+                <span *ngIf="credit.interestRate">{{ credit.interestRate }}%</span>
+                <span *ngIf="!credit.interestRate" class="text-muted">-</span>
+              </td>
+              <td>
+                <span *ngIf="credit.monthlyPayment">{{ formatAmount(credit.monthlyPayment) }}</span>
+                <span *ngIf="!credit.monthlyPayment" class="text-muted">-</span>
+              </td>
+              <td>{{ formatDate(credit.dueDate) }}</td>
+              <td>
+                <span class="badge" [ngClass]="getStatusClass(credit.status)">
+                  {{ getStatusLabel(credit.status) }}
+                </span>
+              </td>
+              <td>
+                <div class="d-flex gap-1">
+                  <button
+                    *ngIf="credit.status === 'PENDING'"
+                    class="btn btn-sm btn-success"
+                    (click)="openApproveModal(credit)"
+                    title="Approve"
+                  >
+                    <i class="bi bi-check-lg"></i>
+                  </button>
+                  <button
+                    *ngIf="credit.status === 'PENDING'"
+                    class="btn btn-sm btn-danger"
+                    (click)="openRejectModal(credit)"
+                    title="Reject"
+                  >
+                    <i class="bi bi-x-lg"></i>
+                  </button>
+                  <span *ngIf="credit.status !== 'PENDING'" class="text-muted small">
+                    No action
+                  </span>
+                </div>
+              </td>
+            </tr>
+            <tr *ngIf="filteredCredits.length === 0">
+              <td colspan="9" class="text-center text-muted py-4">
+                <i class="bi bi-inbox"></i> No credits found
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- APPROVE MODAL -->
+<div class="modal fade" [class.show]="showApproveModal" [style.display]="showApproveModal ? 'block' : 'none'" tabindex="-1" *ngIf="showApproveModal">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header bg-success text-white">
+        <h5 class="modal-title">
+          <i class="bi bi-check-circle"></i> Approve Credit Request
+        </h5>
+        <button type="button" class="btn-close btn-close-white" (click)="closeModal()"></button>
+      </div>
+      <div class="modal-body" *ngIf="selectedCredit">
+        <p>You are about to approve credit request <strong>#{{ selectedCredit.creditId }}</strong></p>
+        
+        <div class="alert alert-info">
+          <strong>Client:</strong> {{ getClientName(selectedCredit) }}<br>
+          <strong>Amount:</strong> {{ formatAmount(selectedCredit.amount) }}<br>
+          <strong>Duration:</strong> {{ selectedCredit.durationInMonths }} months
+        </div>
+
+        <div class="mb-3">
+          <label for="interestRate" class="form-label">Interest Rate (%) <span class="text-danger">*</span></label>
+          <input
+            type="number"
+            class="form-control"
+            id="interestRate"
+            [(ngModel)]="approveInterestRate"
+            step="0.1"
+            min="0"
+            max="100"
+            required
+          />
+          <small class="text-muted">Enter the interest rate for this credit</small>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="closeModal()">
+          Cancel
+        </button>
+        <button 
+          type="button" 
+          class="btn btn-success" 
+          (click)="confirmApprove()"
+          [disabled]="!approveInterestRate || approveInterestRate <= 0">
+          <i class="bi bi-check-lg"></i> Confirm Approval
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="modal-backdrop fade" [class.show]="showApproveModal" *ngIf="showApproveModal"></div>
+
+<!-- REJECT MODAL -->
+<div class="modal fade" [class.show]="showRejectModal" [style.display]="showRejectModal ? 'block' : 'none'" tabindex="-1" *ngIf="showRejectModal">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title">
+          <i class="bi bi-x-circle"></i> Reject Credit Request
+        </h5>
+        <button type="button" class="btn-close btn-close-white" (click)="closeModal()"></button>
+      </div>
+      <div class="modal-body" *ngIf="selectedCredit">
+        <p>You are about to reject credit request <strong>#{{ selectedCredit.creditId }}</strong></p>
+        
+        <div class="alert alert-warning">
+          <strong>Client:</strong> {{ getClientName(selectedCredit) }}<br>
+          <strong>Amount:</strong> {{ formatAmount(selectedCredit.amount) }}<br>
+          <strong>Duration:</strong> {{ selectedCredit.durationInMonths }} months
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="closeModal()">
+          Cancel
+        </button>
+        <button 
+          type="button" 
+          class="btn btn-danger" 
+          (click)="confirmReject()">
+          <i class="bi bi-x-lg"></i> Confirm Rejection
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="modal-backdrop fade" [class.show]="showRejectModal" *ngIf="showRejectModal"></div>
