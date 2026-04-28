@@ -19,7 +19,7 @@ export interface UserInfo {
 })
 export class AuthService {
 
-  private API = 'http://localhost:8083/api/auth';
+  private API = 'http://localhost:8081/api/auth';
   private isBrowser: boolean;
 
   constructor(
@@ -104,7 +104,7 @@ export class AuthService {
 
   updateMe(data: any): Observable<any> {
     return this.http.put(
-      'http://localhost:8083/api/auth/update-me',
+      'http://localhost:8081/api/auth/update-me',
       data,
       { responseType: 'text' }
     ).pipe(catchError(this.handleError));
@@ -115,7 +115,7 @@ export class AuthService {
 
     switch (role) {
       case 'ADMIN':
-        url = `http://localhost:8083/admins/change-password/${data.id}`;
+        url = `http://localhost:8081/admins/change-password/${data.id}`;
         const params = new URLSearchParams();
         params.set('oldPassword', data.oldPassword);
         params.set('newPassword', data.newPassword);
@@ -128,7 +128,7 @@ export class AuthService {
         }).pipe(catchError(this.handleError));
 
       case 'CLIENT':
-        url = 'http://localhost:8083/api/clients/change-password';
+        url = 'http://localhost:8081/api/clients/change-password';
         return this.http.put(url, {
           id: data.id,
           oldPassword: data.oldPassword,
@@ -139,7 +139,7 @@ export class AuthService {
         }).pipe(catchError(this.handleError));
 
       case 'AGENT_FINANCE':
-        url = 'http://localhost:8083/agents/finance/change-password';
+        url = 'http://localhost:8081/agents/finance/change-password';
         return this.http.put(url, {
           id: data.id,
           oldPassword: data.oldPassword,
@@ -150,7 +150,7 @@ export class AuthService {
         }).pipe(catchError(this.handleError));
 
       case 'AGENT_ASSURANCE':
-        url = 'http://localhost:8083/agents-assurance/change-password';
+        url = 'http://localhost:8081/agents-assurance/change-password';
         return this.http.put(url, {
           id: data.id,
           oldPassword: data.oldPassword,
@@ -171,16 +171,16 @@ export class AuthService {
 
     switch (role) {
       case 'CLIENT':
-        url = `http://localhost:8083/api/clients/update/${userId}`;
+        url = `http://localhost:8081/api/clients/update/${userId}`;
         break;
       case 'AGENT_FINANCE':
-        url = `http://localhost:8083/agents/finance/update/${userId}`;
+        url = `http://localhost:8081/agents/finance/update/${userId}`;
         break;
       case 'AGENT_ASSURANCE':
-        url = `http://localhost:8083/agents-assurance/update/${userId}`;
+        url = `http://localhost:8081/agents-assurance/update/${userId}`;
         break;
       case 'ADMIN':
-        url = `http://localhost:8083/admins/update/${userId}`;
+        url = `http://localhost:8081/admins/update/${userId}`;
         break;
       default:
         throw new Error('Role non supporté');

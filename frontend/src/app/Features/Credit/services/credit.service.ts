@@ -52,7 +52,7 @@ export interface CreditHistoryWithAverageDTO {
   providedIn: 'root'
 })
 export class CreditService {
-  private apiUrl = 'http://localhost:8083/Credit';
+  private apiUrl = 'http://localhost:8081/Credit';
 
   constructor(private http: HttpClient) { }
 

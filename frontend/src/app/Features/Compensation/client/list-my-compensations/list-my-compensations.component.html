@@ -68,7 +68,7 @@
         <i class="bi bi-cash"></i>
       </div>
       <div class="stat-info">
-        <h3>{{ getTotalOutOfPocket() | currency:'EUR' }}</h3>
+        <h3>{{ getTotalOutOfPocket() | currency:'TND':'symbol-narrow' }}</h3>
         <p>Total Out of Pocket</p>
       </div>
     </div>
@@ -136,15 +136,15 @@
         <div class="amounts-grid">
           <div class="amount-item">
             <label>Insurance reimbursement</label>
-            <span class="amount insurance">{{ compensation.amount | currency:'EUR' }}</span>
+            <span class="amount insurance">{{ compensation.amount | currency:'TND':'symbol-narrow' }}</span>
           </div>
           <div class="amount-item">
             <label>Out of pocket (to pay)</label>
-            <span class="amount out-of-pocket">{{ compensation.clientOutOfPocket | currency:'EUR' }}</span>
+            <span class="amount out-of-pocket">{{ compensation.clientOutOfPocket | currency:'TND':'symbol-narrow' }}</span>
           </div>
           <div class="amount-item">
             <label>Total approved</label>
-            <span class="amount approved">{{ compensation.approvedAmount | currency:'EUR' }}</span>
+            <span class="amount approved">{{ compensation.approvedAmount | currency:'TND':'symbol-narrow' }}</span>
           </div>
           <div class="amount-item">
             <label>Calculation date</label>
@@ -152,10 +152,6 @@
           </div>
         </div>
         
-        <div *ngIf="compensation.message" class="compensation-message">
-          <i class="bi bi-info-circle"></i>
-          <span>{{ compensation.message }}</span>
-        </div>
       </div>
       
       <div class="compensation-card-footer">
@@ -168,7 +164,7 @@
                 class="btn-pay" 
                 (click)="selectCompensationForPayment(compensation)">
           <i class="bi bi-credit-card"></i>
-          Pay {{ compensation.clientOutOfPocket | currency:'EUR' }}
+          Pay {{ compensation.clientOutOfPocket | currency:'TND':'symbol-narrow' }}
         </button>
       </div>
     </div>
@@ -200,18 +196,18 @@
       <div class="payment-sidebar-body">
         <div class="payment-amount-card">
           <div class="payment-amount-label">Amount to pay</div>
-          <div class="payment-amount-value">{{ selectedCompensationForPayment?.clientOutOfPocket | currency:'EUR' }}</div>
+          <div class="payment-amount-value">{{ selectedCompensationForPayment?.clientOutOfPocket | currency:'TND':'symbol-narrow' }}</div>
           <div class="payment-compensation-id">Compensation #{{ selectedCompensationForPayment?.compensationId }}</div>
         </div>
         
         <div class="payment-details">
           <div class="detail-row">
             <span>Insurance reimbursement</span>
-            <strong>{{ selectedCompensationForPayment?.amount | currency:'EUR' }}</strong>
+            <strong>{{ selectedCompensationForPayment?.amount | currency:'TND':'symbol-narrow' }}</strong>
           </div>
           <div class="detail-row">
             <span>Total approved</span>
-            <strong>{{ selectedCompensationForPayment?.approvedAmount | currency:'EUR' }}</strong>
+            <strong>{{ selectedCompensationForPayment?.approvedAmount | currency:'TND':'symbol-narrow' }}</strong>
           </div>
         </div>
         
@@ -281,118 +277,12 @@
           <div class="spinner-border spinner-border-sm" *ngIf="processingPayment" role="status"></div>
           <ng-container *ngIf="!processingPayment">
             <i class="bi bi-lock-fill"></i>
-            Pay {{ selectedCompensationForPayment?.clientOutOfPocket | currency:'EUR' }}
+            Pay {{ selectedCompensationForPayment?.clientOutOfPocket | currency:'TND':'symbol-narrow' }}
           </ng-container>
         </button>
       </div>
     </div>
   </div>
 
-  <!-- Modal Details with Scoring -->
-  <div class="modal-overlay" *ngIf="showDetails" (click)="closeDetails()">
-    <div class="modal-container modal-lg" (click)="$event.stopPropagation()">
-      <div class="modal-header">
-        <h3>
-          <i class="bi bi-graph-up"></i>
-          Complete Compensation Details
-        </h3>
-        <button class="modal-close" (click)="closeDetails()">&times;</button>
-      </div>
-      <div class="modal-body">
-        <!-- Compensation Details -->
-        <div class="details-section">
-          <div class="section-title">Compensation Information</div>
-          <div class="details-grid">
-            <div class="detail-row">
-              <label>Compensation ID</label>
-              <span>{{ selectedCompensation?.compensation?.compensationId }}</span>
-            </div>
-            <div class="detail-row">
-              <label>Status</label>
-              <span class="compensation-status" [class]="getStatusClass(selectedCompensation?.compensation?.status)">
-                {{ selectedCompensation?.compensation?.status }}
-              </span>
-            </div>
-            <div class="detail-row">
-              <label>Original claimed amount</label>
-              <span>{{ selectedCompensation?.compensation?.originalClaimedAmount | currency:'EUR' }}</span>
-            </div>
-            <div class="detail-row">
-              <label>Approved amount</label>
-              <span class="approved">{{ selectedCompensation?.compensation?.approvedAmount | currency:'EUR' }}</span>
-            </div>
-            <div class="detail-row">
-              <label>Deductible</label>
-              <span>{{ selectedCompensation?.compensation?.deductible | currency:'EUR' }}</span>
-            </div>
-            <div class="detail-row">
-              <label>Coverage limit</label>
-              <span>{{ selectedCompensation?.compensation?.coverageLimit | currency:'EUR' }}</span>
-            </div>
-            <div class="detail-row">
-              <label>Insurance reimbursement</label>
-              <span class="insurance">{{ selectedCompensation?.compensation?.amount | currency:'EUR' }}</span>
-            </div>
-            <div class="detail-row">
-              <label>Client out of pocket</label>
-              <span class="out-of-pocket">{{ selectedCompensation?.compensation?.clientOutOfPocket | currency:'EUR' }}</span>
-            </div>
-            <div class="detail-row full-width" *ngIf="selectedCompensation?.compensation?.message">
-              <label>Message</label>
-              <div class="info-message">{{ selectedCompensation?.compensation?.message }}</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Claim Score Details -->
-        <div class="details-section" *ngIf="selectedCompensation?.claimScore">
-          <div class="section-title">
-            Advanced Risk Score
-            <span class="risk-score" [class]="getRiskScoreClass(selectedCompensation?.claimScore?.riskScore)">
-              {{ selectedCompensation?.claimScore?.riskScore }}/100
-            </span>
-          </div>
-          
-          <div class="score-progress">
-            <div class="progress-bar-custom">
-              <div class="progress-fill" [class]="getRiskScoreClass(selectedCompensation?.claimScore?.riskScore)" 
-                   [style.width.%]="selectedCompensation?.claimScore?.riskScore"></div>
-            </div>
-          </div>
-          
-          <div class="risk-details">
-            <div class="detail-row">
-              <label>Risk level</label>
-              <span class="risk-level" [class]="getRiskLevelClass(selectedCompensation?.claimScore?.riskLevel)">
-                {{ selectedCompensation?.claimScore?.riskLevel }}
-              </span>
-            </div>
-            <div class="detail-row">
-              <label>Suggested decision</label>
-              <span class="decision-suggestion" [class]="getDecisionClass(selectedCompensation?.claimScore?.decisionSuggestion)">
-                {{ selectedCompensation?.claimScore?.decisionSuggestion }}
-              </span>
-            </div>
-            <div class="detail-row full-width" *ngIf="selectedCompensation?.claimScore?.recommendation">
-              <label>Recommendation</label>
-              <div class="recommendation">{{ selectedCompensation?.claimScore?.recommendation }}</div>
-            </div>
-          </div>
-          
-          <div *ngIf="selectedCompensation?.claimScore?.delayInfo || selectedCompensation?.claimScore?.documentTypeInfo || selectedCompensation?.claimScore?.frequencyInfo" 
-               class="analyzed-factors">
-            <label>Analyzed factors</label>
-            <ul>
-              <li *ngIf="selectedCompensation?.claimScore?.delayInfo">{{ selectedCompensation?.claimScore?.delayInfo }}</li>
-              <li *ngIf="selectedCompensation?.claimScore?.documentTypeInfo">{{ selectedCompensation?.claimScore?.documentTypeInfo }}</li>
-              <li *ngIf="selectedCompensation?.claimScore?.frequencyInfo">{{ selectedCompensation?.claimScore?.frequencyInfo }}</li>
-            </ul>
-          </div>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button class="btn-secondary" (click)="closeDetails()">Close</button>
-      </div>
-    </div>
-  </div>
+  
 </div>

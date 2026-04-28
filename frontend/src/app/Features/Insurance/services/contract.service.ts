@@ -29,8 +29,8 @@ export interface CashApprovalRequest {
   providedIn: 'root'
 })
 export class ContractService {
-  private apiUrl = 'http://localhost:8083/contrats';
-  private agentApiUrl = 'http://localhost:8083/agent';
+  private apiUrl = 'http://localhost:8081/contrats';
+  private agentApiUrl = 'http://localhost:8081/agent';
   private baseUrl = environment.apiUrl;
 
   constructor(private http: HttpClient) {}
@@ -324,7 +324,7 @@ export class ContractService {
     }
   
     return this.http.get<{ success: boolean; evaluation: RiskEvaluationDTO }>(
-      `http://localhost:8083/api/risk/evaluation/${contractId}`, 
+      `http://localhost:8081/api/risk/evaluation/${contractId}`, 
       { headers: headers }
     ).pipe(
       map(response => response.evaluation),
@@ -642,7 +642,7 @@ export class ContractService {
 
 
   sendTestReminder(contractId: number, daysBefore: number): Observable<any> {
-    return this.http.post(`http://localhost:8083/api/reminders/test/${contractId}/${daysBefore}`, {}, {
+    return this.http.post(`http://localhost:8081/api/reminders/test/${contractId}/${daysBefore}`, {}, {
       headers: this.getHeaders()
     }).pipe(catchError(this.handleError));
   }
