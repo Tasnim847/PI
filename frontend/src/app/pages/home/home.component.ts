@@ -6,11 +6,12 @@ import { AuthService, UserInfo } from '../../services/auth.service';
 import { ClientAccountService, ClientAccount } from '../../services/client-account.service';
 import { AccountRequestService, AccountRequest } from '../../services/account-request.service';
 import { TransactionService } from '../../services/transaction.service';
+import { IAAssistantComponent } from '../../components/ia-assistant/ia-assistant.component';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, FormsModule, CurrencyPipe, DatePipe, RouterLink, RouterLinkActive],
+  imports: [CommonModule, FormsModule, CurrencyPipe, DatePipe, RouterLink, RouterLinkActive,IAAssistantComponent],
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.css']
 })

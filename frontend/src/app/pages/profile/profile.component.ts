@@ -63,7 +63,7 @@ export class ProfileComponent implements OnInit {
       this.telephone = user.telephone;
       this.role = user.role;
       if (user.photo) {
-        this.profilePhoto = `http://localhost:8081/uploads/${user.photo}`;
+        this.profilePhoto = `http://localhost:8083/uploads/${user.photo}`;
       } else {
         this.profilePhoto = '';
       }

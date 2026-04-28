@@ -2,11 +2,14 @@ package org.example.projet_pi.Controller;
 
 import org.example.projet_pi.Dto.AccountStatisticsDTO;
 import org.example.projet_pi.Dto.TransactionDTO;
+import org.example.projet_pi.Dto.TransferByRipRequestDTO;
 import org.example.projet_pi.Repository.AccountRepository;
 import org.example.projet_pi.Repository.TransactionRepository;
 import org.example.projet_pi.Service.TransactionService;
 import org.example.projet_pi.entity.Account;
+import org.example.projet_pi.entity.Client;
 import org.example.projet_pi.entity.Transaction;
+import org.example.projet_pi.security.CustomUserPrincipal;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -14,6 +17,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -213,5 +217,31 @@ public class TransactionController {
 
         AccountStatisticsDTO stats = transactionService.getAccountStatistics(accountId);
         return ResponseEntity.ok(stats);
+    }
+
+
+    // ============================================================
+// 🆕 TRANSFERT PAR RIP (CLIENT)
+// ============================================================
+
+    @PostMapping("/transfer/by-rip")
+    @PreAuthorize("hasRole('CLIENT')")
+    public ResponseEntity<String> transferByRip(@RequestBody TransferByRipRequestDTO request,
+                                                Authentication auth) {
+        Long clientId = getCurrentClientId(auth);  // Utilisez la nouvelle méthode
+        String result = transactionService.transferByRip(
+                request.getSourceRip(),
+                request.getTargetRip(),
+                request.getAmount(),
+                request.getDescription() != null ? request.getDescription() : "",
+                clientId
+        );
+        return ResponseEntity.ok(result);
+    }
+
+    // Ajoutez cette méthode utilitaire
+    private Long getCurrentClientId(Authentication auth) {
+        CustomUserPrincipal principal = (CustomUserPrincipal) auth.getPrincipal();
+        return principal.getId();
     }
 }

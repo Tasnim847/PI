@@ -1,7 +1,6 @@
 package org.example.projet_pi.Dto;
 
 import org.example.projet_pi.entity.AccountType;
-
 import java.time.LocalDateTime;
 
 public class ClientAccountDTO {

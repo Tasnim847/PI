@@ -11,7 +11,7 @@ import { InsuranceProduct } from '../../../shared';
 })
 export class ProductApiService {
 
-  private baseUrl = 'http://localhost:8081';
+  private baseUrl = 'http://localhost:8083';
 
   constructor(
     private http: HttpClient,

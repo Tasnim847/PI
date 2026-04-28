@@ -53,7 +53,8 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
             LocalDate endDate,
             Pageable pageable
     );
-
+    // Dans TransactionRepository.java
+    List<Transaction> findByAccountAccountIdAndDate(Long accountId, LocalDate date);
 
     // ✅ Pagination + type (JPQL)
     @Query("SELECT t FROM Transaction t WHERE t.account.accountId = :accountId " +

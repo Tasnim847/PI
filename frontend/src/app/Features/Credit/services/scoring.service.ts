@@ -40,7 +40,7 @@ export interface ScoringResponse {
   providedIn: 'root'
 })
 export class ScoringService {
-  private apiUrl = 'http://localhost:8081/Scoring';
+  private apiUrl = 'http://localhost:8083/Scoring';
 
   constructor(private http: HttpClient) { }
 

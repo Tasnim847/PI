@@ -1,8 +1,7 @@
 package org.example.projet_pi.Dto;
 
-import org.example.projet_pi.entity.AccountRequestStatus;
 import org.example.projet_pi.entity.AccountType;
-
+import org.example.projet_pi.entity.AccountRequestStatus;  // Changé
 import java.time.LocalDateTime;
 
 public class AccountRequestDTO {

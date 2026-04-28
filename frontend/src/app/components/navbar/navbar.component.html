@@ -18,11 +18,7 @@
       <ul class="navbar-nav me-auto mb-2 mb-lg-0">
         <!-- Home - visible pour tous -->
         <li class="nav-item">
-          <a class="nav-link" 
-            [routerLink]="getHomeLink()" 
-            routerLinkActive="active">
-            Home
-          </a>
+          <a class="nav-link" routerLink="/public/home" routerLinkActive="active">Home</a>
         </li>
 
         <!-- Credit - visible pour CLIENT et AGENT_FINANCE seulement -->
@@ -36,18 +32,18 @@
         </li>
 
         <!-- Account - différent selon le rôle -->
-        <li class="nav-item" *ngIf="isAccountVisible()">
-          <a class="nav-link" 
-            [routerLink]="userRole === 'AGENT_FINANCE' ? '/public/agent/account' : '/public/client/dashboard'" 
-            routerLinkActive="active">
-            Account
-          </a>
-        </li>
+<li class="nav-item" *ngIf="isAccountVisible()">
+  <a class="nav-link" 
+     [routerLink]="userRole === 'AGENT_FINANCE' ? '/public/agent/account' : '/public/client/dashboard'" 
+     routerLinkActive="active">
+    Account
+  </a>
+</li>
 
         <!-- Complaint - visible pour CLIENT, AGENT_ASSURANCE et AGENT_FINANCE -->
-        <li class="nav-item" *ngIf="isComplaintVisible()">
-          <a class="nav-link" [routerLink]="getComplaintLink()" routerLinkActive="active">Complaint</a>
-        </li>
+<li class="nav-item" *ngIf="isComplaintVisible()">
+  <a class="nav-link" [routerLink]="getComplaintLink()" routerLinkActive="active">Complaint</a>
+</li>
 
         <!-- News - visible pour CLIENT et AGENT_ASSURANCE seulement -->
         <li class="nav-item" *ngIf="isNewsVisible()">
@@ -67,20 +63,11 @@
             Claims
           </a>
         </li>
-        
-        <li class="nav-item" *ngIf="isCashApprovalsVisible()">
-          <a class="nav-link" routerLink="/public/agent/cash-approvals" routerLinkActive="active">
-            Cash Approvals
-          </a>
-        </li>
 
-        <!-- Compensation - visible pour CLIENT et AGENT_ASSURANCE -->
+        <!-- Compensation - visible pour CLIENT et AGENT_ASSURANCE seulement -->
         <li class="nav-item" *ngIf="isCompensationVisible()">
-          <a class="nav-link" [routerLink]="getCompensationLink()" routerLinkActive="active">
-            Compensation
-          </a>
+          <a class="nav-link" routerLink="/public/compensations" routerLinkActive="active">Compensation</a>
         </li>
-
       </ul>
       <div class="d-flex align-items-center">
         <div class="dropdown">
