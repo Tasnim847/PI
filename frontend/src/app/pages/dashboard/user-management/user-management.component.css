@@ -335,3 +335,67 @@ tr:hover {
     font-size: 12px;
   }
 }
+/* Styles pour l'affectation */
+.agent-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.agent-badge.finance {
+  background: #e3f2fd;
+  color: #1565c0;
+}
+
+.agent-badge.assurance {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.btn-assign {
+  background: #6f42c1;
+  color: white;
+  border: none;
+  padding: 5px 12px;
+  border-radius: 5px;
+  cursor: pointer;
+  margin: 0 2px;
+  transition: all 0.3s;
+}
+
+.btn-assign:hover {
+  background: #5a32a3;
+  transform: translateY(-1px);
+}
+
+/* Modal d'affectation */
+.assign-modal {
+  max-width: 450px;
+}
+
+.client-info {
+  background: #f8f9fa;
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.client-info p {
+  margin: 5px 0;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #1a5ac3 0%, #36c165 100%);
+  color: white;
+  border: none;
+  padding: 8px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

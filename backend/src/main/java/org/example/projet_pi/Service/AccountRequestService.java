@@ -7,7 +7,6 @@ import org.example.projet_pi.Repository.ClientRepository;
 import org.example.projet_pi.entity.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.util.List;
 import java.util.stream.Collectors;
 

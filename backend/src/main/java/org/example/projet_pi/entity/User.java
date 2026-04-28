@@ -31,7 +31,8 @@ public class User {
     @NotBlank(message = "Last name is required")
     @Pattern(regexp = "^[a-zA-Z]+$", message = "Last name must contain only letters")
     private String lastName;
-
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private FaceData faceData;
     public String getFirstName() { return firstName; }
     public void setFirstName(String firstName) { this.firstName = firstName; }
     public String getLastName() { return lastName; }

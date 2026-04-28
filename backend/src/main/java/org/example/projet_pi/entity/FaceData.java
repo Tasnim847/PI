@@ -1,5 +1,6 @@
 package org.example.projet_pi.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -15,6 +16,7 @@ public class FaceData {
 
     @OneToOne
     @JoinColumn(name = "user_id", unique = true)
+    @JsonIgnore
     private User user;
 
     @Lob

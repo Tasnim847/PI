@@ -1,6 +1,7 @@
 
 package org.example.projet_pi.Service;
 
+import org.example.projet_pi.Dto.ClientWithAgentsDTO;
 import org.example.projet_pi.entity.Client;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -23,4 +24,6 @@ public interface IClientService {
     List<Client> getClientsByAgentAssurance(Long agentAssuranceId);
 
     void changePassword(Long clientId, String oldPassword, String newPassword);
+
+    List<ClientWithAgentsDTO> getAllClientsWithAgents();
 }

@@ -1,10 +1,9 @@
 package org.example.projet_pi.Repository;
 
 import org.example.projet_pi.entity.AccountRequest;
-import org.example.projet_pi.entity.AccountRequestStatus;
+import org.example.projet_pi.entity.AccountRequestStatus;  // Changé
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
-
 import java.util.List;
 
 @Repository

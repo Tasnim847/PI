@@ -4,7 +4,6 @@ import org.example.projet_pi.Dto.ClientAccountDTO;
 import org.example.projet_pi.Repository.AccountRepository;
 import org.example.projet_pi.entity.Account;
 import org.springframework.stereotype.Service;
-
 import java.util.List;
 import java.util.stream.Collectors;
 

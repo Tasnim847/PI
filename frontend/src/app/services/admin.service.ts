@@ -2,7 +2,9 @@ import { Injectable, PLATFORM_ID, Inject } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { Client } from '../shared/models/client.model';  // ← Importer Client
 
+// Garder User pour les autres types (agents, admins)
 export interface User {
   id: number;
   firstName: string;
@@ -13,9 +15,25 @@ export interface User {
   photo?: string;
 }
 
+// Interface étendue pour les clients avec leurs agents
+export interface ClientWithAgents {
+  id: number;
+  firstName: string;
+  lastName: string;
+  email: string;
+  telephone: string;
+  role: string;
+  photo?: string;
+  // 🔥 Version simplifiée
+  agentFinanceId?: number | null;
+  agentFinanceName?: string | null;
+  agentAssuranceId?: number | null;
+  agentAssuranceName?: string | null;
+}
+
 @Injectable({ providedIn: 'root' })
 export class AdminService {
-  private apiUrl = 'http://localhost:8081';
+  private apiUrl = 'http://localhost:8083';
 
   constructor(
     private http: HttpClient,
@@ -42,26 +60,38 @@ export class AdminService {
     });
   }
 
-  // ── Clients ──────────────────────────────────────────────
-  // Backend: @RequestMapping("/api/clients") → /api/clients/all
-  getClients(): Observable<User[]> {
-    return this.http.get<User[]>(`${this.apiUrl}/api/clients/all`, { headers: this.getHeaders() });
+  // ── Clients (retourne ClientWithAgents pour avoir les agents) ──
+  getClients(): Observable<ClientWithAgents[]> {
+    return this.http.get<ClientWithAgents[]>(`${this.apiUrl}/api/clients/all`, { headers: this.getHeaders() });
   }
 
-  addClient(client: FormData): Observable<User> {
-    return this.http.post<User>(`${this.apiUrl}/api/clients/add`, client, { headers: this.getFormHeaders() });
+  addClient(client: FormData): Observable<Client> {
+    return this.http.post<Client>(`${this.apiUrl}/api/clients/add`, client, { headers: this.getFormHeaders() });
   }
 
-  updateClient(id: number, client: FormData): Observable<User> {
-    return this.http.put<User>(`${this.apiUrl}/api/clients/update/${id}`, client, { headers: this.getFormHeaders() });
+  updateClient(id: number, client: FormData): Observable<Client> {
+    return this.http.put<Client>(`${this.apiUrl}/api/clients/update/${id}`, client, { headers: this.getFormHeaders() });
   }
 
   deleteClient(id: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/api/clients/delete/${id}`, { headers: this.getHeaders() });
   }
 
-  // ── Agents Assurance ─────────────────────────────────────
-  // Backend: @RequestMapping("/agents-assurance")
+  // 🆕 Assigner un agent finance à un client
+  assignFinanceAgent(clientId: number, agentId: number): Observable<any> {
+    return this.http.put(`${this.apiUrl}/api/admin/clients/${clientId}/assign/finance/${agentId}`, {}, {
+      headers: this.getHeaders()
+    });
+  }
+
+  // 🆕 Assigner un agent assurance à un client
+  assignAssuranceAgent(clientId: number, agentId: number): Observable<any> {
+    return this.http.put(`${this.apiUrl}/api/admin/clients/${clientId}/assign/assurance/${agentId}`, {}, {
+      headers: this.getHeaders()
+    });
+  }
+
+  // ── Agents Assurance ──
   getAgentsAssurance(): Observable<User[]> {
     return this.http.get<User[]>(`${this.apiUrl}/agents-assurance/all`, { headers: this.getHeaders() });
   }
@@ -78,8 +108,7 @@ export class AdminService {
     return this.http.delete<void>(`${this.apiUrl}/agents-assurance/delete/${id}`, { headers: this.getHeaders() });
   }
 
-  // ── Agents Finance ───────────────────────────────────────
-  // Backend: @RequestMapping("/agents/finance")
+  // ── Agents Finance ──
   getAgentsFinance(): Observable<User[]> {
     return this.http.get<User[]>(`${this.apiUrl}/agents/finance/all`, { headers: this.getHeaders() });
   }
@@ -96,8 +125,7 @@ export class AdminService {
     return this.http.delete<void>(`${this.apiUrl}/agents/finance/delete/${id}`, { headers: this.getHeaders() });
   }
 
-  // ── Admins ───────────────────────────────────────────────
-  // Backend: @RequestMapping("/admins")
+  // ── Admins ──
   getAdmins(): Observable<User[]> {
     return this.http.get<User[]>(`${this.apiUrl}/admins/all`, { headers: this.getHeaders() });
   }

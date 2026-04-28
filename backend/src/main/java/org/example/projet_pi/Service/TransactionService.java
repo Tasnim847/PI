@@ -302,4 +302,106 @@ public class TransactionService implements ITransactionService {
                 totalWithdrawalCount
         );
     }
+
+    // ============================================================
+// 🆕 TRANSFERT PAR RIP
+// ============================================================
+
+    /**
+     * Transfert d'argent entre comptes par RIP
+     */
+    @Transactional
+    public String transferByRip(String sourceRip, String targetRip, double amount, String description, Long clientId) {
+
+        // 1. Validation du montant
+        if (amount <= 0) {
+            throw new RuntimeException("Le montant doit être positif");
+        }
+
+        // 2. Récupérer les comptes
+        Account sourceAccount = accountRepository.findByRip(sourceRip)
+                .orElseThrow(() -> new RuntimeException("Compte source non trouvé"));
+
+        Account targetAccount = accountRepository.findByRip(targetRip)
+                .orElseThrow(() -> new RuntimeException("Compte destination non trouvé"));
+
+        // 3. Vérifier que le compte source appartient bien au client
+        if (!sourceAccount.getClient().getId().equals(clientId)) {
+            throw new RuntimeException("Vous n'êtes pas propriétaire de ce compte");
+        }
+
+        // 4. Vérifier que les comptes sont actifs
+        if (!"ACTIVE".equals(sourceAccount.getStatus())) {
+            throw new RuntimeException("Votre compte n'est pas actif");
+        }
+
+        if (!"ACTIVE".equals(targetAccount.getStatus())) {
+            throw new RuntimeException("Le compte destinataire n'est pas actif");
+        }
+
+        // 5. Vérifier le solde
+        if (sourceAccount.getBalance() < amount) {
+            throw new RuntimeException("Solde insuffisant. Solde actuel: " + sourceAccount.getBalance());
+        }
+
+        // 6. Vérifier les limites de virement quotidiennes
+        checkDailyTransferLimit(sourceAccount, amount);
+
+        // 7. Effectuer le virement
+        sourceAccount.setBalance(sourceAccount.getBalance() - amount);
+        targetAccount.setBalance(targetAccount.getBalance() + amount);
+
+        accountRepository.save(sourceAccount);
+        accountRepository.save(targetAccount);
+
+        // 8. Enregistrer les transactions
+        Transaction debitTransaction = new Transaction();
+        debitTransaction.setAccount(sourceAccount);
+        debitTransaction.setAmount(amount);
+        debitTransaction.setType(TransactionType.WITHDRAW.name());
+        debitTransaction.setDate(java.time.LocalDate.now());
+        debitTransaction.setDescription("VIREMENT SORTANT vers " + targetRip + " - " + description);
+        transactionRepository.save(debitTransaction);
+
+        Transaction creditTransaction = new Transaction();
+        creditTransaction.setAccount(targetAccount);
+        creditTransaction.setAmount(amount);
+        creditTransaction.setType(TransactionType.DEPOSIT.name());
+        creditTransaction.setDate(java.time.LocalDate.now());
+        creditTransaction.setDescription("VIREMENT ENTRANT de " + sourceRip + " - " + description);
+        transactionRepository.save(creditTransaction);
+
+        return "Virement de " + amount + " TND effectué avec succès vers le compte " + targetRip;
+    }
+
+    /**
+     * Vérifie la limite quotidienne de virement
+     */
+    private void checkDailyTransferLimit(Account account, double amount) {
+        java.time.LocalDate today = java.time.LocalDate.now();
+
+        double todayTransfers = transactionRepository
+                .findByAccountAccountIdAndDate(account.getAccountId(), today)
+                .stream()
+                .filter(t -> t.getType().equals("WITHDRAW"))
+                .filter(t -> t.getDescription() != null && t.getDescription().startsWith("VIREMENT SORTANT"))
+                .mapToDouble(Transaction::getAmount)
+                .sum();
+
+        double limit = account.getDailyTransferLimit();
+        if (limit > 0 && (todayTransfers + amount) > limit) {
+            throw new RuntimeException("Limite quotidienne de virement dépassée. " +
+                    "Limite: " + limit + " TND, " +
+                    "Déjà viré aujourd'hui: " + todayTransfers + " TND, " +
+                    "Montant demandé: " + amount + " TND");
+        }
+    }
+
+
+    public List<Transaction> getTransactionsByAccountAndDate(Long accountId, java.time.LocalDate date) {
+        return transactionRepository.findByAccountAccountIdAndDate(accountId, date);
+    }
+
+
+
 }

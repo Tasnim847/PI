@@ -1,0 +1,61 @@
+<!-- Bouton flottant -->
+<div class="ia-button" (click)="toggleChat()">
+  <i class="fas fa-robot"></i>
+  <span class="notification-dot" *ngIf="!isOpen"></span>
+</div>
+
+<!-- Chat window -->
+<div class="chat-window" [class.open]="isOpen">
+  <div class="chat-header">
+    <div class="header-content">
+      <i class="fas fa-robot"></i>
+      <div>
+        <h3>SurFin - Assistant IA</h3>
+        <p>SurFinity Bank • En ligne</p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button class="reset-btn" (click)="resetConversation()" title="Nouvelle conversation">
+        <i class="fas fa-sync-alt"></i>
+      </button>
+      <button class="close-btn" (click)="toggleChat()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- Messages -->
+  <div class="chat-messages" #chatMessages>
+    <div *ngFor="let msg of messages" class="message" [class.user]="msg.isUser" [class.bot]="!msg.isUser">
+      <div class="message-avatar">
+        <i [class.fa-user]="msg.isUser" [class.fa-robot]="!msg.isUser"></i>
+      </div>
+      <div class="message-content">
+        <div class="message-text" [innerHTML]="msg.isTyping ? '' : (msg.text | textWithLineBreaks)">
+          <div class="typing-indicator" *ngIf="msg.isTyping">
+            <span></span><span></span><span></span>
+          </div>
+        </div>
+        <div class="message-suggestions" *ngIf="msg.suggestions && msg.suggestions.length > 0 && !msg.isUser">
+          <button *ngFor="let suggestion of msg.suggestions" class="suggestion-chip" (click)="useSuggestion(suggestion)">
+            {{ suggestion }}
+          </button>
+        </div>
+        <div class="message-time">{{ msg.timestamp }}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Input -->
+  <div class="chat-input">
+    <input 
+      type="text" 
+      [(ngModel)]="newMessage" 
+      (keyup.enter)="sendMessage()"
+      [placeholder]="isLoading ? 'L\'assistant réfléchit...' : 'Tapez votre message...'"
+      [disabled]="isLoading">
+    <button (click)="sendMessage()" [disabled]="!newMessage.trim() || isLoading">
+      <i class="fas fa-paper-plane"></i>
+    </button>
+  </div>
+</div>

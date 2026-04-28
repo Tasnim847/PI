@@ -3,6 +3,7 @@ package org.example.projet_pi.Controller;
 
 import lombok.RequiredArgsConstructor;
 import org.example.projet_pi.Dto.ChangePasswordRequest;
+import org.example.projet_pi.Dto.ClientWithAgentsDTO;
 import org.example.projet_pi.Service.IClientService;
 import org.example.projet_pi.entity.Client;
 import org.springframework.http.ResponseEntity;
@@ -97,4 +98,13 @@ public class ClientController {
     public List<Client> getAllClients() {
         return clientService.getAllClients();
     }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/all-with-agents")
+    public ResponseEntity<List<ClientWithAgentsDTO>> getAllClientsWithAgents() {
+        return ResponseEntity.ok(clientService.getAllClientsWithAgents());
+    }
+
+
+
 }
