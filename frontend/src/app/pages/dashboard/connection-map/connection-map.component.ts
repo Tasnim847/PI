@@ -72,7 +72,7 @@ export class ConnectionMapComponent implements AfterViewInit {
       'Authorization': `Bearer ${token}`
     });
 
-    this.http.get<any[]>('http://localhost:8083/api/admin/connection-locations', { headers })
+    this.http.get<any[]>('http://localhost:8081/api/admin/connection-locations', { headers })
       .subscribe({
         next: (data) => {
           console.log('✅ Locations received:', data.length, 'items');

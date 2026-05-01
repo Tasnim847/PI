@@ -1,75 +1,74 @@
 /* =========================
-   GLOBAL
-========================= */
+   PRODUCTS PAGE - BANKING DASHBOARD STYLE
+   =========================
+   This stylesheet transforms the products page to match the
+   "My Banking Space" design system, including gradients,
+   card styles, buttons, and interactive elements.
+*/
+
+/* --- Global & Page Container --- */
 .products-page {
-  background: linear-gradient(135deg, #ffffff, #ffffff);
-  min-height: 100vh;
+  min-height: calc(100vh - 76px);
+  background: linear-gradient(135deg, #ffffff 0%, #ffffff 100%);
+  padding: 0 0;
   font-family: 'Poppins', sans-serif;
 }
 
-/* =========================
-   HERO SECTION (BRAND STYLE)
-========================= */
+/* --- Hero Section (Matches Dashboard Header) --- */
 .hero-modern {
-  animation: fadeInUp 0.8s ease-in-out;
+  margin-bottom: 2rem;
+  animation: fadeInUp 0.8s ease-out;
 }
 
 .badge-hero {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 8px 18px;
+  gap: 0.5rem;
+  background: linear-gradient(135deg, #1a5ac3 0%, #36c165 100%);
+  color: white;
+  padding: 0.5rem 1.2rem;
   border-radius: 50px;
   font-weight: 500;
-  font-size: 14px;
-  color: #fff;
-
-  /* BRAND GRADIENT */
-  background: linear-gradient(135deg, #1a5ac3, #36c165);
+  font-size: 0.85rem;
   box-shadow: 0 6px 18px rgba(26, 90, 195, 0.25);
   transition: all 0.3s ease;
 }
 
 .badge-hero:hover {
   transform: translateY(-2px) scale(1.02);
-  background: linear-gradient(135deg, #dfa94c, #1a5ac3);
+  background: linear-gradient(135deg, #36c165 0%, #1a5ac3 100%);
 }
 
 .hero-title {
-  font-size: 42px;
+  font-size: 2.5rem;
   font-weight: 800;
-  margin-top: 15px;
-
-  background: linear-gradient(135deg, #1a5ac3, #36c165);
+  margin-top: 1rem;
+  background: linear-gradient(135deg, #1a5ac3 0%, #36c165 100%);
   -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  color: transparent;
 }
 
 .hero-subtitle {
   color: #6c757d;
-  font-size: 18px;
-  margin-top: 10px;
+  font-size: 1.1rem;
+  margin-top: 0.5rem;
 }
 
-/* =========================
-   FILTER BOX (GLASS EFFECT)
-========================= */
+/* --- Filter Box (Matches Section Card) --- */
 .filter-box {
-  background: rgba(255, 255, 255, 0.7);
+  background: white;
   border-radius: 20px;
-  padding: 20px;
-  backdrop-filter: blur(14px);
-  box-shadow: 0 10px 30px rgba(0,0,0,0.06);
-  animation: fadeIn 0.8s ease;
-  border: 1px solid rgba(26, 90, 195, 0.08);
+  padding: 1.5rem;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+  margin-bottom: 1rem;
+  transition: all 0.3s ease;
 }
 
-/* =========================
-   SEARCH BAR
-========================= */
+/* --- Search Container (Matches Form Control) --- */
 .search-container {
   position: relative;
-  margin-bottom: 15px;
+  margin-bottom: 1rem;
 }
 
 .search-container i {
@@ -85,73 +84,186 @@
   width: 100%;
   padding: 12px 15px 12px 40px;
   border-radius: 12px;
-  border: 1px solid transparent;
-  outline: none;
-  background: #f1f3f5;
+  border: 2px solid #e9ecef;
+  background: white;
+  font-size: 0.9rem;
   transition: all 0.3s ease;
-  font-size: 14px;
 }
 
 .search-container input:focus {
-  background: #fff;
+  outline: none;
   border-color: #1a5ac3;
-  box-shadow: 0 0 0 3px rgba(26, 90, 195, 0.15);
+  box-shadow: 0 0 0 3px rgba(26, 90, 195, 0.1);
 }
 
-/* =========================
-   FILTER BUTTONS (BRAND GRADIENTS)
-========================= */
+/* --- Filter Buttons (Matches btn-action style) --- */
 .filter-buttons {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 0.75rem;
 }
 
 .filter-btn {
+  background: rgba(255, 255, 255, 0.9);
   border: none;
-  padding: 10px 16px;
-  border-radius: 50px;
-  background: #f1f3f5;
+  padding: 0.6rem 1.2rem;
+  border-radius: 40px;
   color: #495057;
-  font-size: 14px;
+  font-weight: 500;
   cursor: pointer;
   transition: all 0.3s ease;
+  font-size: 0.85rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
 }
 
 .filter-btn:hover {
-  color: #fff;
-  background: linear-gradient(135deg, #1a5ac3, #36c165);
+  background: linear-gradient(135deg, #1a5ac3 0%, #36c165 100%);
+  color: white;
   transform: translateY(-2px);
-  box-shadow: 0 6px 18px rgba(26, 90, 195, 0.25);
+  box-shadow: 0 8px 20px rgba(26, 90, 195, 0.2);
 }
 
 .filter-btn.active {
-  color: #fff;
-  background: linear-gradient(135deg, #1a5ac3, #36c165);
-  box-shadow: 0 8px 22px rgba(54, 193, 101, 0.25);
+  background: linear-gradient(135deg, #1a5ac3 0%, #36c165 100%);
+  color: white;
+  box-shadow: 0 4px 12px rgba(54, 193, 101, 0.3);
 }
 
-/* =========================
-   PRODUCT GRID ANIMATION
-========================= */
+/* --- Product Card Grid (Matches Accounts Grid) --- */
 .row.g-4 > div {
   animation: fadeInUp 0.6s ease forwards;
 }
 
-/* =========================
-   ANIMATIONS
-========================= */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: scale(0.98);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
+/* Styling for app-product-card to match account-card */
+app-product-card {
+  display: block;
+  height: 100%;
 }
 
+/* This assumes the product card component uses similar classes.
+   If not, these styles will still apply to the inner elements */
+.products-page .product-card,
+app-product-card .card {
+  background: #f8f9fa;
+  border-radius: 20px;
+  padding: 1.5rem;
+  transition: all 0.3s ease;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  border: none;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+}
+
+.products-page .product-card:hover,
+app-product-card .card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+}
+
+/* Product Header (like account header) */
+.product-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.2rem;
+}
+
+.product-icon {
+  width: 50px;
+  height: 50px;
+  background: linear-gradient(135deg, #1a5ac3 0%, #36c165 100%);
+  border-radius: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 1.3rem;
+}
+
+.product-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin: 0;
+  color: #1f2937;
+}
+
+.product-subtitle {
+  font-size: 0.7rem;
+  color: #6c757d;
+}
+
+/* Product Details (like account balance) */
+.product-details {
+  background: white;
+  border-radius: 15px;
+  padding: 1rem;
+  margin: 1rem 0;
+  text-align: center;
+}
+
+.product-price {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: #1a5ac3;
+  line-height: 1.2;
+}
+
+.product-period {
+  font-size: 0.7rem;
+  color: #6c757d;
+}
+
+/* Product Features / Meta */
+.product-meta {
+  margin: 0.5rem 0 1rem;
+  font-size: 0.8rem;
+  color: #495057;
+}
+
+/* Buttons inside card (matches btn-details) */
+.product-actions .btn-details,
+.product-card .btn-details {
+  width: 100%;
+  padding: 0.7rem;
+  background: linear-gradient(135deg, #1a5ac3 0%, #36c165 100%);
+  border: none;
+  border-radius: 12px;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  text-align: center;
+  display: inline-block;
+}
+
+.product-actions .btn-details:hover,
+.product-card .btn-details:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 12px rgba(26, 90, 195, 0.3);
+}
+
+/* --- Empty State (Matches Dashboard Empty State) --- */
+.text-center.py-5 {
+  text-align: center;
+  padding: 3rem;
+  color: #6c757d;
+  background: white;
+  border-radius: 20px;
+  margin-top: 2rem;
+}
+
+.text-center.py-5 i {
+  margin-bottom: 1rem;
+  opacity: 0.5;
+}
+
+.text-center.py-5 h3 {
+  font-size: 1.3rem;
+  margin-bottom: 0.5rem;
+}
+
+/* --- Animations (reused from dashboard) --- */
 @keyframes fadeInUp {
   from {
     opacity: 0;
@@ -163,19 +275,37 @@
   }
 }
 
-/* =========================
-   RESPONSIVE
-========================= */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* --- Responsive Adjustments (Matches Dashboard) --- */
 @media (max-width: 768px) {
   .hero-title {
-    font-size: 28px;
+    font-size: 1.8rem;
   }
 
   .hero-subtitle {
-    font-size: 15px;
+    font-size: 0.9rem;
   }
 
   .filter-buttons {
     justify-content: center;
+  }
+
+  .filter-btn {
+    padding: 0.4rem 1rem;
+    font-size: 0.75rem;
+  }
+
+  .product-price {
+    font-size: 1.3rem;
   }
 }

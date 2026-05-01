@@ -225,26 +225,16 @@ public class SecurityConfig {
 
 
                         // ========== NEWS ENDPOINTS ==========
-                        // GET - Tout le monde peut voir les actualités
-                        .requestMatchers(HttpMethod.GET, "/api/v1/news", "/api/v1/news/**").permitAll()
+                        // CRUD - Admin uniquement
+                        .requestMatchers(HttpMethod.POST, "/api/v1/news").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/v1/news/update/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/v1/news/delete/**").hasRole("ADMIN")
 
-                        // POST - Créer une news (ADMIN uniquement)
-                        .requestMatchers(HttpMethod.POST, "/api/v1/news").permitAll()
-
-                        // PUT - Modifier une news (ADMIN uniquement)
-                        .requestMatchers(HttpMethod.PUT, "/api/v1/news/**").hasRole("ADMIN")
-
-                        // DELETE - Supprimer une news (ADMIN uniquement)
-                        .requestMatchers(HttpMethod.DELETE, "/api/v1/news/**").hasRole("ADMIN")
-
-                        // PATCH - Publier/Archiver (ADMIN uniquement)
-                        .requestMatchers(HttpMethod.PATCH, "/api/v1/news/**").hasRole("ADMIN")
-
-                        // Upload image (ADMIN ou AGENT_ASSURANCE)
-                        .requestMatchers(HttpMethod.POST, "/api/v1/news/*/upload-image").hasAnyRole("ADMIN", "AGENT_ASSURANCE")
-
-                        // Delete image (ADMIN uniquement)
-                        .requestMatchers(HttpMethod.DELETE, "/api/v1/news/*/image").hasRole("ADMIN")
+                        // ✅ Upload image - Admin uniquement (CORRIGÉ)
+                        .requestMatchers(HttpMethod.POST, "/api/v1/news/*/upload-image")
+                        .hasAnyRole("ADMIN", "AGENT_ASSURANCE")
+                        .requestMatchers(HttpMethod.DELETE, "/api/v1/news/*/image")
+                        .hasRole("ADMIN")
 
                         // ========== COMPLAINT ENDPOINTS ==========
                         .requestMatchers("/complaints/addComplaint").hasRole("CLIENT")

@@ -24,7 +24,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/news")
-
+@CrossOrigin(origins = "*")
 public class NewsController {
 
     private static final Logger logger = LoggerFactory.getLogger(NewsController.class);
