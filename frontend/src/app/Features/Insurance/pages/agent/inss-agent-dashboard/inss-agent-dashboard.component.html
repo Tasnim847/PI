@@ -1,0 +1,240 @@
+<div class="dashboard-container">
+  <!-- Header -->
+  <div class="dashboard-header">
+    <div class="header-left">
+      <button class="btn-back" (click)="goBackToContracts()">
+        <i class="fas fa-arrow-left"></i> Retour aux Contrats
+      </button>
+      <h1>Dashboard des Risques - Contrat #{{ contractId }}</h1>
+    </div>
+    <div class="header-actions">
+      <div class="period-selector">
+        <button [class.active]="timePeriod === 'day'" (click)="timePeriod = 'day'; onTimePeriodChange()">Jour</button>
+        <button [class.active]="timePeriod === 'week'" (click)="timePeriod = 'week'; onTimePeriodChange()">Semaine</button>
+        <button [class.active]="timePeriod === 'month'" (click)="timePeriod = 'month'; onTimePeriodChange()">Mois</button>
+        <button [class.active]="timePeriod === 'year'" (click)="timePeriod = 'year'; onTimePeriodChange()">Année</button>
+      </div>
+      <button class="btn-export" (click)="exportToCSV()"><i class="fas fa-download"></i> Exporter</button>
+      <button class="btn-refresh" (click)="loadContractData()"><i class="fas fa-sync-alt"></i> Actualiser</button>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="isLoading" class="loading-overlay">
+    <div class="spinner"></div>
+    <p>Chargement des données...</p>
+  </div>
+
+  <!-- Client Information Card -->
+  <div class="client-info-card" *ngIf="contract && !isLoading">
+    <div class="client-info-header">
+      <i class="fas fa-user-circle"></i>
+      <h3>Informations Client</h3>
+    </div>
+    <div class="client-info-content">
+      <div class="info-row">
+        <span class="info-label">Nom complet:</span>
+        <span class="info-value">{{ contract.client?.firstName }} {{ contract.client?.lastName }}</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Email:</span>
+        <span class="info-value">{{ contract.client?.email }}</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Téléphone:</span>
+        <span class="info-value">{{ contract.client?.telephone }}</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Produit:</span>
+        <span class="info-value">{{ contract.product?.name }}</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Période:</span>
+        <span class="info-value">Du {{ formatDate(contract.startDate) }} au {{ formatDate(contract.endDate) }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- KPI Cards -->
+  <div class="kpi-grid" *ngIf="!isLoading">
+    <div class="kpi-card">
+      <div class="kpi-icon blue"><i class="fas fa-file-contract"></i></div>
+      <div class="kpi-info">
+        <h3>Prime Totale</h3>
+        <p class="kpi-value">{{ stats.totalPremium | number }} DT</p>
+      </div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-icon green"><i class="fas fa-chart-line"></i></div>
+      <div class="kpi-info">
+        <h3>Score de Risque</h3>
+        <p class="kpi-value">{{ stats.averageRiskScore | number:'1.0-0' }}/100</p>
+        <span class="trend" [class.positive]="stats.averageRiskScore < 50" [class.negative]="stats.averageRiskScore >= 50">
+          {{ stats.averageRiskScore < 50 ? 'Bon' : 'Élevé' }}
+        </span>
+      </div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-icon purple"><i class="fas fa-shield-alt"></i></div>
+      <div class="kpi-info">
+        <h3>Niveau de Risque</h3>
+        <p class="kpi-value">{{ getRiskLevelLabel(riskEvaluation?.globalRiskLevel) }}</p>
+        <span class="risk-badge" [class]="riskEvaluation?.globalRiskLevel?.toLowerCase()">
+          {{ riskEvaluation?.globalRiskLevel }}
+        </span>
+      </div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-icon orange"><i class="fas fa-calendar-check"></i></div>
+      <div class="kpi-info">
+        <h3>Statut</h3>
+        <p class="kpi-value">{{ contract?.status === 'ACTIVE' ? 'Actif' : contract?.status === 'INACTIVE' ? 'En attente' : contract?.status }}</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Risk Evaluation Details -->
+  <div class="risk-evaluation-card" *ngIf="riskEvaluation && !isLoading">
+    <div class="card-header-custom">
+      <h3><i class="fas fa-clipboard-list"></i> Évaluation Détaillée des Risques</h3>
+    </div>
+    <div class="risk-evaluation-content">
+      <div class="risk-score-display">
+        <div class="score-circle" 
+             [class.score-low]="riskEvaluation.globalRiskLevel === 'LOW'"
+             [class.score-medium]="riskEvaluation.globalRiskLevel === 'MEDIUM'"
+             [class.score-high]="riskEvaluation.globalRiskLevel === 'HIGH'"
+             [class.score-critical]="riskEvaluation.globalRiskLevel === 'CRITICAL'">
+          <span class="score-value">{{ riskEvaluation.globalRiskScore }}/100</span>
+        </div>
+        <div class="risk-level-text">
+          <strong>Niveau: {{ getRiskLevelLabel(riskEvaluation.globalRiskLevel) }}</strong>
+        </div>
+      </div>
+      
+      <div class="risk-factors" *ngIf="riskEvaluation.riskFactors?.length">
+        <h4><i class="fas fa-exclamation-triangle"></i> Facteurs de Risque</h4>
+        <ul>
+          <li *ngFor="let factor of riskEvaluation.riskFactors">{{ factor }}</li>
+        </ul>
+      </div>
+      
+      <div class="evaluation-note">
+        <h4><i class="fas fa-file-alt"></i> Note d'Évaluation</h4>
+        <p>{{ riskEvaluation.evaluationNote }}</p>
+      </div>
+      
+      <div class="recommendations" *ngIf="riskEvaluation.recommendations?.length">
+        <h4><i class="fas fa-lightbulb"></i> Recommandations</h4>
+        <ul>
+          <li *ngFor="let rec of riskEvaluation.recommendations">{{ rec }}</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Charts Row 1 -->
+  <div class="charts-row" *ngIf="!isLoading">
+    <div class="chart-card">
+      <canvas id="riskDonutChart"></canvas>
+    </div>
+    <div class="chart-card">
+      <canvas id="riskTrendChart"></canvas>
+    </div>
+  </div>
+
+  <!-- Charts Row 2 - Risk Distribution Modern Dashboard -->
+  <div class="charts-row" *ngIf="!isLoading">
+    <div class="chart-card">
+      <div class="chart-header">
+        <h3>Distribution des Risques par Période</h3>
+        <div class="chart-legend">
+          <span class="legend-dot low"></span> Faible
+          <span class="legend-dot medium"></span> Moyen
+          <span class="legend-dot high"></span> Élevé
+          <span class="legend-dot critical"></span> Critique
+        </div>
+      </div>
+      <div class="risk-cards-container">
+        <div *ngFor="let period of riskDistribution" class="risk-period-card" (click)="showRiskPeriodDetails(period)">
+          <div class="period-title">{{ period.label }}</div>
+          <div class="risk-bars">
+            <div class="risk-bar low" [style.height.%]="getRiskPercentage(period.low, getTotalRisk(period))" [style.width.%]="getRiskPercentage(period.low, getTotalRisk(period))">
+              <span class="risk-value" *ngIf="period.low > 0">{{ period.low }}</span>
+            </div>
+            <div class="risk-bar medium" [style.height.%]="getRiskPercentage(period.medium, getTotalRisk(period))" [style.width.%]="getRiskPercentage(period.medium, getTotalRisk(period))">
+              <span class="risk-value" *ngIf="period.medium > 0">{{ period.medium }}</span>
+            </div>
+            <div class="risk-bar high" [style.height.%]="getRiskPercentage(period.high, getTotalRisk(period))" [style.width.%]="getRiskPercentage(period.high, getTotalRisk(period))">
+              <span class="risk-value" *ngIf="period.high > 0">{{ period.high }}</span>
+            </div>
+            <div class="risk-bar critical" [style.height.%]="getRiskPercentage(period.critical, getTotalRisk(period))" [style.width.%]="getRiskPercentage(period.critical, getTotalRisk(period))">
+              <span class="risk-value" *ngIf="period.critical > 0">{{ period.critical }}</span>
+            </div>
+          </div>
+          <div class="period-total">Total: {{ getTotalRisk(period) }} scénarios</div>
+        </div>
+      </div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-header">
+        <h3>Statut des Contrats par Période</h3>
+        <div class="chart-legend">
+          <span class="legend-dot active"></span> Actif
+          <span class="legend-dot pending"></span> En attente
+          <span class="legend-dot rejected"></span> Rejeté
+        </div>
+      </div>
+      <div class="status-cards-container">
+        <div *ngFor="let period of contractsByPeriod" class="status-period-card" (click)="showStatusPeriodDetails(period)">
+          <div class="period-title">{{ period.label }}</div>
+          <div class="status-pie-container">
+            <canvas [id]="period.chartId" class="mini-pie"></canvas>
+          </div>
+          <div class="status-stats">
+            <div class="stat-item active"><span class="stat-dot"></span>{{ period.active }}</div>
+            <div class="stat-item pending"><span class="stat-dot"></span>{{ period.pending }}</div>
+            <div class="stat-item rejected"><span class="stat-dot"></span>{{ period.rejected }}</div>
+          </div>
+          <div class="period-total">Total: {{ period.active + period.pending + period.rejected }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Charts Row 3 - Risk Trends (Stacked Area) -->
+  <div class="charts-row" *ngIf="!isLoading">
+    <div class="chart-card full-width">
+      <canvas id="riskStackedAreaChart"></canvas>
+    </div>
+  </div>
+
+  <!-- Charts Row 4 - Premium Trends -->
+  <div class="charts-row" *ngIf="!isLoading">
+    <div class="chart-card full-width">
+      <canvas id="premiumTrendChart"></canvas>
+    </div>
+  </div>
+
+  <!-- Details Modal -->
+  <div class="modal" *ngIf="showDetailsModal" (click)="closeModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>{{ selectedDetailData?.title }}</h2>
+        <button class="close-btn" (click)="closeModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p><strong>Période:</strong> {{ selectedDetailData?.period }}</p>
+        <div class="detail-stats">
+          <div class="stat-box" *ngIf="selectedDetailData?.data">
+            <h4>Distribution des Risques</h4>
+            <p>Faible: {{ selectedDetailData.data.low || 0 }}</p>
+            <p>Moyen: {{ selectedDetailData.data.medium || 0 }}</p>
+            <p>Élevé: {{ selectedDetailData.data.high || 0 }}</p>
+            <p>Critique: {{ selectedDetailData.data.critical || 0 }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
