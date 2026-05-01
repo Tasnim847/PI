@@ -47,7 +47,7 @@ import { ClientDashboardComponent } from './components/client-dashboard/client-d
 // ============================================
 import { ClientAccountsComponent } from './components/client-accounts/client-accounts.component';
 import { TransferByRipComponent } from './components/transfer-by-rip/transfer-by-rip.component';
-import { AgentPendingRequestsComponent } from './components/agent-pending-requests/agent-pending-requests.component';
+
 import { AgentAccountComponent } from './components/agent-account/agent-account.component';
 import { AgentCashApprovalsComponent } from './Features/Insurance/pages/agent/agent-cash-approvals/agent-cash-approvals.component';
 import { AgentCompensationListComponent } from './Features/Compensation/agent/agent-compensation-list/agent-compensation-list.component';
@@ -55,6 +55,7 @@ import { HomeAgentComponent } from './Features/Home agent/home-agent/home-agent.
 import { AdminCompensationDetailsComponent } from './Features/Compensation/admin/admin-compensation-details/admin-compensation-details.component';
 import { CompensationDetailsComponent } from './Features/Compensation/client/compensation-details/compensation-details.component';
 import { InssAgentDashboardComponent } from './Features/Insurance/pages/agent/inss-agent-dashboard/inss-agent-dashboard.component';
+import { AgentCreditApprovalsComponent } from './Features/Credit/credit-page/pages/agent/agent-credit-approvals.component';
 
 export const routes: Routes = [
 
@@ -144,8 +145,8 @@ export const routes: Routes = [
       
       // 🆕 ROUTES AGENT_FINANCE
       {
-        path: 'agent/pending-requests',
-        component: AgentPendingRequestsComponent,
+        path: 'agent/credit-approvals',
+        component: AgentCreditApprovalsComponent,
         canActivate: [roleGuard],
         data: { roles: ['AGENT_FINANCE'] }
       },

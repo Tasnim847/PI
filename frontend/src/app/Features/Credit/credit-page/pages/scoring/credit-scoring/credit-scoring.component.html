@@ -1,10 +1,10 @@
 <div class="credit-scoring-container">
-  <!-- ========== EN-TÊTE ========== -->
+  <!-- ========== HEADER ========== -->
   <div class="d-flex justify-content-between align-items-center mb-4" *ngIf="showFullAnalysis">
     <div>
       <h4 class="mb-0">
         <i class="fas fa-chart-line text-primary"></i>
-        Scoring de Crédit IA
+        AI Credit Scoring
       </h4>
       <p class="text-muted mb-0" *ngIf="clientName">Client: {{ clientName }}</p>
     </div>
@@ -13,17 +13,17 @@
         class="btn btn-outline-primary btn-sm"
         (click)="refreshScore()"
         [disabled]="isLoading || isAnalyzing"
-        title="Recalculer le score">
+        title="Recalculate score">
         <i class="fas fa-sync-alt" [class.fa-spin]="isLoading"></i>
-        Actualiser
+        Refresh
       </button>
       <button 
         class="btn btn-outline-success btn-sm"
         (click)="analyzeWithGemini()"
         [disabled]="isLoading || isAnalyzing || !clientId"
-        title="Analyse approfondie avec Gemini AI">
+        title="Deep analysis with Gemini AI">
         <i class="fas fa-brain" [class.fa-pulse]="isAnalyzing"></i>
-        {{ isAnalyzing ? 'Analyse IA...' : 'Analyser avec IA' }}
+        {{ isAnalyzing ? 'Analyzing...' : 'Analyze with AI' }}
       </button>
     </div>
   </div>
@@ -42,12 +42,12 @@
   <!-- ========== SPINNER ========== -->
   <div *ngIf="isLoading && !creditScore" class="text-center py-5">
     <div class="spinner-border text-primary" role="status">
-      <span class="visually-hidden">Calcul en cours...</span>
+      <span class="visually-hidden">Calculating...</span>
     </div>
-    <p class="mt-2 text-muted">Calcul du score de crédit...</p>
+    <p class="mt-2 text-muted">Calculating credit score...</p>
   </div>
 
-  <!-- ========== RÉSULTATS DU SCORING ========== -->
+  <!-- ========== SCORING RESULTS ========== -->
   <div *ngIf="creditScore && !isLoading" class="scoring-results">
     
     <!-- Score Principal -->
@@ -61,7 +61,7 @@
               </div>
               <div class="score-max">/850</div>
             </div>
-            <h6 class="mt-3 mb-0">Score de Crédit</h6>
+            <h6 class="mt-3 mb-0">Credit Score</h6>
             <small class="text-muted">{{ getScoreLabel(creditScore.score) }}</small>
           </div>
         </div>
@@ -73,7 +73,7 @@
             <div class="risk-icon mb-3">
               <i class="fas fa-shield-alt fa-3x" [style.color]="getScoreColor(creditScore.score)"></i>
             </div>
-            <h6 class="mb-2">Niveau de Risque</h6>
+            <h6 class="mb-2">Risk Level</h6>
             <span class="badge fs-6 px-3 py-2" [ngClass]="getRiskLevelClass(creditScore.riskLevel)">
               {{ getRiskLevelLabel(creditScore.riskLevel) }}
             </span>
@@ -87,7 +87,7 @@
             <div class="recommendation-icon mb-3">
               <i class="fas fa-thumbs-up fa-3x" [style.color]="getScoreColor(creditScore.score)"></i>
             </div>
-            <h6 class="mb-2">Recommandation</h6>
+            <h6 class="mb-2">Recommendation</h6>
             <span class="badge fs-6 px-3 py-2" [ngClass]="getRecommendationClass(creditScore.recommendation)">
               {{ getRecommendationLabel(creditScore.recommendation) }}
             </span>
@@ -96,14 +96,14 @@
       </div>
     </div>
 
-    <!-- Analyse IA -->
+    <!-- AI Analysis -->
     <div class="row mb-4" *ngIf="creditScore.analysis">
       <div class="col-12">
         <div class="card analysis-card">
           <div class="card-header bg-info text-white">
             <h6 class="mb-0">
               <i class="fas fa-robot"></i>
-              Analyse Gemini AI
+              Gemini AI Analysis
               <span *ngIf="isAnalyzing" class="spinner-border spinner-border-sm ms-2"></span>
             </h6>
           </div>
@@ -111,21 +111,21 @@
             <p class="mb-0">{{ creditScore.analysis }}</p>
             <small class="text-muted d-block mt-2">
               <i class="fas fa-clock"></i>
-              Calculé le {{ formatDate(creditScore.calculatedAt) }}
+              Calculated on {{ formatDate(creditScore.calculatedAt) }}
             </small>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Métriques Détaillées -->
+    <!-- Detailed Metrics -->
     <div class="row" *ngIf="showFullAnalysis">
       <div class="col-md-6 mb-3">
         <div class="card metrics-card">
           <div class="card-header">
             <h6 class="mb-0">
               <i class="fas fa-chart-bar"></i>
-              Historique des Crédits
+              Credit History
             </h6>
           </div>
           <div class="card-body">
@@ -139,13 +139,13 @@
               <div class="col-4">
                 <div class="metric-item">
                   <div class="metric-value text-warning">{{ creditScore.activeCredits || 0 }}</div>
-                  <div class="metric-label">Actifs</div>
+                  <div class="metric-label">Active</div>
                 </div>
               </div>
               <div class="col-4">
                 <div class="metric-item">
                   <div class="metric-value text-success">{{ creditScore.closedCredits || 0 }}</div>
-                  <div class="metric-label">Fermés</div>
+                  <div class="metric-label">Closed</div>
                 </div>
               </div>
             </div>
@@ -158,20 +158,20 @@
           <div class="card-header">
             <h6 class="mb-0">
               <i class="fas fa-money-bill-wave"></i>
-              Situation Financière
+              Financial Situation
             </h6>
           </div>
           <div class="card-body">
             <div class="metric-row">
-              <span class="metric-label">Montant total emprunté:</span>
+              <span class="metric-label">Total borrowed amount:</span>
               <span class="metric-value">{{ formatAmount(creditScore.totalAmount || 0) }}</span>
             </div>
             <div class="metric-row">
-              <span class="metric-label">Dette actuelle:</span>
+              <span class="metric-label">Current debt:</span>
               <span class="metric-value text-danger">{{ formatAmount(creditScore.currentDebt || 0) }}</span>
             </div>
             <div class="metric-row">
-              <span class="metric-label">Paiement mensuel moyen:</span>
+              <span class="metric-label">Average monthly payment:</span>
               <span class="metric-value">{{ formatAmount(creditScore.averageMonthlyPayment || 0) }}</span>
             </div>
           </div>
@@ -183,12 +183,12 @@
           <div class="card-header">
             <h6 class="mb-0">
               <i class="fas fa-clock"></i>
-              Comportement de Paiement
+              Payment Behavior
             </h6>
           </div>
           <div class="card-body">
             <div class="metric-row">
-              <span class="metric-label">Pourcentage de retard moyen:</span>
+              <span class="metric-label">Average late percentage:</span>
               <span class="metric-value" 
                     [class.text-danger]="(creditScore.averageLatePercentage || 0) > 20"
                     [class.text-warning]="(creditScore.averageLatePercentage || 0) > 10 && (creditScore.averageLatePercentage || 0) <= 20"
@@ -197,8 +197,8 @@
               </span>
             </div>
             <div class="metric-row">
-              <span class="metric-label">Jours depuis le dernier crédit:</span>
-              <span class="metric-value">{{ creditScore.daysSinceLastCredit || 0 }} jours</span>
+              <span class="metric-label">Days since last credit:</span>
+              <span class="metric-value">{{ creditScore.daysSinceLastCredit || 0 }} days</span>
             </div>
           </div>
         </div>
@@ -216,17 +216,17 @@
             <button 
               class="btn btn-outline-primary me-2"
               (click)="exportScore()"
-              title="Exporter le score">
+              title="Export score">
               <i class="fas fa-download"></i>
-              Exporter
+              Export
             </button>
             <button 
               class="btn btn-outline-info"
               (click)="analyzeWithGemini()"
               [disabled]="isAnalyzing"
-              title="Nouvelle analyse IA">
+              title="New AI analysis">
               <i class="fas fa-brain"></i>
-              Réanalyser
+              Re-analyze
             </button>
           </div>
         </div>
@@ -234,17 +234,17 @@
     </div>
   </div>
 
-  <!-- ========== ÉTAT VIDE ========== -->
+  <!-- ========== EMPTY STATE ========== -->
   <div *ngIf="!creditScore && !isLoading && !errorMessage" class="text-center py-5">
     <i class="fas fa-chart-line fa-3x text-muted mb-3"></i>
-    <h5 class="text-muted">Aucun score calculé</h5>
-    <p class="text-muted">Cliquez sur "Calculer le score" pour commencer l'analyse</p>
+    <h5 class="text-muted">No score calculated</h5>
+    <p class="text-muted">Click "Calculate Score" to start the analysis</p>
     <button 
       class="btn btn-primary"
       (click)="calculateScore()"
       [disabled]="!clientId">
       <i class="fas fa-calculator"></i>
-      Calculer le Score
+      Calculate Score
     </button>
   </div>
 </div>

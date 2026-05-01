@@ -1,4 +1,4 @@
-<!-- Navbar existante - ajouter *ngIf="isVisible" en haut -->
+n<!-- Navbar existante - ajouter *ngIf="isVisible" en haut -->
 <nav *ngIf="isVisible" class="navbar navbar-expand-lg bg-body-tertiary fixed-top">
   <div class="container-fluid">
     <a class="navbar-brand p-0" routerLink="/">
@@ -25,9 +25,13 @@
           </a>
         </li>
 
-        <!-- Credit - visible pour CLIENT et AGENT_FINANCE seulement -->
+         <!-- Credit - visible pour CLIENT et AGENT_FINANCE seulement -->
         <li class="nav-item" *ngIf="isCreditVisible()">
-          <a class="nav-link" routerLink="/public/credit" routerLinkActive="active">Credit</a>
+          <a class="nav-link" 
+             [routerLink]="getCreditLink()" 
+             routerLinkActive="active">
+            Credit
+          </a>
         </li>
 
         <!-- Insurance - visible pour CLIENT et AGENT_ASSURANCE seulement -->

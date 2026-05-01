@@ -314,6 +314,12 @@ public class RepaymentController {
             @AuthenticationPrincipal UserDetails currentUser) {
 
         try {
+            // Vérifier si l'utilisateur est authentifié
+            if (currentUser == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(Map.of("error", "Non authentifié - Connexion requise"));
+            }
+
             if (!hasRole(currentUser, "ADMIN")) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN)
                         .body(Map.of("error", "Accès refusé - Admin seulement"));
@@ -326,6 +332,7 @@ public class RepaymentController {
                     "creditId", creditId
             ));
         } catch (Exception e) {
+            e.printStackTrace(); // Pour debug
             return ResponseEntity.badRequest().body(Map.of(
                     "error", "Erreur: " + e.getMessage()
             ));
@@ -336,6 +343,9 @@ public class RepaymentController {
     // UTILITAIRES
     // ===============================
     private boolean hasRole(UserDetails userDetails, String role) {
+        if (userDetails == null) {
+            return false;
+        }
         return userDetails.getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals("ROLE_" + role));
     }

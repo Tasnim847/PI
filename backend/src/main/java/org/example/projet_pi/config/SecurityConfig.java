@@ -213,6 +213,7 @@ public class SecurityConfig {
                         .requestMatchers("/Repayment/remaining/**").authenticated()
 
                         .requestMatchers("/Repayment/credits/{creditId}/amortissement/pdf").hasAnyRole("CLIENT", "ADMIN")
+                        .requestMatchers("/Repayment/credits/{creditId}/send-pdf-email").hasRole("ADMIN")
 
                         // Agent Finance et Admin
 

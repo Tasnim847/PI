@@ -17,7 +17,7 @@ export class CreditScoringComponent implements OnInit {
   @Input() showFullAnalysis: boolean = true;
   @Output() scoreCalculated = new EventEmitter<CreditScore>();
 
-  // ========== DONNÉES ==========
+  // ========== DATA ==========
   creditScore: CreditScore | null = null;
   isLoading: boolean = false;
   isAnalyzing: boolean = false;
@@ -35,10 +35,10 @@ export class CreditScoringComponent implements OnInit {
     }
   }
 
-  // ========== CALCULER LE SCORE ==========
+  // ========== CALCULATE SCORE ==========
   calculateScore(): void {
     if (!this.clientId) {
-      this.errorMessage = 'ID client requis';
+      this.errorMessage = 'Client ID required';
       return;
     }
 
@@ -50,30 +50,30 @@ export class CreditScoringComponent implements OnInit {
       next: (response: ScoringResponse) => {
         if (response.success && response.data) {
           this.creditScore = response.data;
-          this.successMessage = 'Score calculé avec succès';
+          this.successMessage = 'Score calculated successfully';
           if (this.creditScore) {
             this.scoreCalculated.emit(this.creditScore);
           }
-          this.toastr.success('Score de crédit calculé');
+          this.toastr.success('Credit score calculated');
         } else {
-          this.errorMessage = response.message || 'Erreur lors du calcul';
+          this.errorMessage = response.message || 'Error during calculation';
           this.toastr.error(this.errorMessage);
         }
         this.isLoading = false;
       },
       error: (err) => {
-        console.error('Erreur calcul score:', err);
-        this.errorMessage = err.error?.message || 'Erreur lors du calcul du score';
+        console.error('Score calculation error:', err);
+        this.errorMessage = err.error?.message || 'Error calculating credit score';
         this.toastr.error(this.errorMessage);
         this.isLoading = false;
       }
     });
   }
 
-  // ========== ANALYSER AVEC GEMINI ==========
+  // ========== ANALYZE WITH GEMINI ==========
   analyzeWithGemini(): void {
     if (!this.clientId) {
-      this.errorMessage = 'ID client requis';
+      this.errorMessage = 'Client ID required';
       return;
     }
 
@@ -83,11 +83,11 @@ export class CreditScoringComponent implements OnInit {
     this.scoringService.analyzeClientProfile(this.clientId).subscribe({
       next: (response: ScoringResponse) => {
         if (response.success) {
-          // Mettre à jour avec les nouvelles données
+          // Update with new data
           if (response.data) {
             this.creditScore = response.data;
           } else {
-            // Construire l'objet à partir de la réponse
+            // Build object from response
             this.creditScore = {
               clientId: response.clientId || this.clientId!,
               clientName: this.clientName,
@@ -101,27 +101,27 @@ export class CreditScoringComponent implements OnInit {
             };
           }
           
-          this.successMessage = 'Analyse IA complétée';
+          this.successMessage = 'AI analysis completed';
           if (this.creditScore) {
             this.scoreCalculated.emit(this.creditScore);
           }
-          this.toastr.success('Analyse Gemini AI terminée');
+          this.toastr.success('Gemini AI analysis completed');
         } else {
-          this.errorMessage = response.message || 'Erreur lors de l\'analyse';
+          this.errorMessage = response.message || 'Error during analysis';
           this.toastr.error(this.errorMessage);
         }
         this.isAnalyzing = false;
       },
       error: (err) => {
-        console.error('Erreur analyse Gemini:', err);
-        this.errorMessage = err.error?.message || 'Erreur lors de l\'analyse IA';
+        console.error('Gemini analysis error:', err);
+        this.errorMessage = err.error?.message || 'Error during AI analysis';
         this.toastr.error(this.errorMessage);
         this.isAnalyzing = false;
       }
     });
   }
 
-  // ========== UTILITAIRES ==========
+  // ========== UTILITIES ==========
   getRiskLevelClass(riskLevel: string): string {
     return this.scoringService.getRiskLevelClass(riskLevel);
   }
@@ -192,6 +192,6 @@ export class CreditScoringComponent implements OnInit {
     link.click();
     window.URL.revokeObjectURL(url);
 
-    this.toastr.success('Score exporté avec succès');
+    this.toastr.success('Score exported successfully');
   }
 }
