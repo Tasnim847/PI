@@ -179,11 +179,6 @@
                 </td>
                 <td>
                   <div class="d-flex gap-1 flex-wrap">
-                    <button class="btn btn-sm btn-info" 
-                            (click)="goToPayment(credit.creditId)"
-                            title="View payments">
-                      <i class="bi bi-credit-card"></i>
-                    </button>
                     <ng-container *ngIf="credit.status === 'PENDING'">
                       <input type="number" class="form-control form-control-sm" 
                              style="width: 70px;" [(ngModel)]="approveInterestRate" 
@@ -201,6 +196,14 @@
                             (click)="editCredit(credit)"
                             title="Edit">
                       <i class="bi bi-pencil"></i>
+                    </button>
+                    <!-- Send Amortization Schedule by Email -->
+                    <button class="btn btn-sm btn-primary" 
+                            (click)="sendAmortizationEmail(credit.creditId)"
+                            [disabled]="isSendingEmail(credit.creditId)"
+                            title="Send Amortization Schedule by Email">
+                      <i class="bi bi-envelope" *ngIf="!isSendingEmail(credit.creditId)"></i>
+                      <span class="spinner-border spinner-border-sm" *ngIf="isSendingEmail(credit.creditId)"></span>
                     </button>
                     <!-- AI Scoring Button -->
                     <button class="btn btn-sm btn-info" 

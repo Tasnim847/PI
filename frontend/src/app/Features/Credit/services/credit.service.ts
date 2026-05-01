@@ -142,4 +142,11 @@ export class CreditService {
       headers: this.getHeaders()
     });
   }
+
+  // ========== ADMIN - SEND AMORTIZATION EMAIL ==========
+  sendAmortizationEmail(creditId: number): Observable<any> {
+    return this.http.post(`http://localhost:8081/Repayment/credits/${creditId}/send-pdf-email`, null, {
+      headers: this.getHeaders()
+    });
+  }
 }

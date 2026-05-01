@@ -12,7 +12,7 @@ export interface CreditScore {
   analysis: string;
   calculatedAt: string;
   
-  // Métriques
+  // Metrics
   totalCredits: number;
   activeCredits: number;
   closedCredits: number;
@@ -44,7 +44,7 @@ export class ScoringService {
 
   constructor(private http: HttpClient) { }
 
-  // ========== MÉTHODES PRIVÉES ==========
+  // ========== PRIVATE METHODS ==========
   private getHeaders(): HttpHeaders {
     const token = localStorage.getItem('token');
     return new HttpHeaders({
@@ -53,37 +53,41 @@ export class ScoringService {
     });
   }
 
-  // ========== CALCULER LE SCORE COMPLET ==========
+  // ========== CALCULATE FULL SCORE ==========
   calculateCreditScore(clientId: number): Observable<ScoringResponse> {
     return this.http.get<ScoringResponse>(`${this.apiUrl}/calculate/${clientId}`, {
       headers: this.getHeaders()
     });
   }
 
-  // ========== ANALYSER AVEC GEMINI ==========
+  // ========== ANALYZE WITH GEMINI ==========
   analyzeClientProfile(clientId: number): Observable<ScoringResponse> {
     return this.http.post<ScoringResponse>(`${this.apiUrl}/analyze/${clientId}`, {}, {
       headers: this.getHeaders()
     });
   }
 
-  // ========== SCORE RAPIDE ==========
+  // ========== QUICK SCORE ==========
   getQuickScore(clientId: number): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}/quick-score/${clientId}`, {
       headers: this.getHeaders()
     });
   }
 
-  // ========== UTILITAIRES ==========
+  // ========== UTILITIES ==========
   getRiskLevelClass(riskLevel: string): string {
     switch(riskLevel?.toUpperCase()) {
       case 'FAIBLE':
+      case 'LOW':
         return 'bg-success';
       case 'MOYEN':
+      case 'MEDIUM':
         return 'bg-warning';
       case 'ÉLEVÉ':
+      case 'HIGH':
         return 'bg-danger';
       case 'TRÈS_ÉLEVÉ':
+      case 'VERY_HIGH':
         return 'bg-dark';
       default:
         return 'bg-secondary';
@@ -93,25 +97,32 @@ export class ScoringService {
   getRiskLevelLabel(riskLevel: string): string {
     switch(riskLevel?.toUpperCase()) {
       case 'FAIBLE':
-        return 'Risque Faible';
+      case 'LOW':
+        return 'Low Risk';
       case 'MOYEN':
-        return 'Risque Moyen';
+      case 'MEDIUM':
+        return 'Medium Risk';
       case 'ÉLEVÉ':
-        return 'Risque Élevé';
+      case 'HIGH':
+        return 'High Risk';
       case 'TRÈS_ÉLEVÉ':
-        return 'Risque Très Élevé';
+      case 'VERY_HIGH':
+        return 'Very High Risk';
       default:
-        return 'Non évalué';
+        return 'Not Evaluated';
     }
   }
 
   getRecommendationClass(recommendation: string): string {
     switch(recommendation?.toUpperCase()) {
       case 'APPROUVER':
+      case 'APPROVE':
         return 'bg-success';
       case 'APPROUVER_AVEC_CONDITIONS':
+      case 'APPROVE_WITH_CONDITIONS':
         return 'bg-warning';
       case 'REJETER':
+      case 'REJECT':
         return 'bg-danger';
       default:
         return 'bg-secondary';
@@ -121,30 +132,33 @@ export class ScoringService {
   getRecommendationLabel(recommendation: string): string {
     switch(recommendation?.toUpperCase()) {
       case 'APPROUVER':
-        return 'Approuver';
+      case 'APPROVE':
+        return 'Approve';
       case 'APPROUVER_AVEC_CONDITIONS':
-        return 'Approuver avec conditions';
+      case 'APPROVE_WITH_CONDITIONS':
+        return 'Approve with Conditions';
       case 'REJETER':
-        return 'Rejeter';
+      case 'REJECT':
+        return 'Reject';
       default:
-        return 'À évaluer';
+        return 'To Evaluate';
     }
   }
 
   getScoreColor(score: number): string {
-    if (score >= 750) return '#28a745'; // Vert
-    if (score >= 650) return '#ffc107'; // Jaune
+    if (score >= 750) return '#28a745'; // Green
+    if (score >= 650) return '#ffc107'; // Yellow
     if (score >= 550) return '#fd7e14'; // Orange
-    return '#dc3545'; // Rouge
+    return '#dc3545'; // Red
   }
 
   getScoreLabel(score: number): string {
     if (score >= 750) return 'Excellent';
-    if (score >= 700) return 'Très bon';
-    if (score >= 650) return 'Bon';
+    if (score >= 700) return 'Very Good';
+    if (score >= 650) return 'Good';
     if (score >= 600) return 'Acceptable';
-    if (score >= 550) return 'Moyen';
-    if (score >= 500) return 'Faible';
-    return 'Très faible';
+    if (score >= 550) return 'Average';
+    if (score >= 500) return 'Low';
+    return 'Very Low';
   }
 }

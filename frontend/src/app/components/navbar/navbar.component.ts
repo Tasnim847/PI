@@ -199,4 +199,12 @@ export class NavbarComponent implements OnInit, OnDestroy {
   isCashApprovalsVisible(): boolean {
     return this.userRole === 'AGENT_ASSURANCE';
   }
+  getCreditLink(): string {
+    if (this.userRole === 'AGENT_FINANCE') {
+      return '/public/agent/credit-approvals';  // Page spécifique pour l'agent finance
+    } else if (this.userRole === 'CLIENT') {
+      return '/public/credit';  // Page pour le client
+    }
+    return '/public/credit';  // Fallback
+  }
 }

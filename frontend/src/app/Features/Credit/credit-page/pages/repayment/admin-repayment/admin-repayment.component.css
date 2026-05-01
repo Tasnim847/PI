@@ -3,71 +3,243 @@
   max-width: 1400px;
 }
 
-/* ========== CARTES ========== */
+/* ========== CARD - Modern Design with Logo Colors ========== */
 .card {
   border: none;
-  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-  border-radius: 0.5rem;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  border-radius: 16px;
+  overflow: hidden;
+  transition: all 0.3s ease;
   margin-bottom: 1.5rem;
 }
 
+.card:hover {
+  box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+}
+
 .card-header {
-  border-bottom: 1px solid rgba(0, 0, 0, 0.125);
-  padding: 1rem;
-  border-radius: 0.5rem 0.5rem 0 0;
+  background: linear-gradient(135deg, #0891B2, #06B6D4);
+  color: white;
+  border-bottom: none;
+  font-weight: 700;
+  padding: 20px;
+  letter-spacing: 0.5px;
+  border-radius: 16px 16px 0 0;
 }
 
 .card-body {
   padding: 1.5rem;
+  background: linear-gradient(to bottom, #ffffff, #f8f9fa);
 }
 
 /* ========== BADGES ========== */
 .badge {
-  padding: 0.35rem 0.65rem;
+  padding: 6px 12px;
   font-size: 0.85rem;
-  font-weight: 500;
-}
-
-.bg-purple {
-  background-color: #6f42c1 !important;
-  color: white;
-}
-
-/* ========== TABLEAU ========== */
-.table {
-  margin-bottom: 0;
-}
-
-.table thead th {
-  font-weight: 600;
-  text-transform: uppercase;
-  font-size: 0.85rem;
+  font-weight: 700;
+  border-radius: 20px;
   letter-spacing: 0.5px;
 }
 
-.table tbody tr:hover {
-  background-color: rgba(0, 0, 0, 0.02);
+.bg-purple {
+  background: linear-gradient(135deg, #6f42c1, #5a32a3) !important;
+  color: white;
 }
 
-/* ========== BOUTONS ========== */
-.btn {
-  border-radius: 0.375rem;
-  font-weight: 500;
+.bg-success {
+  background: linear-gradient(135deg, #28a745, #20c997) !important;
+  color: white;
+}
+
+.bg-warning {
+  background: linear-gradient(135deg, #ffc107, #ffb300) !important;
+  color: #000;
+}
+
+.bg-danger {
+  background: linear-gradient(135deg, #dc3545, #c82333) !important;
+  color: white;
+}
+
+.bg-info {
+  background: linear-gradient(135deg, #0891B2, #06B6D4) !important;
+  color: white;
+}
+
+.bg-secondary {
+  background: linear-gradient(135deg, #6c757d, #5a6268) !important;
+  color: white;
+}
+
+/* ========== TABLE - Modern Fluid Design ========== */
+.table {
+  margin-bottom: 0;
+  font-size: 0.95rem;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.table thead th {
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 0.85rem;
+  letter-spacing: 1px;
+  background: linear-gradient(135deg, #0891B2, #06B6D4);
+  color: white;
+  padding: 16px 12px;
+  border: none;
+}
+
+.table thead th:first-child {
+  border-top-left-radius: 8px;
+}
+
+.table thead th:last-child {
+  border-top-right-radius: 8px;
+}
+
+.table tbody tr {
   transition: all 0.3s ease;
+  background: white;
+}
+
+.table tbody tr:hover {
+  background: linear-gradient(90deg, rgba(8, 145, 178, 0.05), rgba(6, 182, 212, 0.05));
+  transform: scale(1.01);
+  box-shadow: 0 4px 12px rgba(8, 145, 178, 0.15);
+}
+
+.table tbody td {
+  padding: 14px 12px;
+  vertical-align: middle;
+  border-bottom: 1px solid #e9ecef;
+}
+
+/* ========== BUTTONS - Logo Colors ========== */
+.btn {
+  border-radius: 10px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  letter-spacing: 0.3px;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #0891B2, #06B6D4);
+  border: none;
+  font-weight: 700;
+  padding: 12px 24px;
+  box-shadow: 0 4px 12px rgba(8, 145, 178, 0.3);
+  text-transform: uppercase;
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(8, 145, 178, 0.4);
+  background: linear-gradient(135deg, #06B6D4, #0891B2);
 }
 
 .btn-sm {
-  padding: 0.25rem 0.5rem;
+  padding: 8px 14px;
   font-size: 0.875rem;
+  border-radius: 8px;
+}
+
+.btn-success {
+  background: linear-gradient(135deg, #28a745, #20c997);
+  border: none;
+  box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);
+}
+
+.btn-success:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(40, 167, 69, 0.4);
+}
+
+.btn-danger {
+  background: linear-gradient(135deg, #dc3545, #c82333);
+  border: none;
+  box-shadow: 0 2px 8px rgba(220, 53, 69, 0.3);
+}
+
+.btn-danger:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(220, 53, 69, 0.4);
+}
+
+.btn-warning {
+  background: linear-gradient(135deg, #ffc107, #ffb300);
+  border: none;
+  box-shadow: 0 2px 8px rgba(255, 193, 7, 0.3);
+  color: #000;
+}
+
+.btn-warning:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 193, 7, 0.4);
+}
+
+.btn-info {
+  background: linear-gradient(135deg, #0891B2, #06B6D4);
+  border: none;
+  box-shadow: 0 2px 8px rgba(8, 145, 178, 0.3);
+}
+
+.btn-info:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(8, 145, 178, 0.4);
+}
+
+/* ========== FORM CONTROLS ========== */
+.form-control, .form-select {
+  border: 2px solid #e9ecef;
+  border-radius: 10px;
+  padding: 12px 16px;
+  transition: all 0.3s ease;
+  font-size: 0.95rem;
+}
+
+.form-control:focus, .form-select:focus {
+  border-color: #0891B2;
+  box-shadow: 0 0 0 0.2rem rgba(8, 145, 178, 0.15);
+}
+
+/* ========== SPINNER ========== */
+.spinner-border {
+  border-width: 3px;
+}
+
+.spinner-border.text-primary {
+  color: #0891B2 !important;
+}
+
+/* ========== HEADER ========== */
+h2 {
+  color: #2c3e50;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+}
+
+.text-muted {
+  color: #6c757d !important;
+  font-size: 0.95rem;
 }
 
 /* ========== RESPONSIVE ========== */
 @media (max-width: 768px) {
   .table {
-    font-size: 0.875rem;
+    font-size: 0.85rem;
+  }
+  
+  .table th, .table td {
+    padding: 10px 8px;
   }
   
   .card-body {
     padding: 1rem;
+  }
+  
+  .btn-sm {
+    width: 100%;
+    margin-bottom: 0.25rem;
   }
 }

@@ -58,6 +58,9 @@ export class CreditPageComponent implements OnInit {
   creditScores: Map<number, CreditScore> = new Map();
   scoringLoadingMap: Map<number, boolean> = new Map();
 
+  // ========== EMAIL SENDING ==========
+  emailSendingMap: Map<number, boolean> = new Map();
+
   // Formulaire de demande
   creditRequest: CreditRequest = {
     amount: 0,
@@ -391,6 +394,31 @@ export class CreditPageComponent implements OnInit {
         }
       });
     }
+  }
+
+  // ========== ADMIN ACTIONS - SEND AMORTIZATION EMAIL ==========
+  sendAmortizationEmail(creditId: number): void {
+    if (confirm(`📧 Send amortization schedule by email for credit #${creditId}?`)) {
+      this.emailSendingMap.set(creditId, true);
+      
+      this.creditService.sendAmortizationEmail(creditId).subscribe({
+        next: (response: any) => {
+          this.successMessage = `✅ Amortization schedule sent successfully for credit #${creditId}`;
+          this.emailSendingMap.set(creditId, false);
+          setTimeout(() => this.successMessage = '', 5000);
+        },
+        error: (err: any) => {
+          console.error('Error sending email:', err);
+          this.errorMessage = err.error?.error || 'Error sending amortization schedule';
+          this.emailSendingMap.set(creditId, false);
+          setTimeout(() => this.errorMessage = '', 5000);
+        }
+      });
+    }
+  }
+
+  isSendingEmail(creditId: number): boolean {
+    return this.emailSendingMap.get(creditId) || false;
   }
 
   // ========== NAVIGATION ==========

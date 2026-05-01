@@ -88,13 +88,13 @@
 
   <!-- TABLE -->
   <div *ngIf="!isLoading" class="card">
-    <div class="card-header bg-dark text-white">
+    <div class="card-header">
       <h5 class="mb-0"><i class="bi bi-table"></i> Credit Requests ({{ filteredCredits.length }})</h5>
     </div>
     <div class="card-body p-0">
       <div class="table-responsive">
         <table class="table table-hover mb-0">
-          <thead class="table-light">
+          <thead>
             <tr>
               <th>ID</th>
               <th>Client</th>
@@ -139,20 +139,20 @@
                     *ngIf="credit.status === 'PENDING'"
                     class="btn btn-sm btn-success"
                     (click)="openApproveModal(credit)"
-                    title="Approve"
+                    title="Approve Credit"
                   >
-                    <i class="bi bi-check-lg"></i>
+                    <i class="bi bi-check-circle"></i>
                   </button>
                   <button
                     *ngIf="credit.status === 'PENDING'"
                     class="btn btn-sm btn-danger"
                     (click)="openRejectModal(credit)"
-                    title="Reject"
+                    title="Reject Credit"
                   >
-                    <i class="bi bi-x-lg"></i>
+                    <i class="bi bi-x-circle"></i>
                   </button>
                   <span *ngIf="credit.status !== 'PENDING'" class="text-muted small">
-                    No action
+                    <i class="bi bi-dash-circle"></i> No action
                   </span>
                 </div>
               </td>
