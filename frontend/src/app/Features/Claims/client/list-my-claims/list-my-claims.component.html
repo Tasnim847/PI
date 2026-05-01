@@ -1,304 +1,279 @@
 <div class="claims-dashboard">
-  <!-- Header avec animation -->
-  <div class="dashboard-header">
-    <div class="header-content">
-      <div class="title-section">
-        <div class="icon-wrapper">
-          <i class="bi bi-file-text-fill"></i>
+  <div class="container-fluid px-4 py-4">
+    
+    <!-- Header -->
+    <div class="dashboard-header mb-4">
+      <h1 class="display-6 fw-bold gradient-text">📋 My Claims Space</h1>
+      <p class="text-muted">Manage your insurance claims and track their status</p>
+    </div>
+
+    <!-- Alert messages -->
+    <div *ngIf="successMessage" class="alert-message success mb-4">
+      <i class="fas fa-check-circle me-2"></i>{{ successMessage }}
+      <button class="alert-close" (click)="successMessage = ''">&times;</button>
+    </div>
+
+    <div *ngIf="error" class="alert-message error mb-4">
+      <i class="fas fa-exclamation-triangle me-2"></i>{{ error }}
+      <button class="alert-close" (click)="error = ''">&times;</button>
+    </div>
+
+    <!-- Loading spinner -->
+    <div *ngIf="loading" class="loading-container">
+      <div class="spinner"></div>
+      <p>Loading your claims...</p>
+    </div>
+
+    <!-- Stats Cards -->
+    <div *ngIf="!loading && claims.length > 0" class="stats-grid mb-4">
+      <div class="stat-card">
+        <div class="stat-icon total">
+          <i class="fas fa-file-alt"></i>
         </div>
-        <div>
-          <h1 class="page-title">My Claims</h1>
-          <p class="page-subtitle">Manage all your insurance claims in one place</p>
-        </div>
-      </div>
-      <button class="btn-add-claim" (click)="openAddClaimModal()">
-        <i class="bi bi-plus-circle-fill"></i>
-      </button>
-      <button class="btn-refresh" (click)="refresh()">
-        <i class="bi bi-arrow-repeat"></i>
-      </button>
-    </div>
-  </div>
-
-  <!-- Alert messages -->
-  <div *ngIf="successMessage" class="alert alert-success alert-dismissible fade show" role="alert">
-    <i class="bi bi-check-circle-fill me-2"></i>{{ successMessage }}
-    <button type="button" class="btn-close" (click)="successMessage = ''"></button>
-  </div>
-
-  <div *ngIf="error" class="alert alert-danger alert-dismissible fade show" role="alert">
-    <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ error }}
-    <button type="button" class="btn-close" (click)="error = ''"></button>
-  </div>
-
-  <!-- Loading spinner -->
-  <div *ngIf="loading" class="loading-container">
-    <div class="spinner"></div>
-    <p>Loading your claims...</p>
-  </div>
-
-  <!-- Stats Cards -->
-  <div *ngIf="!loading && claims.length > 0" class="stats-grid">
-    <div class="stat-card">
-      <div class="stat-icon total">
-        <i class="bi bi-file-text"></i>
-      </div>
-      <div class="stat-info">
-        <h3>{{ claims.length }}</h3>
-        <p>Total Claims</p>
-      </div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-icon approved">
-        <i class="bi bi-check-circle"></i>
-      </div>
-      <div class="stat-info">
-        <h3>{{ getApprovedCount() }}</h3>
-        <p>Approved</p>
-      </div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-icon pending">
-        <i class="bi bi-hourglass-split"></i>
-      </div>
-      <div class="stat-info">
-        <h3>{{ getPendingCount() }}</h3>
-        <p>In Review</p>
-      </div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-icon compensated">
-        <i class="bi bi-cash-stack"></i>
-      </div>
-      <div class="stat-info">
-        <h3>{{ getCompensatedCount() }}</h3>
-        <p>Compensated</p>
-      </div>
-    </div>
-  </div>
-
-  <!-- Filters -->
-  <div *ngIf="!loading && claims.length > 0" class="filters-card">
-    <div class="filters-content">
-      <div class="filter-group">
-        <label class="filter-label">
-          <i class="bi bi-funnel"></i>
-          Filter by Status
-        </label>
-        <select class="filter-select" [(ngModel)]="filterStatus" (change)="applyFilter()">
-          <option value="ALL">All Statuses</option>
-          <option value="DECLARED">Declared</option>
-          <option value="IN_REVIEW">In Review</option>
-          <option value="APPROVED">Approved</option>
-          <option value="REJECTED">Rejected</option>
-          <option value="COMPENSATED">Compensated</option>
-        </select>
-      </div>
-      <div class="filter-group">
-        <label class="filter-label">
-          <i class="bi bi-bar-chart"></i>
-          Results
-        </label>
-        <div class="results-count">
-          <strong>{{ filteredClaims.length }}</strong> claim(s)
+        <div class="stat-info">
+          <h3>{{ claims.length }}</h3>
+          <p>Total Claims</p>
         </div>
       </div>
-      
-    </div>
-  </div>
-
-  <!-- Empty state -->
-  <div *ngIf="!loading && filteredClaims.length === 0" class="empty-state">
-    <div class="empty-state-content">
-      <div class="empty-icon">
-        <i class="bi bi-inbox"></i>
-      </div>
-      <h3>No Claims Found</h3>
-      <p>You haven't submitted any claims yet or no claims match your criteria.</p>
-      <button class="btn-primary-modern" (click)="openAddClaimModal()">
-        <i class="bi bi-plus-circle"></i>
-        Create Your First Claim
-      </button>
-    </div>
-  </div>
-
-  <!-- Claims grid -->
-  <div *ngIf="!loading && filteredClaims.length > 0" class="claims-grid">
-    <div *ngFor="let claim of getPaginatedClaims()" class="claim-card">
-      <div class="claim-card-header">
-        <div class="claim-id">
-          <i [class]="getStatusIcon(claim.status || '')"></i>
-          <span>#{{ claim.claimId }}</span>
+      <div class="stat-card">
+        <div class="stat-icon approved">
+          <i class="fas fa-check-circle"></i>
         </div>
-        <div class="claim-status" [class]="getStatusClass(claim.status || '')">
-          {{ claim.status }}
+        <div class="stat-info">
+          <h3>{{ getApprovedCount() }}</h3>
+          <p>Approved</p>
         </div>
       </div>
-      
-      <div class="claim-card-body">
-        <p class="claim-description">{{ claim.description | slice:0:100 }}...</p>
-        
-        <div class="claim-details">
-          <div class="detail-item">
-            <label>Date</label>
-            <span>{{ formatDate(claim.claimDate || '') }}</span>
+      <div class="stat-card">
+        <div class="stat-icon pending">
+          <i class="fas fa-hourglass-half"></i>
+        </div>
+        <div class="stat-info">
+          <h3>{{ getPendingCount() }}</h3>
+          <p>In Review</p>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon compensated">
+          <i class="fas fa-coins"></i>
+        </div>
+        <div class="stat-info">
+          <h3>{{ getCompensatedCount() }}</h3>
+          <p>Compensated</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Filters & Actions -->
+    <div *ngIf="!loading && claims.length > 0" class="section-card mb-4">
+      <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+        <div class="filter-group">
+          <label class="filter-label">
+            <i class="fas fa-filter me-1"></i> Filter by Status
+          </label>
+          <select class="form-select-sm" [(ngModel)]="filterStatus" (change)="applyFilter()">
+            <option value="">All Statuses</option>
+            <option value="DECLARED">Declared</option>
+            <option value="IN_REVIEW">In Review</option>
+            <option value="APPROVED">Approved</option>
+            <option value="REJECTED">Rejected</option>
+            <option value="COMPENSATED">Compensated</option>
+          </select>
+        </div>
+        <div class="d-flex gap-2">
+          <div class="results-count">
+            <strong>{{ filteredClaims.length }}</strong> claim(s)
           </div>
-          <div class="detail-item">
-            <label>Amount</label>
-            <span class="amount">{{ formatAmount(claim.claimedAmount) }}</span>
-          </div>
-        </div>
-        
-        <div *ngIf="claim.approvedAmount && claim.approvedAmount > 0" class="approved-section">
-          <div class="approved-amount">
-            <label>Approved Amount:</label>
-            <span>{{ formatAmount(claim.approvedAmount) }}</span>
-          </div>
-          <div class="progress-bar-custom">
-            <div class="progress-fill" [style.width.%]="getProgressWidth(claim.claimedAmount, claim.approvedAmount)"></div>
-          </div>
-        </div>
-        
-        <div *ngIf="claim.message" class="claim-message">
-          <i class="bi bi-info-circle"></i>
-          <span>{{ claim.message }}</span>
-        </div>
-      </div>
-      
-      <div class="claim-card-footer">
-        <button class="btn-details" (click)="viewClaimDetails(claim)">
-          <i class="bi bi-eye"></i>
-          Details
-        </button>
-        
-        <button *ngIf="claim.status === 'APPROVED' || claim.status === 'COMPENSATED'" 
-                class="btn-compensation" 
-                (click)="viewCompensation(claim.claimId!)">
-          <i class="bi bi-calculator"></i>
-          Compensation
-        </button>
-        
-        <!-- DROPDOWN CORRIGÉ -->
-        <div class="dropdown" *ngIf="canEdit(claim) || canDelete(claim)">
-          <button class="btn-dropdown" (click)="toggleDropdown(claim.claimId, $event)">
-            <i class="bi bi-three-dots-vertical"></i>
+          <button class="btn-action" (click)="openAddClaimModal()">
+            <i class="fas fa-plus-circle me-2"></i> New Claim
           </button>
-          <ul class="dropdown-menu-custom" *ngIf="activeDropdownClaimId === claim.claimId">
-            <li *ngIf="canEdit(claim)">
-              <a (click)="editClaim(claim.claimId, $event)">
-                <i class="bi bi-pencil"></i> Edit
-              </a>
-            </li>
-            <li *ngIf="canDelete(claim)">
-              <a class="danger" (click)="deleteClaim(claim.claimId, $event)">
-                <i class="bi bi-trash"></i> Delete
-              </a>
-            </li>
-          </ul>
+          <button class="btn-outline" (click)="refresh()">
+            <i class="fas fa-sync-alt me-1"></i> Refresh
+          </button>
         </div>
       </div>
     </div>
-  </div>
 
-  <!-- Pagination -->
-  <div *ngIf="!loading && filteredClaims.length > 0 && totalPages > 1" class="pagination-container">
-    <button class="page-btn" [class.disabled]="currentPage === 1" (click)="previousPage()">
-      <i class="bi bi-chevron-left"></i> Previous
-    </button>
-    <span class="page-info">{{ currentPage }} / {{ totalPages }}</span>
-    <button class="page-btn" [class.disabled]="currentPage === totalPages" (click)="nextPage()">
-      Next <i class="bi bi-chevron-right"></i>
-    </button>
-  </div>
+    <!-- Empty state -->
+    <div *ngIf="!loading && filteredClaims.length === 0" class="empty-state">
+      <i class="fas fa-inbox fa-4x mb-3"></i>
+      <h4>No Claims Found</h4>
+      <p>You haven't submitted any claims yet or no claims match your criteria.</p>
+      <button class="btn-primary" (click)="openAddClaimModal()">
+        <i class="fas fa-plus-circle me-2"></i> Create Your First Claim
+      </button>
+    </div>
 
-  <!-- Modal Détails Claim -->
-  <div class="modal-overlay" *ngIf="selectedClaim" (click)="closeModal()">
-    <div class="modal-container modal-lg" (click)="$event.stopPropagation()">
-      <div class="modal-header">
-        <h3>
-          <i class="bi bi-file-text"></i>
-          Claim Details #{{ selectedClaim.claimId }}
-        </h3>
-        <button class="modal-close" (click)="closeModal()">&times;</button>
-      </div>
-      <div class="modal-body">
-        <div class="details-grid">
-          <div class="detail-row">
-            <label>Status</label>
-            <span class="claim-status" [class]="getStatusClass(selectedClaim.status || '')">
-              {{ selectedClaim.status }}
-            </span>
+    <!-- Claims grid -->
+    <div *ngIf="!loading && filteredClaims.length > 0" class="claims-grid">
+      <div *ngFor="let claim of getPaginatedClaims()" class="claim-card">
+        <div class="claim-card-header">
+          <div class="claim-id">
+            <i [class]="getStatusIcon(claim.status || '')"></i>
+            <span>#{{ claim.claimId }}</span>
           </div>
-          <div class="detail-row">
-            <label>Date</label>
-            <span>{{ formatDate(selectedClaim.claimDate || '') }}</span>
+          <span class="status-badge" 
+                [class.declared]="claim.status === 'DECLARED'"
+                [class.in_review]="claim.status === 'IN_REVIEW'"
+                [class.approved]="claim.status === 'APPROVED'"
+                [class.rejected]="claim.status === 'REJECTED'"
+                [class.compensated]="claim.status === 'COMPENSATED'">
+            {{ claim.status === 'DECLARED' ? 'Declared' : 
+               claim.status === 'IN_REVIEW' ? 'In Review' :
+               claim.status === 'APPROVED' ? 'Approved' :
+               claim.status === 'REJECTED' ? 'Rejected' : 'Compensated' }}
+          </span>
+        </div>
+        
+        <div class="claim-card-body">
+          <p class="claim-description">{{ (claim.description || 'No description') | slice:0:100 }}{{ (claim.description || '').length > 100 ? '...' : '' }}</p>
+          
+          <div class="claim-details">
+            <div class="detail-item">
+              <label>Date</label>
+              <span>{{ formatDate(claim.claimDate || '') }}</span>
+            </div>
+            <div class="detail-item">
+              <label>Amount</label>
+              <span class="amount">{{ formatAmount(claim.claimedAmount) }}</span>
+            </div>
           </div>
-          <div class="detail-row">
-            <label>Claimed Amount</label>
-            <span class="amount">{{ formatAmount(selectedClaim.claimedAmount) }}</span>
+          
+          <div *ngIf="claim.approvedAmount && claim.approvedAmount > 0" class="approved-section">
+            <div class="approved-amount">
+              <label>Approved Amount:</label>
+              <span>{{ formatAmount(claim.approvedAmount) }}</span>
+            </div>
+            <div class="progress-bar-custom">
+              <div class="progress-fill" [style.width.%]="getProgressWidth(claim.claimedAmount, claim.approvedAmount)"></div>
+            </div>
           </div>
-          <div class="detail-row" *ngIf="selectedClaim.approvedAmount">
-            <label>Approved Amount</label>
-            <span class="amount approved">{{ formatAmount(selectedClaim.approvedAmount) }}</span>
+          
+          <div *ngIf="claim.message" class="claim-message">
+            <i class="fas fa-info-circle"></i>
+            <span>{{ claim.message }}</span>
           </div>
-          <div class="detail-row full-width">
-            <label>Description</label>
-            <p>{{ selectedClaim.description }}</p>
-          </div>
-          <div class="detail-row full-width" *ngIf="selectedClaim.message">
-            <label>Message</label>
-            <div class="info-message">{{ selectedClaim.message }}</div>
-          </div>
-          <div class="detail-row full-width" *ngIf="selectedClaim.documents && selectedClaim.documents.length > 0">
-            <label>Documents</label>
-            <ul class="documents-list">
-              <li *ngFor="let doc of selectedClaim.documents">
-                <i class="bi bi-file-earmark-text"></i>
-                {{ doc.name }}
-                <span class="doc-type">({{ doc.type }})</span>
+        </div>
+        
+        <div class="claim-card-footer">
+          <button class="btn-details" (click)="viewClaimDetails(claim)">
+            <i class="fas fa-eye me-2"></i> Details
+          </button>
+          
+          <button *ngIf="claim.status === 'APPROVED' || claim.status === 'COMPENSATED'" 
+                  class="btn-compensation" 
+                  (click)="viewCompensation(claim.claimId!)">
+            <i class="fas fa-calculator me-2"></i> Compensation
+          </button>
+          
+          <div class="dropdown" *ngIf="canEdit(claim) || canDelete(claim)">
+            <button class="btn-dropdown" (click)="toggleDropdown(claim.claimId, $event)">
+              <i class="fas fa-ellipsis-v"></i>
+            </button>
+            <ul class="dropdown-menu-custom" *ngIf="activeDropdownClaimId === claim.claimId">
+              <li *ngIf="canEdit(claim)">
+                <a (click)="editClaim(claim.claimId, $event)">
+                  <i class="fas fa-pencil-alt"></i> Edit
+                </a>
+              </li>
+              <li *ngIf="canDelete(claim)">
+                <a class="danger" (click)="deleteClaim(claim.claimId, $event)">
+                  <i class="fas fa-trash"></i> Delete
+                </a>
               </li>
             </ul>
           </div>
         </div>
       </div>
-      <div class="modal-footer">
-        <button class="btn-secondary" (click)="closeModal()">Close</button>
-      </div>
     </div>
-  </div>
 
-  <!-- Modal Compensation Details -->
-  <div class="modal-overlay" *ngIf="showCompensationDetails" (click)="closeModal()">
-    <div class="modal-container modal-lg" (click)="$event.stopPropagation()">
-      <div class="modal-header success">
-        <h3>
-          <i class="bi bi-calculator"></i>
-          Compensation Details
-        </h3>
-        <button class="modal-close" (click)="closeModal()">&times;</button>
-      </div>
-      <div class="modal-body">
-        <pre class="compensation-content">{{ compensationDetails }}</pre>
-      </div>
-      <div class="modal-footer">
-        <button class="btn-secondary" (click)="closeModal()">Close</button>
-      </div>
+    <!-- Pagination -->
+    <div *ngIf="!loading && filteredClaims.length > 0 && totalPages > 1" class="pagination-container mt-4">
+      <button class="page-btn" [class.disabled]="currentPage === 1" (click)="previousPage()">
+        <i class="fas fa-chevron-left me-1"></i> Previous
+      </button>
+      <span class="page-info">{{ currentPage }} / {{ totalPages }}</span>
+      <button class="page-btn" [class.disabled]="currentPage === totalPages" (click)="nextPage()">
+        Next <i class="fas fa-chevron-right ms-1"></i>
+      </button>
     </div>
-  </div>
-</div>
 
-<!-- Add Claim Modal Popup -->
-<div class="modal-overlay" *ngIf="showAddClaimModal" (click)="closeAddClaimModal()">
-  <div class="modal-container modal-xl" (click)="$event.stopPropagation()">
-    <div class="modal-header">
-      <h3>
-        <i class="bi bi-plus-circle"></i>
-        New Insurance Claim
-      </h3>
-      <button class="modal-close" (click)="closeAddClaimModal()">&times;</button>
+    <!-- Modal Claim Details -->
+    <div class="modal-overlay" *ngIf="selectedClaim" (click)="closeModal()">
+      <div class="modal-content" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3><i class="fas fa-file-alt me-2"></i> Claim Details #{{ selectedClaim.claimId }}</h3>
+          <button class="modal-close" (click)="closeModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="details-grid">
+            <div class="detail-row">
+              <label>Status</label>
+              <span class="status-badge" 
+                    [class.declared]="selectedClaim.status === 'DECLARED'"
+                    [class.in_review]="selectedClaim.status === 'IN_REVIEW'"
+                    [class.approved]="selectedClaim.status === 'APPROVED'"
+                    [class.rejected]="selectedClaim.status === 'REJECTED'"
+                    [class.compensated]="selectedClaim.status === 'COMPENSATED'">
+                {{ selectedClaim.status }}
+              </span>
+            </div>
+            <div class="detail-row">
+              <label>Date</label>
+              <span>{{ formatDate(selectedClaim.claimDate || '') }}</span>
+            </div>
+            <div class="detail-row">
+              <label>Claimed Amount</label>
+              <span class="amount">{{ formatAmount(selectedClaim.claimedAmount) }}</span>
+            </div>
+            <div class="detail-row" *ngIf="selectedClaim.approvedAmount">
+              <label>Approved Amount</label>
+              <span class="amount approved">{{ formatAmount(selectedClaim.approvedAmount) }}</span>
+            </div>
+            <div class="detail-row full-width">
+              <label>Description</label>
+              <p>{{ selectedClaim.description || 'No description provided' }}</p>
+            </div>
+            <div class="detail-row full-width" *ngIf="selectedClaim.message">
+              <label>Message</label>
+              <div class="info-message">{{ selectedClaim.message }}</div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-cancel" (click)="closeModal()">Close</button>
+        </div>
+      </div>
     </div>
-    <div class="modal-body">
-      <app-add-claim (claimCreated)="onClaimCreated()"></app-add-claim>
+
+    <!-- Modal Compensation Details -->
+    <div class="modal-overlay" *ngIf="showCompensationDetails" (click)="closeModal()">
+      <div class="modal-content" (click)="$event.stopPropagation()">
+        <div class="modal-header success">
+          <h3><i class="fas fa-calculator me-2"></i> Compensation Details</h3>
+          <button class="modal-close" (click)="closeModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+          <pre class="compensation-content">{{ compensationDetails }}</pre>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-cancel" (click)="closeModal()">Close</button>
+        </div>
+      </div>
     </div>
+
+    <!-- Add Claim Modal -->
+    <div class="modal-overlay" *ngIf="showAddClaimModal" (click)="closeAddClaimModal()">
+      <div class="modal-content modal-xl" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3><i class="fas fa-plus-circle me-2"></i> New Insurance Claim</h3>
+          <button class="modal-close" (click)="closeAddClaimModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+          <app-add-claim (claimCreated)="onClaimCreated()"></app-add-claim>
+        </div>
+      </div>
+    </div>
+
   </div>
 </div>

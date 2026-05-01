@@ -74,6 +74,13 @@
             Compensation
           </a>
         </li>
+       
+        <!-- Cash Approvals - visible seulement pour AGENT_ASSURANCE -->
+        <li class="nav-item" *ngIf="isCashApprovalsVisible()">
+          <a class="nav-link" routerLink="/public/agent/cash-approvals" routerLinkActive="active">
+            Cash Approvals
+          </a>
+        </li>
         
       </ul>
       <div class="d-flex align-items-center">

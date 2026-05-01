@@ -194,4 +194,9 @@ export class NavbarComponent implements OnInit, OnDestroy {
     }
     return '/public/home';
   }
+
+  // Cash Approvals - visible seulement pour AGENT_ASSURANCE
+  isCashApprovalsVisible(): boolean {
+    return this.userRole === 'AGENT_ASSURANCE';
+  }
 }
