@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterModule } from '@angular/router';
+import { RouterModule, Router } from '@angular/router'; // Ajouter Router
 import { ToastrService } from 'ngx-toastr';
 import { saveAs } from 'file-saver';
 import { ContractService } from '../../../services/contract.service';
@@ -40,7 +40,8 @@ export class AgentContractsComponent implements OnInit {
 
   constructor(
     private contractService: ContractService,
-    private toastr: ToastrService
+    private toastr: ToastrService,
+    private router: Router // Injecter Router
   ) {}
 
   ngOnInit(): void {
@@ -173,14 +174,9 @@ export class AgentContractsComponent implements OnInit {
   // ACTIONS
   // ======================
   viewRisk(contract: any): void {
-    this.selectedContract = contract;
-
-    this.contractService.getContractRisk(contract.contractId).subscribe({
-      next: (risk: any) => {
-        contract.riskClaim = risk.riskEvaluation;
-        this.showRiskModal = true;
-      },
-      error: () => this.toastr.error('Erreur risque')
+    // Navigation vers la page dashboard avec l'ID du contrat
+    this.router.navigate(['public/agent/dashboard'], { 
+      queryParams: { contractId: contract.contractId }
     });
   }
 
