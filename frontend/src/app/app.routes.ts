@@ -56,6 +56,7 @@ import { AdminCompensationDetailsComponent } from './Features/Compensation/admin
 import { CompensationDetailsComponent } from './Features/Compensation/client/compensation-details/compensation-details.component';
 import { InssAgentDashboardComponent } from './Features/Insurance/pages/agent/inss-agent-dashboard/inss-agent-dashboard.component';
 import { AgentCreditApprovalsComponent } from './Features/Credit/credit-page/pages/agent/agent-credit-approvals.component';
+import { CompAgentDashboardComponent } from './Features/Compensation/agent/comp-agent-dashboard/comp-agent-dashboard.component';
 
 export const routes: Routes = [
 
@@ -182,6 +183,18 @@ export const routes: Routes = [
       },
       { path: 'agent/dashboard', 
         component: InssAgentDashboardComponent,
+        canActivate: [roleGuard],
+        data: { roles: ['AGENT_ASSURANCE'] } 
+      },
+      {
+        path: 'agent/dashb/:id',
+        component: CompAgentDashboardComponent,
+        canActivate: [roleGuard],
+        data: { roles: ['AGENT_ASSURANCE'] } 
+      },
+      {
+        path: 'agent/dashb',
+        component: CompAgentDashboardComponent,
         canActivate: [roleGuard],
         data: { roles: ['AGENT_ASSURANCE'] } 
       },

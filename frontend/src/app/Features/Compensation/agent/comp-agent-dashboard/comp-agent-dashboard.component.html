@@ -1,0 +1,369 @@
+<div class="dashboard-container">
+  
+  <!-- Loading State -->
+  <div *ngIf="loadingDetails" class="loading-overlay">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+    <p>Loading compensation details...</p>
+  </div>
+
+  <!-- Details Content -->
+  <div *ngIf="!loadingDetails && selectedCompensation" class="details-container">
+    <!-- Header Card -->
+    <div class="detail-card header-card" [ngClass]="getStatusClass(selectedCompensation.status)">
+      <div class="card-badge">
+        <span class="status-badge" [ngClass]="getStatusClass(selectedCompensation.status)">
+          {{ getStatusLabel(selectedCompensation.status) }}
+        </span>
+      </div>
+      <div class="header-info">
+        <h2>Compensation #{{ selectedCompensation.compensationId }}</h2>
+        <p>Calculated on: {{ formatDate(selectedCompensation.calculationDate) }}</p>
+      </div>
+      <div class="header-actions">
+        <button class="action-btn back" (click)="goBackToList()">
+          <i class="fas fa-arrow-left"></i> Back to List
+        </button>
+        <button *ngIf="selectedCompensation.status === 'CALCULATED'" 
+                class="action-btn success" (click)="markAsPaid()">
+          <i class="fas fa-check-circle"></i> Mark as Paid
+        </button>
+        <button *ngIf="selectedCompensation.claim?.claimId" 
+                class="action-btn warning" (click)="recalculateCompensation()">
+          <i class="fas fa-sync-alt"></i> Recalculate
+        </button>
+      </div>
+    </div>
+
+    <!-- Financial Summary Cards -->
+    <div class="financial-summary-grid">
+      <div class="summary-card">
+        <div class="summary-icon blue">
+          <i class="fas fa-hand-holding-usd"></i>
+        </div>
+        <div class="summary-info">
+          <label>Insurance Coverage</label>
+          <h3>{{ formatAmount(selectedCompensation.amount) }}</h3>
+        </div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-icon orange">
+          <i class="fas fa-user-friends"></i>
+        </div>
+        <div class="summary-info">
+          <label>Client Out-of-Pocket</label>
+          <h3>{{ formatAmount(selectedCompensation.clientOutOfPocket) }}</h3>
+        </div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-icon green">
+          <i class="fas fa-check-circle"></i>
+        </div>
+        <div class="summary-info">
+          <label>Approved Amount</label>
+          <h3>{{ formatAmount(selectedCompensation.approvedAmount) }}</h3>
+        </div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-icon purple">
+          <i class="fas fa-chart-line"></i>
+        </div>
+        <div class="summary-info">
+          <label>Risk Score</label>
+          <h3>{{ scoringDetails?.claimScore?.riskScore || 'N/A' }}/100</h3>
+        </div>
+      </div>
+    </div>
+
+    <!-- Two Column Layout -->
+    <div class="details-grid">
+      <!-- Left Column -->
+      <div class="details-column">
+        <!-- Client Information -->
+        <div class="detail-card">
+          <h3><i class="fas fa-user-circle"></i> Client Information</h3>
+          <div class="info-group">
+            <div class="info-row">
+              <span class="info-label">Full Name:</span>
+              <span class="info-value">{{ getClientName(selectedCompensation) }}</span>
+            </div>
+            <div class="info-row" *ngIf="getClientId(selectedCompensation)">
+              <span class="info-label">Client ID:</span>
+              <span class="info-value">#{{ getClientId(selectedCompensation) }}</span>
+            </div>
+            <div class="info-row" *ngIf="selectedCompensation.client?.email">
+              <span class="info-label">Email:</span>
+              <span class="info-value">{{ selectedCompensation.client?.email }}</span>
+            </div>
+            <div class="info-row" *ngIf="selectedCompensation.client?.telephone">
+              <span class="info-label">Phone:</span>
+              <span class="info-value">{{ selectedCompensation.client?.telephone }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Financial Details -->
+        <div class="detail-card">
+          <h3><i class="fas fa-chart-pie"></i> Financial Breakdown</h3>
+          
+          <!-- Progress Bar for Coverage -->
+          <div class="financial-breakdown">
+            <div class="breakdown-item">
+              <div class="breakdown-label">
+                <span>Insurance Coverage</span>
+                <span class="percentage">{{ getCoveragePercentage() }}%</span>
+              </div>
+              <div class="progress-bar">
+                <div class="progress-fill coverage" [style.width.%]="getCoveragePercentage()"></div>
+              </div>
+            </div>
+            <div class="breakdown-item">
+              <div class="breakdown-label">
+                <span>Client Out-of-Pocket</span>
+                <span class="percentage">{{ getOutOfPocketPercentage() }}%</span>
+              </div>
+              <div class="progress-bar">
+                <div class="progress-fill out-of-pocket" [style.width.%]="getOutOfPocketPercentage()"></div>
+              </div>
+            </div>
+            <div class="breakdown-item">
+              <div class="breakdown-label">
+                <span>Deductible Applied</span>
+                <span class="percentage">{{ getDeductiblePercentage() }}%</span>
+              </div>
+              <div class="progress-bar">
+                <div class="progress-fill deductible" [style.width.%]="getDeductiblePercentage()"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Financial Metrics -->
+          <div class="metrics-grid">
+            <div class="metric-item">
+              <span class="metric-label">Claimed Amount</span>
+              <span class="metric-value">{{ formatAmount(selectedCompensation.originalClaimedAmount) }}</span>
+            </div>
+            <div class="metric-item">
+              <span class="metric-label">Approved Amount</span>
+              <span class="metric-value success">{{ formatAmount(selectedCompensation.approvedAmount) }}</span>
+            </div>
+            <div class="metric-item">
+              <span class="metric-label">Deductible</span>
+              <span class="metric-value">{{ formatAmount(selectedCompensation.deductible) }}</span>
+            </div>
+            <div class="metric-item">
+              <span class="metric-label">Coverage Limit</span>
+              <span class="metric-value">{{ formatAmount(selectedCompensation.coverageLimit) }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Risk Analysis Dashboard -->
+        <div class="detail-card risk-dashboard" *ngIf="scoringDetails?.claimScore">
+          <h3><i class="fas fa-chart-radar"></i> Risk Analysis Dashboard</h3>
+          
+          <!-- Risk Score Gauge -->
+          <div class="risk-gauge-container">
+            <div class="risk-gauge">
+              <svg viewBox="0 0 200 120" class="gauge">
+                <path d="M20,100 A80,80 0 0,1 180,100" fill="none" stroke="#e9ecef" stroke-width="15"/>
+                <path d="M20,100 A80,80 0 0,1 180,100" fill="none" 
+                      [attr.stroke]="getRiskGaugeColor()" stroke-width="15"
+                      [attr.stroke-dasharray]="getRiskGaugeDashArray()"/>
+                <circle [attr.cx]="getRiskGaugePointer()" cy="100" r="8" fill="#1a5ac3" stroke="white" stroke-width="3"/>
+              </svg>
+              <div class="gauge-value">
+                <span class="value">{{ scoringDetails.claimScore.riskScore }}</span>
+                <span class="unit">/100</span>
+              </div>
+            </div>
+            <div class="risk-level-indicator" [ngClass]="getRiskLevelClass(selectedCompensation.riskLevel)">
+              <i class="fas fa-shield-alt"></i>
+              <span>{{ getRiskLabel(selectedCompensation.riskLevel) }} Risk</span>
+            </div>
+          </div>
+
+          <!-- Decision Badge -->
+          <div class="decision-container">
+            <div class="decision-badge-large" [ngClass]="getDecisionClass(scoringDetails.claimScore.decisionSuggestion)">
+              <i class="fas fa-robot"></i>
+              <div class="decision-text">
+                <small>AI Decision</small>
+                <strong>{{ getDecisionLabel(scoringDetails.claimScore.decisionSuggestion) }}</strong>
+              </div>
+            </div>
+            <div class="recommendation-text" *ngIf="scoringDetails.claimScore.recommendation">
+              <i class="fas fa-lightbulb"></i>
+              <span>{{ scoringDetails.claimScore.recommendation }}</span>
+            </div>
+          </div>
+
+          <!-- Risk Factors -->
+          <div class="risk-factors">
+            <h4>Risk Factors Analysis</h4>
+            <div class="factors-grid">
+              <div class="factor-card" *ngFor="let factor of getRiskFactorsList()">
+                <div class="factor-name">{{ factor.name }}</div>
+                <div class="factor-score">
+                  <div class="factor-bar">
+                    <div class="factor-fill" [style.width.%]="factor.score" 
+                         [ngClass]="getFactorClass(factor.score)"></div>
+                  </div>
+                  <span class="factor-value">{{ factor.score }}/100</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column -->
+      <div class="details-column">
+        <!-- Claim Information -->
+        <div class="detail-card" *ngIf="selectedCompensation.claim">
+          <h3><i class="fas fa-file-alt"></i> Associated Claim</h3>
+          <div class="info-group">
+            <div class="info-row">
+              <span class="info-label">Claim ID:</span>
+              <span class="info-value">#{{ selectedCompensation.claim.claimId }}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Incident Date:</span>
+              <span class="info-value">{{ formatDate(selectedCompensation.claim.claimDate) }}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Claim Status:</span>
+              <span class="info-value">{{ selectedCompensation.claim.status || 'N/A' }}</span>
+            </div>
+            <div class="info-row full-width">
+              <span class="info-label">Description:</span>
+              <span class="info-value description">{{ selectedCompensation.claim.description || 'N/A' }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Explanation Message - Styled -->
+        <div class="detail-card message-card" *ngIf="selectedCompensation.message">
+          <h3><i class="fas fa-comment-dots"></i> Compensation Breakdown</h3>
+          <div class="message-content-styled">
+            <!-- Montant approuvé -->
+            <div class="message-section">
+              <div class="message-icon money">
+                <i class="fas fa-money-bill-wave"></i>
+              </div>
+              <div class="message-details">
+                <span class="message-label">Approved Amount</span>
+                <span class="message-value">{{ extractAmount(selectedCompensation.message, 'Montant approuvé') }}</span>
+              </div>
+            </div>
+
+            <!-- Franchise -->
+            <div class="message-section">
+              <div class="message-icon wrench">
+                <i class="fas fa-wrench"></i>
+              </div>
+              <div class="message-details">
+                <span class="message-label">Deductible Applied</span>
+                <span class="message-value">{{ extractAmount(selectedCompensation.message, 'Franchise appliquée') }}</span>
+              </div>
+            </div>
+
+            <!-- Plafond -->
+            <div class="message-section">
+              <div class="message-icon limit">
+                <i class="fas fa-chart-line"></i>
+              </div>
+              <div class="message-details">
+                <span class="message-label">Coverage Limit</span>
+                <span class="message-value">{{ extractAmount(selectedCompensation.message, 'Plafond du contrat') }}</span>
+              </div>
+            </div>
+
+            <!-- Pris en charge -->
+            <div class="message-section highlight">
+              <div class="message-icon covered">
+                <i class="fas fa-check-circle"></i>
+              </div>
+              <div class="message-details">
+                <span class="message-label">Insurance Coverage</span>
+                <span class="message-value">{{ extractAmount(selectedCompensation.message, 'Montant pris en charge') }}</span>
+              </div>
+            </div>
+
+            <!-- Reste à charge -->
+            <div class="message-section warning">
+              <div class="message-icon out-of-pocket">
+                <i class="fas fa-credit-card"></i>
+              </div>
+              <div class="message-details">
+                <span class="message-label">Client Out-of-Pocket</span>
+                <span class="message-value">{{ extractAmount(selectedCompensation.message, 'Reste à votre charge') }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Scoring Details with Charts -->
+        <div class="detail-card" *ngIf="scoringDetails?.claimScore">
+          <h3><i class="fas fa-chart-bar"></i> Detailed Scoring Metrics</h3>
+          
+          <!-- Scoring Metrics -->
+          <div class="scoring-metrics">
+            <div class="metric-chip" *ngFor="let metric of getScoringMetrics()">
+              <div class="metric-chip-icon" [ngClass]="metric.class">
+                <i [class]="metric.icon"></i>
+              </div>
+              <div class="metric-chip-info">
+                <span class="metric-chip-label">{{ metric.label }}</span>
+                <span class="metric-chip-value">{{ metric.value }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Warning Messages -->
+          <div class="warning-messages" *ngIf="getWarningMessages(selectedCompensation.message).length > 0">
+            <h4><i class="fas fa-exclamation-triangle"></i> Important Notices</h4>
+            <div class="warning-list">
+              <div class="warning-item" *ngFor="let warning of getWarningMessages(selectedCompensation.message)">
+                <i class="fas fa-{{ warning.icon }}"></i>
+                <span>{{ warning.text }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Timeline Section -->
+    <div class="detail-card timeline-card">
+      <h3><i class="fas fa-history"></i> Compensation Timeline</h3>
+      <div class="timeline">
+        <div class="timeline-item" *ngIf="selectedCompensation.calculationDate">
+          <div class="timeline-marker calculated"></div>
+          <div class="timeline-content">
+            <h4>Compensation Calculated</h4>
+            <p>{{ formatDate(selectedCompensation.calculationDate) }}</p>
+          </div>
+        </div>
+        <div class="timeline-item" *ngIf="selectedCompensation.paymentDate">
+          <div class="timeline-marker paid"></div>
+          <div class="timeline-content">
+            <h4>Payment Processed</h4>
+            <p>{{ formatDate(selectedCompensation.paymentDate) }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="errorDetails" class="error-state">
+    <i class="fas fa-exclamation-triangle fa-3x"></i>
+    <h4>Error Loading Details</h4>
+    <p>{{ errorDetails }}</p>
+    <button class="btn-retry" (click)="loadCompensationDetails(selectedCompensation?.compensationId)">
+      <i class="fas fa-sync-alt"></i> Try Again
+    </button>
+  </div>
+</div>
