@@ -1,10 +1,11 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClientModule } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { CompensationService } from '../../services/compensation.service';
 import { ToastrService } from 'ngx-toastr';
 import { Compensation } from '../../../../shared';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-agent-compensation-list',
@@ -20,6 +21,8 @@ export class AgentCompensationListComponent implements OnInit {
   errorMessage = '';
   successMessage = '';
   
+  @Output() compensationSelected = new EventEmitter<Compensation>();
+
   // Pour le filtrage
   filterStatus: string = '';
   filterRiskLevel: string = '';
@@ -27,11 +30,7 @@ export class AgentCompensationListComponent implements OnInit {
   selectedClientId: number | null = null;
   clients: { id: number, name: string }[] = [];
   
-  // Pour la modal de détails
-  selectedCompensation: Compensation | null = null;
-  showDetailsModal = false;
-  scoringDetails: any = null;
-  loadingScoring = false;
+  
   
   // Pagination
   currentPage = 1;
@@ -46,7 +45,9 @@ export class AgentCompensationListComponent implements OnInit {
   
   constructor(
     private compensationService: CompensationService,
-    private toastr: ToastrService
+    private toastr: ToastrService,
+    private router: Router  // Ajoutez ceci
+
   ) {}
   
   ngOnInit(): void {
@@ -243,28 +244,10 @@ export class AgentCompensationListComponent implements OnInit {
   
   // Afficher les détails complets avec scoring
   viewDetails(compensation: Compensation): void {
-    this.selectedCompensation = compensation;
-    this.showDetailsModal = true;
-    this.loadingScoring = true;
-    
-    this.compensationService.getCompensationWithScoring(compensation.compensationId).subscribe({
-      next: (data) => {
-        this.scoringDetails = data;
-        this.loadingScoring = false;
-      },
-      error: (error) => {
-        console.error('Erreur chargement scoring:', error);
-        this.loadingScoring = false;
-        this.toastr.error('Impossible de charger les détails du scoring');
-      }
-    });
+     // Naviguer avec l'ID dans l'URL
+    this.router.navigate(['/public/agent/dashb', compensation.compensationId]);
   }
   
-  closeModal(): void {
-    this.showDetailsModal = false;
-    this.selectedCompensation = null;
-    this.scoringDetails = null;
-  }
   
   // Marquer comme payée
   markAsPaid(compensation: Compensation): void {
