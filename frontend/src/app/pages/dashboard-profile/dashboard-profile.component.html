@@ -65,27 +65,30 @@
           <div class="profile-card">
             <div class="card-body">
               <div class="photo-section">
-                <div class="profile-photo-wrapper">
-                  <img
-                    *ngIf="profilePhoto"
-                    [src]="profilePhoto"
-                    alt="Profile photo"
-                    class="profile-photo"
-                  />
-                  <div *ngIf="!profilePhoto" class="profile-photo-placeholder">
-                    <i class="fas fa-user-circle"></i>
-                  </div>
-                  <label for="photoUpload" class="photo-upload-btn">
-                    <i class="fas fa-camera"></i>
-                  </label>
-                  <input
-                    type="file"
-                    id="photoUpload"
-                    (change)="onPhotoSelected($event)"
-                    accept="image/*"
-                    style="display: none"
-                  />
-                </div>
+                <!-- Dans dashboard-profile.component.html - Modifiez la section photo -->
+
+<div class="profile-photo-wrapper">
+    <img
+        *ngIf="profilePhoto"
+        [src]="profilePhoto"
+        alt="Profile photo"
+        class="profile-photo"
+        (error)="handleImageError($event)"
+    />
+    <div *ngIf="!profilePhoto" class="profile-photo-placeholder d-flex">
+        <i class="fas fa-user-circle"></i>
+    </div>
+    <label for="photoUpload" class="photo-upload-btn">
+        <i class="fas fa-camera"></i>
+    </label>
+    <input
+        type="file"
+        id="photoUpload"
+        (change)="onPhotoSelected($event)"
+        accept="image/*"
+        style="display: none"
+    />
+</div>
                 <h3 class="user-name">{{ firstName }} {{ lastName }}</h3>
                 <p class="user-email">
                   <i class="fas fa-envelope"></i> {{ email }}

@@ -165,6 +165,36 @@ export class AuthService {
     }
   }
 
+  // Dans auth.service.ts - Ajoutez cette méthode
+
+updateProfileWithPhoto(userId: number, formData: FormData): Observable<any> {
+    const role = this.getRole();
+    let url = '';
+
+    switch (role) {
+        case 'CLIENT':
+            url = `http://localhost:8081/api/clients/update/${userId}`;
+            break;
+        case 'AGENT_FINANCE':
+            url = `http://localhost:8081/agents/finance/update/${userId}`;
+            break;
+        case 'AGENT_ASSURANCE':
+            url = `http://localhost:8081/agents-assurance/update/${userId}`;
+            break;
+        case 'ADMIN':
+            url = `http://localhost:8081/admins/update/${userId}`;
+            break;
+        default:
+            throw new Error('Role non supporté');
+    }
+
+    // Important: Ne pas set Content-Type, laissez Angular le faire
+    return this.http.put(url, formData, {
+        headers: { 
+            'Authorization': `Bearer ${this.getToken()}`
+        }
+    }).pipe(catchError(this.handleError));
+}
   updateProfile(userId: number, formData: FormData): Observable<any> {
     const role = this.getRole();
     let url = '';

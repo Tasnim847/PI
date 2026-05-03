@@ -48,12 +48,11 @@ public class ClientController {
     // =============================
     @PreAuthorize("hasAnyRole('ADMIN','CLIENT') and (#id == authentication.principal.id or hasRole('ADMIN'))")
     @PutMapping(value = "/update/{id}", consumes = "multipart/form-data")
-    public Client updateClient(
+    public ResponseEntity<?> updateClient(
             @PathVariable Long id,
             @RequestParam(required = false) String firstName,
             @RequestParam(required = false) String lastName,
             @RequestParam(required = false) String email,
-            @RequestParam(required = false) String password,
             @RequestParam(required = false) String telephone,
             @RequestParam(value = "photo", required = false) MultipartFile photo
     ) {
@@ -61,10 +60,10 @@ public class ClientController {
         client.setFirstName(firstName);
         client.setLastName(lastName);
         client.setEmail(email);
-        client.setPassword(password);
         client.setTelephone(telephone);
 
-        return clientService.updateClientById(id, client, photo);
+        Client updatedClient = clientService.updateClientById(id, client, photo);
+        return ResponseEntity.ok(updatedClient);
     }
 
     // =============================
