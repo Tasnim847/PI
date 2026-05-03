@@ -42,7 +42,20 @@ export class PaymentPageComponent implements OnInit, OnDestroy {
     cvv: ''
   };
   
-  // Variables pour paiement CASH
+  // Bank Transfer Properties
+  bankTransferDetails = {
+    rip: ''
+  };
+
+  bankBalanceInfo: {
+    balance: number;
+    sufficient: boolean;
+    error?: string;
+  } | null = null;
+
+  checkingBalance = false;
+  
+  // Cash Payment Properties
   pendingCashPayment: any = null;
   recentlyRejectedPaymentId: number | null = null;
   
@@ -74,11 +87,11 @@ export class PaymentPageComponent implements OnInit, OnDestroy {
       this.loadContractDetails();
       this.loadPayments();
     } else {
-      this.toastr.error('Contrat non trouvé');
+      this.toastr.error('Contract not found');
       this.router.navigate(['/public/insurance/my-contracts']);
     }
     
-    // Écouter les mises à jour des demandes CASH
+    // Listen for CASH request updates
     this.notificationService.listenForRequestUpdate().subscribe((request) => {
       if (request.paymentId && this.selectedPaymentId === request.paymentId) {
         if (request.status === 'approved') {
@@ -98,41 +111,41 @@ export class PaymentPageComponent implements OnInit, OnDestroy {
         this.clientEmail = payload.email || payload.sub || '';
         this.clientId = payload.id || payload.userId || 0;
       } catch (e) {
-        console.error('Erreur décodage token', e);
+        console.error('Token decode error', e);
       }
     }
   }
   
   async initStripe(): Promise<void> {
     if (!environment.stripePublicKey) {
-      console.error('❌ Clé Stripe non configurée');
+      console.error('❌ Stripe key not configured');
       return;
     }
     
     try {
       this.stripe = await loadStripe(environment.stripePublicKey);
       if (this.stripe) {
-        console.log('✅ Stripe initialisé avec succès');
+        console.log('✅ Stripe initialized successfully');
       }
     } catch (error) {
-      console.error('❌ Erreur Stripe:', error);
+      console.error('❌ Stripe error:', error);
     }
   }
   
   loadContractDetails(): void {
-  this.contractService.getContractById(this.contractId).subscribe({
-    next: (contract) => {
-      this.contract = contract;
-      console.log('📄 Contrat chargé:', contract);
-      console.log('👤 Agent ID (agentAssuranceId):', contract?.agentAssuranceId);
-      console.log('👤 Client:', contract?.client);
-    },
-    error: (err) => {
-      console.error('Error loading contract:', err);
-      this.toastr.error('Erreur lors du chargement du contrat');
-    }
-  });
-}
+    this.contractService.getContractById(this.contractId).subscribe({
+      next: (contract) => {
+        this.contract = contract;
+        console.log('📄 Contract loaded:', contract);
+        console.log('👤 Agent ID (agentAssuranceId):', contract?.agentAssuranceId);
+        console.log('👤 Client:', contract?.client);
+      },
+      error: (err) => {
+        console.error('Error loading contract:', err);
+        this.toastr.error('Error loading contract');
+      }
+    });
+  }
   
   loadPayments(): void {
     this.isLoading = true;
@@ -145,21 +158,20 @@ export class PaymentPageComponent implements OnInit, OnDestroy {
         this.currentPage = 1;
         this.updatePagination();
         
-        // Vérifier si le paiement récemment refusé est toujours PENDING
         if (this.recentlyRejectedPaymentId) {
           const rejectedPayment = this.allPayments.find(p => p.paymentId === this.recentlyRejectedPaymentId);
           if (rejectedPayment && rejectedPayment.status === 'PENDING') {
-            this.toastr.info('Le paiement refusé peut être reselectionné', 'Information');
+            this.toastr.info('Rejected payment can be reselected', 'Information');
           }
         }
         
         if (this.pendingCount === 0) {
-          this.toastr.info('Aucun paiement en attente pour ce contrat');
+          this.toastr.info('No pending payments for this contract');
         }
       },
       error: (err) => {
         console.error('Error loading payments:', err);
-        this.toastr.error('Erreur lors du chargement des paiements');
+        this.toastr.error('Error loading payments');
         this.isLoading = false;
       }
     });
@@ -199,12 +211,12 @@ export class PaymentPageComponent implements OnInit, OnDestroy {
   togglePayment(paymentId: number, amount: number, status: string): void {
     if (status !== 'PENDING') {
       if (status === 'PAID') {
-        this.toastr.warning('Ce paiement a déjà été effectué');
+        this.toastr.warning('This payment has already been made');
       }
       return;
     }
     
-    // Nettoyer l'indicateur de refus récent si on reselectionne
+    // Clear recent rejection indicator if reselecting
     if (this.recentlyRejectedPaymentId === paymentId) {
       this.recentlyRejectedPaymentId = null;
     }
@@ -228,14 +240,14 @@ export class PaymentPageComponent implements OnInit, OnDestroy {
       this.selectedPayments.add(firstPending.paymentId);
       this.totalSelectedAmount = firstPending.amount;
       this.selectedPaymentId = firstPending.paymentId;
-      this.toastr.info(`Tranche #${firstPending.paymentId} sélectionnée`);
+      this.toastr.info(`Installment #${firstPending.paymentId} selected`);
       
       const element = document.querySelector(`#payment-${firstPending.paymentId}`);
       if (element) {
         element.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }
     } else {
-      this.toastr.warning('Aucune tranche en attente');
+      this.toastr.warning('No pending installments');
     }
   }
   
@@ -244,6 +256,148 @@ export class PaymentPageComponent implements OnInit, OnDestroy {
     this.totalSelectedAmount = 0;
     this.selectedPaymentId = 0;
     this.recentlyRejectedPaymentId = null;
+  }
+  
+  checkBankBalance(): void {
+    const ripRegex = /^\d{21}$/;
+    if (!this.bankTransferDetails.rip || !ripRegex.test(this.bankTransferDetails.rip)) {
+      this.bankBalanceInfo = null;
+      if (this.bankTransferDetails.rip && this.bankTransferDetails.rip.length > 0) {
+        this.bankBalanceInfo = {
+          balance: 0,
+          sufficient: false,
+          error: 'RIP must contain exactly 21 digits'
+        };
+      }
+      return;
+    }
+  
+    this.checkingBalance = true;
+  
+    this.contractService.checkBankBalance(
+      this.bankTransferDetails.rip, 
+      this.totalSelectedAmount
+    ).subscribe({
+      next: (response) => {
+        this.checkingBalance = false;
+        this.bankBalanceInfo = {
+          balance: response.balance,
+          sufficient: response.sufficient
+        };
+      },
+      error: (err) => {
+        this.checkingBalance = false;
+        this.bankBalanceInfo = {
+          balance: 0,
+          sufficient: false,
+          error: err.error?.message || 'Error checking balance'
+        };
+      }
+    });
+  }
+
+  processBankTransferPayment(selectedPayment: any): void {
+    const ripRegex = /^\d{21}$/;
+    if (!this.bankTransferDetails.rip || !ripRegex.test(this.bankTransferDetails.rip)) {
+      this.toastr.error('Invalid RIP. Please enter exactly 21 digits');
+      this.processingPayment = false;
+      return;
+    }
+  
+    if (!this.bankBalanceInfo?.sufficient) {
+      this.toastr.error('Insufficient balance to make this payment');
+      this.processingPayment = false;
+      return;
+    }
+  
+    const paymentData = {
+      clientEmail: this.clientEmail,
+      contractId: this.contractId,
+      installmentAmount: selectedPayment.amount,
+      paymentType: 'BANK_TRANSFER',
+      remainingAmount: this.contract?.remainingAmount || 0,
+      sourceRip: this.bankTransferDetails.rip
+    };
+  
+    console.log('📤 Processing Bank Transfer payment:', paymentData);
+  
+    this.contractService.payByBankTransfer(paymentData).subscribe({
+      next: (response) => {
+        this.processingPayment = false;
+        this.toastr.success(`✅ Payment of ${selectedPayment.amount} DT completed successfully!`);
+        console.log('✅ Response:', response);
+      
+        setTimeout(() => {
+          this.loadPayments();
+          this.clearSelection();
+          this.bankTransferDetails.rip = '';
+          this.bankBalanceInfo = null;
+        }, 1000);
+      
+        setTimeout(() => {
+          this.router.navigate(['/public/insurance/my-contracts']);
+        }, 3000);
+      },
+      error: (err) => {
+        this.processingPayment = false;
+        console.error('❌ Error:', err);
+        const errorMsg = err.error?.error || err.message || 'Error processing payment';
+        this.toastr.error(errorMsg);
+      }
+    });
+  }
+
+  async processPayment(): Promise<void> {
+    if (this.selectedPayments.size === 0) {
+      this.toastr.warning('Please select an installment to pay');
+      return;
+    }
+  
+    const selectedPaymentId = Array.from(this.selectedPayments)[0];
+    const selectedPayment = this.allPayments.find(p => p.paymentId === selectedPaymentId);
+  
+    if (!selectedPayment) {
+      this.toastr.error('Error selecting payment');
+      return;
+    }
+  
+    if (selectedPayment.status !== 'PENDING') {
+      this.toastr.error('This installment has already been paid');
+      this.clearSelection();
+      return;
+    }
+  
+    if (!this.clientEmail) {
+      this.toastr.error('Client email not found. Please reconnect.');
+      return;
+    }
+  
+    this.processingPayment = true;
+  
+    if (this.paymentMethod === 'CASH') {
+      this.requestAgentApproval(selectedPayment);
+    } 
+    else if (this.paymentMethod === 'BANK_TRANSFER') {
+      if (!this.bankTransferDetails.rip || this.bankTransferDetails.rip.length !== 21) {
+        this.toastr.error('Please enter a valid 21-digit RIP');
+        this.processingPayment = false;
+        return;
+      }
+    
+      if (!this.bankBalanceInfo?.sufficient) {
+        this.toastr.error('Insufficient balance to make this payment');
+        this.processingPayment = false;
+        return;
+      }
+    
+      this.processBankTransferPayment(selectedPayment);
+    }
+    else if (this.paymentMethod === 'CARD') {
+      await this.processStripePayment(selectedPayment);
+    } 
+    else {
+      this.processManualPayment(selectedPayment);
+    }
   }
   
   async processStripePayment(selectedPayment: any): Promise<void> {
@@ -268,20 +422,20 @@ export class PaymentPageComponent implements OnInit, OnDestroy {
               
               if (result.error) {
                 this.processingPayment = false;
-                this.toastr.error('Erreur: ' + result.error.message);
+                this.toastr.error('Error: ' + result.error.message);
               } else if (result.paymentIntent?.status === 'succeeded') {
                 this.contractService.confirmPayment(result.paymentIntent.id).subscribe({
                   next: () => {
                     this.processingPayment = false;
-                    this.toastr.success('✅ Paiement effectué avec succès!');
+                    this.toastr.success('✅ Payment completed successfully!');
                     setTimeout(() => {
                       this.router.navigate(['/public/insurance/my-contracts']);
                     }, 2000);
                   },
                   error: (err) => {
                     this.processingPayment = false;
-                    console.error('Erreur confirmation:', err);
-                    this.toastr.success('Paiement effectué avec succès!');
+                    console.error('Confirmation error:', err);
+                    this.toastr.success('Payment completed successfully!');
                     setTimeout(() => {
                       this.router.navigate(['/public/insurance/my-contracts']);
                     }, 2000);
@@ -290,113 +444,92 @@ export class PaymentPageComponent implements OnInit, OnDestroy {
               }
             } catch (error) {
               this.processingPayment = false;
-              console.error('Erreur:', error);
-              this.toastr.error('Erreur lors du paiement');
+              console.error('Error:', error);
+              this.toastr.error('Error processing payment');
             }
           } else {
             this.processingPayment = false;
-            this.toastr.error('Erreur création paiement');
+            this.toastr.error('Error creating payment');
           }
         },
         error: (err) => {
           this.processingPayment = false;
-          console.error('Erreur:', err);
-          this.toastr.error('Erreur initialisation paiement');
+          console.error('Error:', err);
+          this.toastr.error('Error initializing payment');
         }
       });
     } catch (error) {
       this.processingPayment = false;
       console.error(error);
-      this.toastr.error('Erreur traitement');
+      this.toastr.error('Processing error');
     }
   }
-  
-  // ==================== MÉTHODES POUR PAIEMENT CASH ====================
   
   requestAgentApproval(selectedPayment: any): void {
-  // Récupérer l'ID de l'agent depuis le contrat (utiliser agentAssuranceId)
-  const agentId = this.contract?.agentAssuranceId || 0;
-  
-  console.log('🔍 Vérification avant envoi:');
-  console.log('  - agentAssuranceId:', agentId);
-  console.log('  - contractId:', this.contractId);
-  console.log('  - clientId:', this.clientId);
-  console.log('  - clientEmail:', this.clientEmail);
-  console.log('  - paymentId:', selectedPayment.paymentId);
-  console.log('  - amount:', selectedPayment.amount);
-  
-  if (!agentId || agentId === 0) {
-    this.toastr.error('Impossible de trouver votre agent d\'assurance. Veuillez contacter le support.', 'Erreur');
-    this.processingPayment = false;
-    return;
-  }
-  
-  if (!this.clientId || this.clientId === 0) {
-    this.toastr.error('Informations client manquantes. Veuillez vous reconnecter.', 'Erreur');
-    this.processingPayment = false;
-    return;
-  }
-  
-  this.pendingCashPayment = {
-    paymentId: selectedPayment.paymentId,
-    contractId: this.contractId,
-    clientId: this.clientId,
-    agentId: agentId,
-    amount: selectedPayment.amount,
-    clientName: `${this.contract?.client?.firstName || ''} ${this.contract?.client?.lastName || ''}`.trim(),
-    clientEmail: this.clientEmail,
-    requestedAt: new Date().toISOString(),
-    status: 'PENDING'
-  };
-  
-  console.log('📝 Demande CASH préparée:', JSON.stringify(this.pendingCashPayment, null, 2));
-  
-  // Sauvegarder la demande dans la base de données
-  this.saveApprovalRequestToBackend(selectedPayment);
-}
-  
-  saveApprovalRequestToBackend(selectedPayment: any): void {
-  const requestData = {
-    paymentId: Number(selectedPayment.paymentId),
-    contractId: Number(this.contractId),
-    clientId: Number(this.clientId),
-    agentId: Number(this.contract?.agentAssuranceId || 0),
-    amount: Number(selectedPayment.amount),
-    clientName: `${this.contract?.client?.firstName || ''} ${this.contract?.client?.lastName || ''}`.trim(),
-    clientEmail: this.clientEmail,
-    status: 'PENDING'
-  };
-  
-  console.log('📤 Envoi au backend:', JSON.stringify(requestData, null, 2));
-  
-  this.contractService.createCashRequest(requestData).subscribe({
-    next: (response) => {
-      console.log('✅ Demande enregistrée en base:', response);
-      this.showConfirmationPopup(selectedPayment);
-    },
-    error: (err) => {
-      console.error('❌ Erreur sauvegarde demande:', err);
-      console.error('Détails erreur:', err.error);
-      this.toastr.error(`Erreur: ${err.error?.message || 'Erreur serveur'}`, 'Erreur');
+    const agentId = this.contract?.agentAssuranceId || 0;
+    
+    console.log('🔍 Verification before sending:');
+    console.log('  - agentAssuranceId:', agentId);
+    console.log('  - contractId:', this.contractId);
+    console.log('  - clientId:', this.clientId);
+    console.log('  - clientEmail:', this.clientEmail);
+    console.log('  - paymentId:', selectedPayment.paymentId);
+    console.log('  - amount:', selectedPayment.amount);
+    
+    if (!agentId || agentId === 0) {
+      this.toastr.error('Unable to find your insurance agent. Please contact support.', 'Error');
       this.processingPayment = false;
+      return;
     }
-  });
-}
-  
-  saveToLocalStorage(selectedPayment: any, requestId: number): void {
-    const pendingRequests = this.getPendingApprovalRequests();
-    const newRequest = {
-      id: requestId,
+    
+    if (!this.clientId || this.clientId === 0) {
+      this.toastr.error('Missing client information. Please reconnect.', 'Error');
+      this.processingPayment = false;
+      return;
+    }
+    
+    this.pendingCashPayment = {
       paymentId: selectedPayment.paymentId,
       contractId: this.contractId,
+      clientId: this.clientId,
+      agentId: agentId,
       amount: selectedPayment.amount,
+      clientName: `${this.contract?.client?.firstName || ''} ${this.contract?.client?.lastName || ''}`.trim(),
       clientEmail: this.clientEmail,
-      clientName: `${this.contract?.client?.firstName || ''} ${this.contract?.client?.lastName || ''}`,
       requestedAt: new Date().toISOString(),
-      status: 'pending'
+      status: 'PENDING'
     };
-    pendingRequests.push(newRequest);
-    localStorage.setItem('pendingCashApprovals', JSON.stringify(pendingRequests));
+    
+    console.log('📝 CASH request prepared:', JSON.stringify(this.pendingCashPayment, null, 2));
+    this.saveApprovalRequestToBackend(selectedPayment);
+  }
+  
+  saveApprovalRequestToBackend(selectedPayment: any): void {
+    const requestData = {
+      paymentId: Number(selectedPayment.paymentId),
+      contractId: Number(this.contractId),
+      clientId: Number(this.clientId),
+      agentId: Number(this.contract?.agentAssuranceId || 0),
+      amount: Number(selectedPayment.amount),
+      clientName: `${this.contract?.client?.firstName || ''} ${this.contract?.client?.lastName || ''}`.trim(),
+      clientEmail: this.clientEmail,
+      status: 'PENDING'
+    };
+    
+    console.log('📤 Sending to backend:', JSON.stringify(requestData, null, 2));
+    
+    this.contractService.createCashRequest(requestData).subscribe({
+      next: (response) => {
+        console.log('✅ Request saved to database:', response);
+        this.showConfirmationPopup(selectedPayment);
+      },
+      error: (err) => {
+        console.error('❌ Error saving request:', err);
+        console.error('Error details:', err.error);
+        this.toastr.error(`Error: ${err.error?.message || 'Server error'}`, 'Error');
+        this.processingPayment = false;
+      }
+    });
   }
   
   getPendingApprovalRequests(): any[] {
@@ -405,20 +538,17 @@ export class PaymentPageComponent implements OnInit, OnDestroy {
   }
   
   showConfirmationPopup(selectedPayment: any): void {
-    // Afficher une simple popup de confirmation
     this.toastr.success(
-      `✅ Demande de paiement de ${selectedPayment.amount} DT envoyée à votre agent.`, 
-      'Demande envoyée',
+      `✅ Payment request of ${selectedPayment.amount} DT sent to your agent.`, 
+      'Request Sent',
       { timeOut: 3000 }
     );
     
-    // Réinitialiser l'état de sélection
     this.clearSelection();
     this.processingPayment = false;
   }
   
   startApprovalPolling(paymentId: number): void {
-    // Vérifier le statut toutes les 5 secondes
     const interval = setInterval(() => {
       this.contractService.getCashRequestStatus(paymentId).subscribe({
         next: (requests) => {
@@ -434,42 +564,34 @@ export class PaymentPageComponent implements OnInit, OnDestroy {
           }
         },
         error: (err) => {
-          console.error('Erreur vérification statut:', err);
+          console.error('Error checking status:', err);
         }
       });
     }, 5000);
     
-    // Timeout après 5 minutes
     setTimeout(() => {
       clearInterval(interval);
     }, 5 * 60 * 1000);
   }
   
   handleAgentApproval(paymentId: number): void {
-    this.toastr.success('✅ Votre paiement a été approuvé par l\'agent!', 'Approuvé');
+    this.toastr.success('✅ Your payment has been approved by the agent!', 'Approved');
     
-    // Récupérer le paiement approuvé
     const selectedPayment = this.allPayments.find(p => p.paymentId === paymentId);
     if (selectedPayment) {
       this.processCashPaymentAfterApproval(selectedPayment);
     }
     
-    // Recharger les paiements pour mettre à jour l'affichage
     this.loadPayments();
   }
   
   handleAgentRejection(paymentId: number, reason?: string): void {
-    this.toastr.error(`❌ Paiement refusé: ${reason || 'Contacter votre agent'}`, 'Refusé');
-    
-    // Marquer ce paiement comme récemment refusé
+    this.toastr.error(`❌ Payment rejected: ${reason || 'Contact your agent'}`, 'Rejected');
     this.recentlyRejectedPaymentId = paymentId;
-    
-    // Recharger les paiements
     this.loadPayments();
     
-    // Message pour ressayer
     setTimeout(() => {
-      this.toastr.info('Vous pouvez sélectionner à nouveau cette tranche', 'Information');
+      this.toastr.info('You can select this installment again', 'Information');
     }, 3000);
   }
   
@@ -478,22 +600,22 @@ export class PaymentPageComponent implements OnInit, OnDestroy {
       this.handleAgentApproval(request.paymentId);
     } else {
       this.loadPayments();
-      this.toastr.success('Votre paiement a été approuvé par l\'agent', 'Approuvé');
+      this.toastr.success('Your payment has been approved by the agent', 'Approved');
     }
   }
   
   handleAgentRejectionFromNotification(request: any): void {
     if (this.pendingCashPayment && this.pendingCashPayment.paymentId === request.paymentId) {
-      this.handleAgentRejection(request.paymentId, request.rejectionReason || 'Refusé par l\'agent');
+      this.handleAgentRejection(request.paymentId, request.rejectionReason || 'Rejected by agent');
     } else {
-      this.toastr.warning(`Votre demande de paiement a été refusée`, 'Refusé');
+      this.toastr.warning(`Your payment request has been rejected`, 'Rejected');
       this.loadPayments();
     }
   }
   
   processCashPaymentAfterApproval(selectedPayment: any): void {
     if (!this.clientEmail) {
-      this.toastr.error('Email client non trouvé. Veuillez vous reconnecter.');
+      this.toastr.error('Client email not found. Please reconnect.');
       return;
     }
     
@@ -507,14 +629,13 @@ export class PaymentPageComponent implements OnInit, OnDestroy {
       remainingAmount: this.contract?.remainingAmount || 0
     };
     
-    console.log('📤 Traitement paiement CASH approuvé:', paymentData);
+    console.log('📤 Processing approved CASH payment:', paymentData);
     
     this.contractService.processApprovedCashPayment(paymentData).subscribe({
       next: (response) => {
         this.processingPayment = false;
-        this.toastr.success('✅ Paiement en espèces effectué avec succès!');
+        this.toastr.success('✅ Cash payment completed successfully!');
         
-        // Supprimer la demande du localStorage
         this.removeApprovalRequest(selectedPayment.paymentId);
         
         setTimeout(() => {
@@ -528,11 +649,9 @@ export class PaymentPageComponent implements OnInit, OnDestroy {
       },
       error: (err) => {
         this.processingPayment = false;
-        console.error('❌ Erreur:', err);
-        const errorMsg = err.error?.error || err.message || 'Erreur lors du paiement';
+        console.error('❌ Error:', err);
+        const errorMsg = err.error?.error || err.message || 'Error processing payment';
         this.toastr.error(errorMsg);
-        
-        // En cas d'erreur, remettre la demande en attente
         this.markRequestAsFailed(selectedPayment.paymentId);
       }
     });
@@ -554,47 +673,6 @@ export class PaymentPageComponent implements OnInit, OnDestroy {
     }
   }
   
-  // ==================== FIN MÉTHODES CASH ====================
-  
-  async processPayment(): Promise<void> {
-    if (this.selectedPayments.size === 0) {
-      this.toastr.warning('Veuillez sélectionner une tranche à payer');
-      return;
-    }
-    
-    const selectedPaymentId = Array.from(this.selectedPayments)[0];
-    const selectedPayment = this.allPayments.find(p => p.paymentId === selectedPaymentId);
-    
-    if (!selectedPayment) {
-      this.toastr.error('Erreur lors de la sélection du paiement');
-      return;
-    }
-    
-    if (selectedPayment.status !== 'PENDING') {
-      this.toastr.error('Cette tranche a déjà été payée');
-      this.clearSelection();
-      return;
-    }
-    
-    if (!this.clientEmail) {
-      this.toastr.error('Email client non trouvé. Veuillez vous reconnecter.');
-      return;
-    }
-    
-    this.processingPayment = true;
-    
-    if (this.paymentMethod === 'CASH') {
-      // Pour CASH: envoyez la demande et fermez immédiatement
-      this.requestAgentApproval(selectedPayment);
-    } 
-    else if (this.paymentMethod === 'CARD') {
-      await this.processStripePayment(selectedPayment);
-    } 
-    else {
-      this.processManualPayment(selectedPayment);
-    }
-  }
-  
   processManualPayment(selectedPayment: any): void {
     let paymentTypeValue: string;
     if (this.paymentMethod === 'BANK_TRANSFER') {
@@ -611,13 +689,13 @@ export class PaymentPageComponent implements OnInit, OnDestroy {
       remainingAmount: this.contract?.remainingAmount || 0
     };
     
-    console.log('📤 Envoi paiement manuel:', paymentData);
+    console.log('📤 Sending manual payment:', paymentData);
     
     this.contractService.makePayment(paymentData).subscribe({
       next: (response) => {
         this.processingPayment = false;
-        this.toastr.success('Paiement effectué avec succès!');
-        console.log('✅ Réponse:', response);
+        this.toastr.success('Payment completed successfully!');
+        console.log('✅ Response:', response);
         
         setTimeout(() => {
           this.loadPayments();
@@ -630,8 +708,8 @@ export class PaymentPageComponent implements OnInit, OnDestroy {
       },
       error: (err) => {
         this.processingPayment = false;
-        console.error('❌ Erreur:', err);
-        const errorMsg = err.error?.error || err.message || 'Erreur lors du paiement';
+        console.error('❌ Error:', err);
+        const errorMsg = err.error?.error || err.message || 'Error processing payment';
         this.toastr.error(errorMsg);
       }
     });
@@ -649,10 +727,10 @@ export class PaymentPageComponent implements OnInit, OnDestroy {
   
   getStatusLabel(status: string): string {
     switch(status) {
-      case 'PAID': return 'Payé';
-      case 'PENDING': return 'En attente';
-      case 'FAILED': return 'Échoué';
-      case 'LATE': return 'En retard';
+      case 'PAID': return 'Paid';
+      case 'PENDING': return 'Pending';
+      case 'FAILED': return 'Failed';
+      case 'LATE': return 'Late';
       default: return status;
     }
   }
@@ -660,7 +738,7 @@ export class PaymentPageComponent implements OnInit, OnDestroy {
   formatDate(date: string): string {
     if (!date) return 'N/A';
     const d = new Date(date);
-    return d.toLocaleDateString('fr-FR', {
+    return d.toLocaleDateString('en-US', {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric'
@@ -672,6 +750,6 @@ export class PaymentPageComponent implements OnInit, OnDestroy {
   }
   
   ngOnDestroy(): void {
-    // Nettoyage si nécessaire
+    // Cleanup if needed
   }
 }

@@ -589,4 +589,89 @@ public class CompensationService implements ICompensationService {
                 .sum();
     }
 
+    // Dans CompensationService.java - Remplacer la méthode markAsPaid existante
+
+    /**
+     * ADMIN: Marquer une compensation comme payée et créditer le compte du client
+     */
+    @Transactional
+    public CompensationDTO markAsPaidByAdmin(Long compensationId) {
+        Compensation compensation = compensationRepository.findById(compensationId)
+                .orElseThrow(() -> new RuntimeException("Compensation not found"));
+
+        if (compensation.getStatus() == CompensationStatus.PAID) {
+            throw new RuntimeException("Cette compensation a déjà été payée !");
+        }
+
+        // 1. Récupérer le client via le claim
+        Claim claim = compensation.getClaim();
+        if (claim == null) {
+            throw new RuntimeException("Claim non trouvé pour cette compensation");
+        }
+
+        Client client = claim.getClient();
+        if (client == null) {
+            throw new RuntimeException("Client non trouvé pour cette compensation");
+        }
+
+        // 2. Récupérer le compte du client
+        Account account = accountRepository.findByClientId(client.getId()).stream()
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("Aucun compte trouvé pour le client " + client.getEmail()));
+
+        // 3. Le montant à créditer = montant assurance (amount)
+        double insuranceAmount = compensation.getAmount();
+
+        // 4. Créditer le compte du client
+        Transaction creditTransaction = new Transaction();
+        creditTransaction.setAccount(account);
+        creditTransaction.setAmount(insuranceAmount);
+        creditTransaction.setType(TransactionType.DEPOSIT.name());
+        creditTransaction.setDate(LocalDate.now());
+        creditTransaction.setDescription(String.format("Remboursement assurance - Compensation #%d", compensationId));
+        transactionRepository.save(creditTransaction);
+
+        // 5. Mettre à jour le solde
+        account.setBalance(account.getBalance() + insuranceAmount);
+        accountRepository.save(account);
+
+        // 6. Marquer la compensation comme payée
+        compensation.setStatus(CompensationStatus.PAID);
+        compensation.setPaymentDate(new Date());
+        compensation = compensationRepository.save(compensation);
+
+        // 7. Envoyer un email de confirmation au client
+        try {
+            if (client.getEmail() != null) {
+                String subject = "✅ Votre compensation a été versée - " + insuranceAmount + " DT";
+                String message = String.format(
+                        "Bonjour %s %s,\n\n" +
+                                "Nous vous confirmons que le montant de %.2f DT a été crédité sur votre compte.\n\n" +
+                                "📊 Détails de la transaction :\n" +
+                                "• Compensation n°: %d\n" +
+                                "• Montant crédité: +%.2f DT\n" +
+                                "• Nouveau solde: %.2f DT\n" +
+                                "• Date: %s\n\n" +
+                                "Cordialement,\n" +
+                                "Votre service assurance",
+                        client.getFirstName(),
+                        client.getLastName(),
+                        insuranceAmount,
+                        compensationId,
+                        insuranceAmount,
+                        account.getBalance(),
+                        new Date().toString()
+                );
+                emailService.sendGenericEmail(client.getEmail(), subject, message);
+            }
+        } catch (Exception e) {
+            log.error("❌ Erreur lors de l'envoi de l'email: {}", e.getMessage());
+        }
+
+        log.info("💰 ADMIN: Compensation {} payée - {} DT crédités au compte du client {}",
+                compensationId, insuranceAmount, client.getEmail());
+
+        return CompensationMapper.toDTO(compensation);
+    }
+
 }

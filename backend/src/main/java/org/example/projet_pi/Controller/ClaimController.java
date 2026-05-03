@@ -7,6 +7,10 @@ import org.example.projet_pi.Dto.ClaimDTO;
 import org.example.projet_pi.Dto.CompensationDetailsDTO;
 import org.example.projet_pi.Dto.DocumentDTO;
 import org.example.projet_pi.Service.ClaimService;
+import org.example.projet_pi.Service.DocumentService;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -19,10 +23,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @RestController
@@ -32,6 +34,7 @@ public class ClaimController {
 
     private final ClaimService claimService;
     private final ObjectMapper objectMapper;
+    private final DocumentService documentService;
 
     // ⚠️ SUPPRIMER cette méthode pour éviter le conflit
     /*
@@ -185,10 +188,11 @@ public class ClaimController {
         }
     }
 
+    // ClaimController.java - Version corrigée pour stocker le chemin absolu
     private String saveFile(MultipartFile file) {
         try {
-            // Créer le dossier uploads/claims/
-            String uploadDir = "uploads/claims/";
+            // Créer le dossier uploads/claims/ dans le répertoire de l'application
+            String uploadDir = System.getProperty("user.dir") + "/uploads/claims/";
             Path uploadPath = Paths.get(uploadDir).toAbsolutePath().normalize();
 
             // Créer le dossier s'il n'existe pas
@@ -219,12 +223,73 @@ public class ClaimController {
 
             log.info("Fichier sauvegardé: {}", filePath);
 
-            // Retourner le chemin relatif pour la BDD
-            return "uploads/claims/" + fileName;
+            // Retourner le chemin ABSOLU pour la BDD
+            return filePath.toString();
 
         } catch (IOException e) {
             log.error("Erreur lors de la sauvegarde du fichier", e);
             throw new RuntimeException("Erreur lors de la sauvegarde du fichier: " + e.getMessage());
         }
+    }
+
+    // Ajoutez cette méthode dans ClaimController.java
+
+    @GetMapping("/download/{documentId}")
+    public ResponseEntity<Resource> downloadDocument(
+            @PathVariable Long documentId,
+            @AuthenticationPrincipal UserDetails currentUser) {
+        try {
+            // Récupérer le document depuis la BDD
+            DocumentDTO document = documentService.getDocumentById(documentId, currentUser.getUsername());
+
+            String filePath = document.getFilePath();
+            Path path = Paths.get(filePath);
+
+            if (!Files.exists(path)) {
+                // Essayer le chemin relatif
+                String alternativePath = System.getProperty("user.dir") + "/" + filePath;
+                path = Paths.get(alternativePath);
+
+                if (!Files.exists(path)) {
+                    return ResponseEntity.notFound().build();
+                }
+            }
+
+            Resource resource = new UrlResource(path.toUri());
+
+            return ResponseEntity.ok()
+                    .contentType(MediaType.parseMediaType(document.getType()))
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + document.getName() + "\"")
+                    .body(resource);
+
+        } catch (Exception e) {
+            log.error("Erreur lors du téléchargement du document {}", documentId, e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    // Ajoutez cette méthode pour lister les fichiers (debug)
+    @GetMapping("/debug/files")
+    public ResponseEntity<Map<String, Object>> debugFiles() {
+        String uploadDir = System.getProperty("user.dir") + "/uploads/claims/";
+        Path uploadPath = Paths.get(uploadDir);
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("uploadDirectory", uploadPath.toString());
+        result.put("directoryExists", Files.exists(uploadPath));
+
+        List<String> files = new ArrayList<>();
+        if (Files.exists(uploadPath)) {
+            try {
+                files = Files.list(uploadPath)
+                        .map(Path::toString)
+                        .collect(Collectors.toList());
+            } catch (IOException e) {
+                files.add("Error listing files: " + e.getMessage());
+            }
+        }
+        result.put("files", files);
+
+        return ResponseEntity.ok(result);
     }
 }

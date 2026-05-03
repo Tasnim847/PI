@@ -1031,3 +1031,70 @@ body {
 .shadow-pastel {
   box-shadow: var(--shadow-md);
 }
+
+
+/* ============================================
+   CORRECTION BOUTONS MODALS - FORCER LA VISIBILITÉ
+   ============================================ */
+
+/* Bouton Activate (vert) */
+.modal-footer .btn-success {
+  background: linear-gradient(135deg, #7BA87F 0%, #5E8B62 100%) !important;
+  border: none !important;
+  color: white !important;
+  font-weight: 600 !important;
+  padding: 0.6rem 1.5rem !important;
+  border-radius: 40px !important;
+  box-shadow: 0 2px 8px rgba(123, 168, 127, 0.3) !important;
+}
+
+.modal-footer .btn-success:hover {
+  transform: translateY(-2px) !important;
+  background: linear-gradient(135deg, #5E8B62 0%, #4A6E4D 100%) !important;
+  box-shadow: 0 6px 16px rgba(123, 168, 127, 0.4) !important;
+}
+
+/* Bouton Cancel (gris) */
+.modal-footer .btn-secondary {
+  background: #CBD5E1 !important;
+  border: none !important;
+  color: #3A5A75 !important;
+  font-weight: 600 !important;
+  padding: 0.6rem 1.5rem !important;
+  border-radius: 40px !important;
+}
+
+.modal-footer .btn-secondary:hover {
+  background: #A0B3C9 !important;
+  transform: translateY(-2px) !important;
+}
+
+/* Bouton Reject (rouge) */
+.modal-footer .btn-danger {
+  background: linear-gradient(135deg, #D4A5A5 0%, #C49494 100%) !important;
+  border: none !important;
+  color: white !important;
+  font-weight: 600 !important;
+  padding: 0.6rem 1.5rem !important;
+  border-radius: 40px !important;
+  box-shadow: 0 2px 8px rgba(212, 165, 165, 0.3) !important;
+}
+
+.modal-footer .btn-danger:hover {
+  transform: translateY(-2px) !important;
+  background: linear-gradient(135deg, #C49494 0%, #B48484 100%) !important;
+  box-shadow: 0 6px 16px rgba(212, 165, 165, 0.4) !important;
+}
+
+/* Bouton Close (X) */
+.modal-header .btn-close {
+  background-color: rgba(255, 255, 255, 0.9) !important;
+  border-radius: 50% !important;
+  padding: 0.5rem !important;
+  opacity: 1 !important;
+}
+
+.modal-header .btn-close:hover {
+  background-color: white !important;
+  transform: rotate(90deg) !important;
+}

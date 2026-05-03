@@ -215,25 +215,52 @@ export class ListAllCompensationsComponent implements OnInit {
     this.scoringDetails = null;
   }
   
-  // Marquer comme payée
-  markAsPaid(compensation: Compensation): void {
-    if (confirm(`Confirmer le paiement de la compensation #${compensation.compensationId} ?`)) {
-      this.compensationService.markAsPaid(compensation.compensationId).subscribe({
-        next: (response) => {
+  // Dans list-all-compensations.component.ts - Améliorer markAsPaid
+
+markAsPaid(compensation: Compensation): void {
+  if (confirm(`Confirmer le paiement de la compensation #${compensation.compensationId} ?\n\nLe montant de ${this.formatAmount(compensation.amount)} sera crédité sur le compte du client.`)) {
+    
+    // Afficher un indicateur de chargement
+    this.loading = true;
+    
+    this.compensationService.markAsPaid(compensation.compensationId).subscribe({
+      next: (response: any) => {
+        // Vérifier si la réponse contient les données de transaction
+        if (response.body?.success || response.status === 200) {
+          this.successMessage = `✅ Compensation #${compensation.compensationId} payée - ${this.formatAmount(compensation.amount)} crédités au compte client`;
+          this.toastr.success(this.successMessage);
+        } else {
           this.successMessage = `Compensation #${compensation.compensationId} marquée comme payée`;
-          this.toastr.success(`Compensation #${compensation.compensationId} marquée comme payée`);
-          this.loadAllCompensations();
-          setTimeout(() => this.successMessage = '', 3000);
-        },
-        error: (err: any) => {
-          console.error('Erreur:', err);
-          this.errorMessage = err.error?.error || 'Erreur lors du paiement';
-          this.toastr.error(this.errorMessage);
-          setTimeout(() => this.errorMessage = '', 3000);
+          this.toastr.success(this.successMessage);
         }
-      });
-    }
+        
+        // Recharger la liste
+        this.loadAllCompensations();
+        
+        // Effacer le message après 5 secondes
+        setTimeout(() => this.successMessage = '', 5000);
+        this.loading = false;
+      },
+      error: (err: any) => {
+        console.error('Erreur lors du paiement:', err);
+        let errorMsg = err.error?.error || err.error?.message || 'Erreur lors du paiement';
+        
+        // Message d'erreur plus spécifique
+        if (errorMsg.includes('compte')) {
+          errorMsg = '❌ ' + errorMsg;
+        } else {
+          errorMsg = '❌ Erreur: ' + errorMsg;
+        }
+        
+        this.errorMessage = errorMsg;
+        this.toastr.error(this.errorMessage);
+        this.loading = false;
+        
+        setTimeout(() => this.errorMessage = '', 5000);
+      }
+    });
   }
+}
   
   // Recalculer la compensation
   recalculate(compensation: Compensation): void {

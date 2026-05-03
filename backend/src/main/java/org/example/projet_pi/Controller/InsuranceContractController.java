@@ -100,10 +100,34 @@ public class InsuranceContractController {
     }
 
     @PutMapping("/activate/{id}")
-    public InsuranceContractDTO activateContract(
+    public ResponseEntity<?> activateContract(
             @PathVariable Long id,
             @AuthenticationPrincipal UserDetails currentUser) {
-        return contractService.activateContract(id, currentUser.getUsername());
+
+        System.out.println("=== ACTIVATION CONTRAT ===");
+        System.out.println("ID contrat: " + id);
+        System.out.println("Utilisateur: " + currentUser.getUsername());
+        System.out.println("Rôles: " + currentUser.getAuthorities());
+
+        try {
+            InsuranceContractDTO activatedContract = contractService.activateContract(id, currentUser.getUsername());
+            System.out.println("✅ Contrat activé avec succès: " + activatedContract.getContractId());
+
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "message", "Contrat activé avec succès",
+                    "contract", activatedContract
+            ));
+        } catch (AccessDeniedException e) {
+            System.err.println("❌ Accès refusé: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Map.of("error", e.getMessage()));
+        } catch (Exception e) {
+            System.err.println("❌ Erreur lors de l'activation: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("error", e.getMessage()));
+        }
     }
 
     @PutMapping("/activate-with-notification/{id}")
