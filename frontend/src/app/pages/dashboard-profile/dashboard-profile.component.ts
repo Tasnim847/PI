@@ -1,8 +1,11 @@
+// dashboard-profile.component.ts (Version corrigée)
+
 import { Component, OnInit, Inject, PLATFORM_ID } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { AuthService } from '../../services/auth.service';
+import { AuthService, UserInfo } from '../../services/auth.service';
+import { ChangeDetectorRef } from '@angular/core';
 
 @Component({
   selector: 'app-dashboard-profile',
@@ -32,6 +35,7 @@ export class DashboardProfileComponent implements OnInit {
   constructor(
     private auth: AuthService,
     private router: Router,
+    private cdr: ChangeDetectorRef,
     @Inject(PLATFORM_ID) private platformId: Object
   ) {
     this.isBrowser = isPlatformBrowser(this.platformId);
@@ -68,13 +72,35 @@ export class DashboardProfileComponent implements OnInit {
         this.telephone = user.telephone;
         this.role = user.role;
 
+        // Mettre à jour le localStorage
         if (user.id && this.isBrowser) {
           localStorage.setItem('userId', user.id.toString());
+          localStorage.setItem('firstName', user.firstName);
+          localStorage.setItem('lastName', user.lastName);
+          localStorage.setItem('userEmail', user.email);
+          localStorage.setItem('role', user.role);
+          
+          // Mettre à jour l'objet user_info
+          const userInfo: UserInfo = {
+            id: user.id,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            email: user.email,
+            role: user.role,
+            telephone: user.telephone,
+            photo: user.photo
+          };
+          localStorage.setItem('user_info', JSON.stringify(userInfo));
         }
 
+        // 🔥 CORRECTION : Ajouter un timestamp pour éviter le cache
         if (user.photo) {
-          this.profilePhoto = `http://localhost:8081/uploads/${user.photo}`;
+          this.profilePhoto = `http://localhost:8081/uploads/${user.photo}?t=${new Date().getTime()}`;
+        } else {
+          this.profilePhoto = '';
         }
+        
+        this.cdr.detectChanges();
       },
       error: (err) => {
         console.error('Error loading user data:', err);
@@ -156,7 +182,6 @@ export class DashboardProfileComponent implements OnInit {
 
     this.auth.changePassword(role, request).subscribe({
       next: (response: any) => {
-        // ✅ Backend retourne une string, pas un objet {success, message}
         console.log('Password change response:', response);
         alert('✅ Password changed successfully');
         this.currentPassword = '';
@@ -178,41 +203,112 @@ export class DashboardProfileComponent implements OnInit {
     });
   }
 
-  onPhotoSelected(event: any) {
+  // Dans dashboard-profile.component.ts
+
+// Version améliorée avec prévisualisation
+
+onPhotoSelected(event: any) {
     if (!this.isBrowser) return;
 
     const file = event.target.files[0];
     if (!file) return;
 
+    // Validation
     if (file.size > 5 * 1024 * 1024) {
-      alert('❌ File size must be less than 5MB');
-      return;
+        alert('❌ File size must be less than 5MB');
+        return;
     }
 
     if (!file.type.startsWith('image/')) {
-      alert('❌ Please select an image file');
-      return;
+        alert('❌ Please select an image file');
+        return;
     }
+
+    // Afficher l'aperçu immédiatement
+    const reader = new FileReader();
+    reader.onload = (e: any) => {
+        this.profilePhoto = e.target.result; // Aperçu local
+        this.cdr.detectChanges();
+    };
+    reader.readAsDataURL(file);
 
     const userId = this.auth.getUserId();
     if (!userId) {
-      alert('❌ User ID not found');
-      return;
+        alert('❌ User ID not found');
+        return;
     }
 
-    this.auth.uploadPhoto(userId, file).subscribe({
-      next: (response: any) => {
-        console.log('Photo upload response:', response);
-        alert('✅ Profile photo updated!');
-        this.loadUserData();
-      },
-      error: (err) => {
-        console.error('Photo upload error:', err);
-        alert('❌ Error uploading photo');
-      }
-    });
-  }
+    // Upload
+    const formData = new FormData();
+    formData.append('firstName', this.firstName);
+    formData.append('lastName', this.lastName);
+    formData.append('email', this.email);
+    formData.append('telephone', this.telephone);
+    formData.append('photo', file);
 
+    this.auth.updateProfileWithPhoto(userId, formData).subscribe({
+        next: (response: any) => {
+            console.log('Profile update response:', response);
+            alert('✅ Profile photo updated!');
+            
+            // Récupérer l'URL complète avec timestamp anti-cache
+            if (response && response.photo) {
+                const timestamp = new Date().getTime();
+                this.profilePhoto = `http://localhost:8081/uploads/${response.photo}?t=${timestamp}`;
+                
+                // Mettre à jour le localStorage
+                const currentUser = this.auth.getCurrentUser();
+                if (currentUser) {
+                    currentUser.photo = response.photo;
+                    this.auth.setCurrentUser(currentUser);
+                }
+            }
+            
+            this.cdr.detectChanges();
+        },
+        error: (err) => {
+            console.error('Photo upload error:', err);
+            alert('❌ Error uploading photo');
+            // Recharger l'ancienne photo en cas d'erreur
+            this.loadUserData();
+        }
+    });
+}
+
+updateProfile() {
+    if (!this.isBrowser) return;
+
+    const userId = this.auth.getUserId();
+    if (!userId) {
+        alert('❌ User ID not found');
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append('firstName', this.firstName);
+    formData.append('lastName', this.lastName);
+    formData.append('email', this.email);
+    formData.append('telephone', this.telephone);
+
+    this.auth.updateProfile(userId, formData).subscribe({
+        next: (response: any) => {
+            console.log('Profile update response:', response);
+            alert('✅ Profile updated successfully');
+            
+            // Mettre à jour la photo si elle a changée
+            if (response.photo) {
+                this.profilePhoto = `http://localhost:8081/uploads/${response.photo}?t=${new Date().getTime()}`;
+            }
+            
+            this.loadUserData();
+            this.isEditing = false;
+        },
+        error: (err) => {
+            console.error('Profile update error:', err);
+            alert('❌ Error updating profile');
+        }
+    });
+}
   logout() {
     if (this.isBrowser) {
       this.auth.logout();
@@ -220,37 +316,26 @@ export class DashboardProfileComponent implements OnInit {
     this.router.navigate(['/']);
   }
 
-  updateProfile() {
-    if (!this.isBrowser) return;
+  // Dans dashboard-profile.component.ts
 
-    const userId = this.auth.getUserId();
-    if (!userId) {
-      alert('❌ User ID not found');
-      return;
-    }
-
-    const formData = new FormData();
-    formData.append('firstName', this.firstName);
-    formData.append('lastName', this.lastName);
-    formData.append('telephone', this.telephone);
-
-    this.auth.updateProfile(userId, formData).subscribe({
-      next: (response: any) => {
-        console.log('Profile update response:', response);
-        alert('✅ Profile updated successfully');
-        this.loadUserData();
-        this.isEditing = false;
-      },
-      error: (err) => {
-        console.error('Profile update error:', err);
-        if (err.status === 403) {
-          alert('❌ You don\'t have permission to update this profile');
-        } else if (err.error && typeof err.error === 'string') {
-          alert(`❌ ${err.error}`);
-        } else {
-          alert('❌ Error updating profile');
+handleImageError(event: any) {
+    console.warn('Failed to load image:', this.profilePhoto);
+    event.target.style.display = 'none';
+    
+    // Afficher le placeholder
+    const wrapper = event.target.parentElement;
+    if (wrapper) {
+        const placeholder = wrapper.querySelector('.profile-photo-placeholder');
+        if (placeholder) {
+            placeholder.classList.remove('d-none');
+            placeholder.classList.add('d-flex');
         }
-      }
-    });
-  }
+    }
+    
+    // Réinitialiser pour éviter les erreurs répétées
+    if (this.profilePhoto) {
+        this.profilePhoto = '';
+    }
+    this.cdr.detectChanges();
+}
 }

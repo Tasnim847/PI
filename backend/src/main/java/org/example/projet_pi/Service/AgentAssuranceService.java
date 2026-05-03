@@ -95,18 +95,33 @@ public class AgentAssuranceService implements IAgentAssuranceService {
         agentAssuranceRepository.save(agent);
     }
 
+    // Dans ClientService.java, AgentFinanceService.java, AgentAssuranceService.java
+
     private String uploadPhoto(MultipartFile file) {
         try {
-            String uploadDir = "uploads/";
+            // Chemin absolu vers le dossier uploads dans le projet
+            String projectPath = System.getProperty("user.dir");
+            String uploadDir = projectPath + "/uploads/";
+
+            // Créer un nom de fichier unique
             String fileName = System.currentTimeMillis() + "_" + file.getOriginalFilename();
 
-            Path path = Paths.get(uploadDir + fileName);
-            Files.createDirectories(path.getParent());
-            Files.write(path, file.getBytes());
+            // Créer le dossier s'il n'existe pas
+            Path path = Paths.get(uploadDir);
+            if (!Files.exists(path)) {
+                Files.createDirectories(path);
+            }
+
+            // Sauvegarder le fichier
+            Path filePath = path.resolve(fileName);
+            Files.write(filePath, file.getBytes());
+
+            System.out.println("Photo saved to: " + filePath.toString());
 
             return fileName;
         } catch (Exception e) {
-            throw new RuntimeException("Erreur upload photo");
+            e.printStackTrace();
+            throw new RuntimeException("Erreur upload photo: " + e.getMessage());
         }
     }
 }

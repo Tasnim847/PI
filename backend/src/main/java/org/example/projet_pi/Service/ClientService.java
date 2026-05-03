@@ -58,11 +58,18 @@ public class ClientService implements IClientService {
         if (clientRequest.getTelephone() != null)
             existingClient.setTelephone(clientRequest.getTelephone());
 
-        if (clientRequest.getPassword() != null) {
-            throw new RuntimeException("Password update not allowed here");
-        }
-
+        // Gestion de la photo
         if (photo != null && !photo.isEmpty()) {
+            // Supprimer l'ancienne photo si elle existe
+            if (existingClient.getPhoto() != null && !existingClient.getPhoto().isEmpty()) {
+                try {
+                    String oldPhotoPath = System.getProperty("user.dir") + "/uploads/" + existingClient.getPhoto();
+                    Files.deleteIfExists(Paths.get(oldPhotoPath));
+                } catch (Exception e) {
+                    System.err.println("Could not delete old photo: " + e.getMessage());
+                }
+            }
+
             String fileName = uploadPhoto(photo);
             existingClient.setPhoto(fileName);
         }
@@ -277,20 +284,35 @@ public class ClientService implements IClientService {
         clientRepository.save(client);
     }
 
+
     private String uploadPhoto(MultipartFile file) {
         try {
-            String uploadDir = "uploads/";
+            // Chemin absolu vers le dossier uploads dans le projet
+            String projectPath = System.getProperty("user.dir");
+            String uploadDir = projectPath + "/uploads/";
+
+            // Créer un nom de fichier unique
             String fileName = System.currentTimeMillis() + "_" + file.getOriginalFilename();
 
-            Path path = Paths.get(uploadDir + fileName);
-            Files.createDirectories(path.getParent());
-            Files.write(path, file.getBytes());
+            // Créer le dossier s'il n'existe pas
+            Path path = Paths.get(uploadDir);
+            if (!Files.exists(path)) {
+                Files.createDirectories(path);
+            }
+
+            // Sauvegarder le fichier
+            Path filePath = path.resolve(fileName);
+            Files.write(filePath, file.getBytes());
+
+            System.out.println("Photo saved to: " + filePath.toString());
 
             return fileName;
         } catch (Exception e) {
-            throw new RuntimeException("Erreur upload photo");
+            e.printStackTrace();
+            throw new RuntimeException("Erreur upload photo: " + e.getMessage());
         }
     }
+
     public List<ClientWithAgentsDTO> getAllClientsWithAgents() {
         List<Client> clients = clientRepository.findAll();
 
