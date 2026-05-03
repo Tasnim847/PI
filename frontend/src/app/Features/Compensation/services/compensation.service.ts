@@ -71,8 +71,11 @@ export class CompensationService {
 
   // Ajouter cette méthode dans CompensationService
   markAsPaid(compensationId: number): Observable<any> {
-    return this.http.post(`${this.apiUrl}/${compensationId}/pay`, {}, { headers: this.getHeaders() });
-  }
+    return this.http.post(`${this.apiUrl}/${compensationId}/pay`, {}, { 
+      headers: this.getHeaders(),
+      observe: 'response'  // Pour voir la réponse complète
+    });
+  } 
 
   // Dans CompensationService, ajoutez ces méthodes :
 

@@ -81,27 +81,27 @@ h2 i {
 }
 
 .bg-primary {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  background: linear-gradient(135deg, #3f4c86 0%, #3f4c86 100%) !important;
 }
 
 .bg-success {
-  background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%) !important;
+  background: linear-gradient(135deg, #3f4c86 0%, #3f4c86 100%) !important;
 }
 
 .bg-info {
-  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%) !important;
+  background: linear-gradient(135deg, #3f4c86 0%, #3f4c86 100%) !important;
 }
 
 .bg-warning {
-  background: linear-gradient(135deg, #fa709a 0%, #fee140 100%) !important;
+  background: linear-gradient(135deg, #3f4c86 0%, #3f4c86 100%) !important;
 }
 
 .bg-danger {
-  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%) !important;
+  background: linear-gradient(135deg, #3f4c86 0%, #3f4c86 100%) !important;
 }
 
 .bg-dark {
-  background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%) !important;
+  background: linear-gradient(135deg, #3f4c86 0%, #3f4c86 100%) !important;
 }
 
 /* Statistiques cartes */

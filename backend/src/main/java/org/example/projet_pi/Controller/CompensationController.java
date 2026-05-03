@@ -1,6 +1,7 @@
 package org.example.projet_pi.Controller;
 
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.example.projet_pi.Dto.ClaimScoreDTO;
 import org.example.projet_pi.Dto.ClientDTO;
 import org.example.projet_pi.Dto.CompensationDTO;
@@ -16,6 +17,7 @@ import org.example.projet_pi.entity.AgentAssurance;
 import org.example.projet_pi.entity.Claim;
 import org.example.projet_pi.entity.Client;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
@@ -26,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+@Slf4j
 @RestController
 @AllArgsConstructor
 @RequestMapping("/compensations")
@@ -65,12 +68,7 @@ public class CompensationController {
         return compensationService.getAllCompensations();
     }
 
-    // NOUVEAU: Marquer comme payée
-    @PostMapping("/{id}/pay")
-    public ResponseEntity<CompensationDTO> markAsPaid(@PathVariable Long id) {
-        CompensationDTO result = compensationService.markAsPaid(id);
-        return ResponseEntity.ok(result);
-    }
+
 
     // NOUVEAU: Recalculer la compensation
     @PostMapping("/recalculate/{claimId}")
@@ -500,4 +498,29 @@ public class CompensationController {
         return ResponseEntity.ok(clientDTOs);
     }
 
+
+    // Dans CompensationController.java - Remplacer l'endpoint /pay
+
+    // ADMIN: Marquer comme payée et créditer le compte
+    @PostMapping("/{id}/pay")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Map<String, Object>> markAsPaidByAdmin(@PathVariable Long id) {
+        Map<String, Object> response = new HashMap<>();
+
+        try {
+            CompensationDTO result = compensationService.markAsPaidByAdmin(id);
+
+            response.put("success", true);
+            response.put("message", "Compensation payée et montant crédité au compte du client");
+            response.put("compensation", result);
+
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            log.error("Erreur lors du paiement admin: {}", e.getMessage());
+            response.put("success", false);
+            response.put("error", e.getMessage());
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
 }

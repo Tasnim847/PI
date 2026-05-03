@@ -3,6 +3,7 @@ import { Component, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';  // ✅ Assurez-vous que Router est importé
 
 export interface Claim {
   claimId: number;
@@ -39,7 +40,15 @@ export class AgentClaimsComponent implements OnInit {
   selectedStatus: string = 'ALL';
   filteredClaims: Claim[] = [];
 
-  constructor(private http: HttpClient) {}
+  // ✅ Ajout de router comme propriété de classe
+  private router: Router;
+
+  constructor(http: HttpClient, router: Router) {
+    this.http = http;
+    this.router = router;
+  }
+
+  private http: HttpClient;  // ✅ Déclaration explicite
 
   ngOnInit() {
     this.loadClaims();
@@ -68,12 +77,10 @@ export class AgentClaimsComponent implements OnInit {
   filterClaims() {
     let filtered = [...this.claims];
     
-    // Filter by status
     if (this.selectedStatus !== 'ALL') {
       filtered = filtered.filter(c => c.status === this.selectedStatus);
     }
     
-    // Filter by search term
     if (this.searchTerm.trim()) {
       const term = this.searchTerm.toLowerCase();
       filtered = filtered.filter(c => 
@@ -99,7 +106,6 @@ export class AgentClaimsComponent implements OnInit {
     this.filterClaims();
   }
 
-  // Statistics methods
   getTotalClaims(): number {
     return this.claims.length;
   }
@@ -116,7 +122,6 @@ export class AgentClaimsComponent implements OnInit {
     return this.claims.filter(c => c.status === 'REJECTED').length;
   }
 
-  // Approve claim
   approveClaim(claimId: number) {
     const approvedAmount = this.approvedAmounts[claimId];
     
@@ -152,7 +157,6 @@ export class AgentClaimsComponent implements OnInit {
     });
   }
 
-  // Reject claim
   rejectClaim(claimId: number) {
     const reason = this.rejectionReasons[claimId];
     
@@ -182,7 +186,6 @@ export class AgentClaimsComponent implements OnInit {
     });
   }
 
-  // View compensation
   viewCompensation(claimId: number) {
     this.loading = true;
     this.http.get(`http://localhost:8081/claims/calculate-compensation/${claimId}`, {
@@ -194,7 +197,6 @@ export class AgentClaimsComponent implements OnInit {
       },
       error: (err) => {
         this.loading = false;
-        // Try text response as fallback
         this.http.get(`http://localhost:8081/claims/calculate-compensation/${claimId}/text`, {
           responseType: 'text'
         }).subscribe({
@@ -234,5 +236,10 @@ export class AgentClaimsComponent implements OnInit {
       'PAID': 'success'
     };
     return classes[status] || 'secondary';
+  }
+
+  // ✅ Correction de la méthode viewClaimDetails
+  viewClaimDetails(claimId: number) {
+    this.router.navigate(['/public/agent/claims', claimId]);
   }
 }

@@ -1,4 +1,4 @@
-<!-- agent-claims.component.html - Version Moderne -->
+<!-- agent-claims.component.html - Supprimez le bouton mal placé -->
 <div class="claims-container">
   <div class="container-fluid px-4 py-4" style="margin-top: 76px;">
     
@@ -68,6 +68,7 @@
           (click)="setFilter('REJECTED')">
           <i class="fas fa-times-circle me-1"></i> Rejected
         </button>
+        <!-- ✅ Bouton supprimé d'ici -->
       </div>
     </div>
 
@@ -84,7 +85,6 @@
       <i class="fas fa-exclamation-triangle fa-2x mb-3"></i>
       <h4>Something went wrong</h4>
       <p>{{ error }}</p>
-      <!-- Dans agent-claims.component.html - Correction du bouton retry -->
       <button class="btn-retry" (click)="loadClaims()">
         <i class="fas fa-sync-alt me-2"></i> Try Again
       </button>
@@ -192,12 +192,19 @@
               <i class="fas fa-times me-2"></i> Reject
             </button>
           </div>
+          
+          <!-- ✅ Bouton Details ajouté ici pour les claims en révision -->
+          <div class="action-group">
+            <button class="btn-details" (click)="viewClaimDetails(claim.claimId)">
+              <i class="fas fa-info-circle me-2"></i> View Details
+            </button>
+          </div>
         </div>
 
-        <!-- Compensation Button -->
-        <div class="card-footer" *ngIf="claim.status === 'APPROVED'">
-          <button class="btn-compensation" (click)="viewCompensation(claim.claimId)">
-            <i class="fas fa-chart-line me-2"></i> View Compensation Details
+        <!-- ✅ Bouton Details pour les claims déjà traités -->
+        <div class="card-footer" *ngIf="claim.status !== 'IN_REVIEW'">
+          <button class="btn-compensation" (click)="viewClaimDetails(claim.claimId)">
+            <i class="fas fa-info-circle me-2"></i> View Full Details
             <i class="fas fa-arrow-right ms-2"></i>
           </button>
         </div>

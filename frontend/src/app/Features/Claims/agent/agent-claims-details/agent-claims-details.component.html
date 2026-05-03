@@ -1,0 +1,373 @@
+<!-- agent-claims-details.component.html - Version complète -->
+<div class="details-container">
+  <div class="container-fluid px-4 py-4" style="margin-top: 76px;">
+    
+    <div class="details-header mb-4">
+      <button class="btn-back" (click)="goBack()">
+        <i class="fas fa-arrow-left me-2"></i> Back to Claims
+      </button>
+      <div class="header-title">
+        <h1>Claim Details</h1>
+        <p>Complete information about claim #{{ claimId }}</p>
+      </div>
+    </div>
+
+    <div *ngIf="loading" class="loading-state">
+      <div class="spinner-grow text-primary me-3" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+      <span>Loading claim details...</span>
+    </div>
+
+    <div *ngIf="error" class="error-state">
+      <i class="fas fa-exclamation-triangle fa-2x mb-3"></i>
+      <h4>Something went wrong</h4>
+      <p>{{ error }}</p>
+      <button class="btn-retry" (click)="loadClaimDetails()">
+        <i class="fas fa-sync-alt me-2"></i> Try Again
+      </button>
+    </div>
+
+    <div *ngIf="!loading && claim" class="details-content">
+      
+      <div class="progress-card mb-4">
+        <div class="progress-header">
+          <span>Claim Completion Status</span>
+          <span>{{ getCompletionPercentage() }}%</span>
+        </div>
+        <div class="progress-bar-container">
+          <div class="progress-bar-fill" [style.width.%]="getCompletionPercentage()"></div>
+        </div>
+      </div>
+
+      <div class="tabs-navigation">
+        <button class="tab-btn" [class.active]="activeTab === 'details'" (click)="setActiveTab('details')">
+          <i class="fas fa-info-circle me-2"></i> Claim Details
+        </button>
+        <button class="tab-btn" [class.active]="activeTab === 'documents'" (click)="setActiveTab('documents')">
+          <i class="fas fa-file-alt me-2"></i> Documents 
+          <span class="badge" *ngIf="(claim.documents?.length ?? 0) > 0">{{ claim.documents?.length }}</span>
+        </button>
+        <button class="tab-btn" [class.active]="activeTab === 'client'" (click)="setActiveTab('client')">
+          <i class="fas fa-user me-2"></i> Client Information
+        </button>
+        <button class="tab-btn" [class.active]="activeTab === 'contract'" (click)="setActiveTab('contract')">
+          <i class="fas fa-file-contract me-2"></i> Contract Details
+        </button>
+      </div>
+
+      <!-- ==================== TAB 1: CLAIM DETAILS ==================== -->
+      <div class="tab-content" *ngIf="activeTab === 'details'">
+        <div class="info-card">
+          <div class="card-header">
+            <h3><i class="fas fa-clipboard-list me-2"></i> Claim Information</h3>
+            <div class="status-badge" [class]="getStatusClass(claim.status)">
+              {{ getStatusLabel(claim.status) }}
+            </div>
+          </div>
+          
+          <div class="info-grid">
+            <div class="info-item">
+              <label>Claim ID</label>
+              <div class="value">#{{ claim.claimId }}</div>
+            </div>
+            <div class="info-item">
+              <label>Claim Date</label>
+              <div class="value">{{ claim.claimDate | date:'dd MMMM yyyy, HH:mm' }}</div>
+            </div>
+            <div class="info-item">
+              <label>Claimed Amount</label>
+              <div class="value amount claimed">{{ claim.claimedAmount | currency:'TND':'symbol':'1.2-2' }}</div>
+            </div>
+            <div class="info-item" *ngIf="claim.approvedAmount > 0">
+              <label>Approved Amount</label>
+              <div class="value amount approved">{{ claim.approvedAmount | currency:'TND':'symbol':'1.2-2' }}</div>
+            </div>
+            <div class="info-item full-width">
+              <label>Description</label>
+              <div class="value description">{{ claim.description }}</div>
+            </div>
+            <div class="info-item full-width" *ngIf="claim.message">
+              <label>Additional Message</label>
+              <div class="value message">{{ claim.message }}</div>
+            </div>
+            <div class="info-item" *ngIf="claim.fraud">
+              <label>Fraud Alert</label>
+              <div class="value fraud-warning">
+                <i class="fas fa-exclamation-triangle me-1"></i> High Risk - Further verification required
+              </div>
+            </div>
+          </div>
+
+          <!-- Auto Details -->
+          <div class="type-details" *ngIf="claim.autoDetails">
+            <h4><i class="fas fa-car me-2"></i> Vehicle Details</h4>
+            <div class="info-grid">
+              <div class="info-item">
+                <label>Driver A</label>
+                <div class="value">{{ claim.autoDetails.driverA }}</div>
+              </div>
+              <div class="info-item">
+                <label>Driver B</label>
+                <div class="value">{{ claim.autoDetails.driverB || '-' }}</div>
+              </div>
+              <div class="info-item">
+                <label>Vehicle A</label>
+                <div class="value">{{ claim.autoDetails.vehicleA }}</div>
+              </div>
+              <div class="info-item">
+                <label>Vehicle B</label>
+                <div class="value">{{ claim.autoDetails.vehicleB || '-' }}</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="type-details" *ngIf="claim.healthDetails">
+            <h4><i class="fas fa-hospital-user me-2"></i> Health Details</h4>
+            <div class="info-grid">
+              <div class="info-item">
+                <label>Hospital Name</label>
+                <div class="value">{{ claim.healthDetails.hospitalName }}</div>
+              </div>
+              <div class="info-item">
+                <label>Admission Date</label>
+                <div class="value">{{ claim.healthDetails.admissionDate | date }}</div>
+              </div>
+              <div class="info-item">
+                <label>Discharge Date</label>
+                <div class="value">{{ claim.healthDetails.dischargeDate | date }}</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="type-details" *ngIf="claim.homeDetails">
+            <h4><i class="fas fa-home me-2"></i> Property Details</h4>
+            <div class="info-grid">
+              <div class="info-item">
+                <label>Property Address</label>
+                <div class="value">{{ claim.homeDetails.address }}</div>
+              </div>
+              <div class="info-item">
+                <label>Incident Type</label>
+                <div class="value">{{ claim.homeDetails.incidentType }}</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Action Buttons for Pending Claims -->
+          <div class="action-buttons" *ngIf="claim.status === 'IN_REVIEW'">
+            <button class="btn-approve" (click)="showApproveModal = true">
+              <i class="fas fa-check me-2"></i> Approve Claim
+            </button>
+            <button class="btn-reject" (click)="showRejectModal = true">
+              <i class="fas fa-times me-2"></i> Reject Claim
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==================== TAB 2: DOCUMENTS ==================== -->
+      <div class="tab-content" *ngIf="activeTab === 'documents'">
+        <div class="info-card">
+          <div class="card-header">
+            <h3><i class="fas fa-paperclip me-2"></i> Uploaded Documents</h3>
+            <div class="doc-count" *ngIf="(claim.documents?.length ?? 0) > 0">
+              {{ claim.documents?.length }} document(s)
+            </div>
+          </div>
+
+          <div *ngIf="claim.documents && claim.documents.length > 0; else noDocuments">
+            <div class="documents-grid">
+              <div *ngFor="let doc of claim.documents" class="document-card">
+                <div class="doc-icon" [class]="'bg-' + getDocumentColor(doc.type)">
+                  <i [class]="'fas fa-2x ' + getDocumentIcon(doc.type)"></i>
+                </div>
+                <div class="doc-info">
+                  <div class="doc-name" title="{{ doc.name }}">{{ doc.name }}</div>
+                  <div class="doc-meta">
+                    <span class="doc-type">{{ (doc.type || 'unknown').toUpperCase() }}</span>
+                    <span class="doc-date">{{ doc.uploadDate | date:'dd/MM/yyyy' }}</span>
+                  </div>
+                </div>
+                <div class="doc-actions">
+                  <button class="doc-btn view" (click)="viewDocument(doc)" title="View">
+                    <i class="fas fa-eye"></i>
+                  </button>
+                  <button class="doc-btn download" (click)="downloadDocument(doc)" title="Download">
+                    <i class="fas fa-download"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <ng-template #noDocuments>
+            <div class="empty-docs">
+              <i class="fas fa-folder-open fa-3x mb-3"></i>
+              <p>No documents uploaded for this claim</p>
+            </div>
+          </ng-template>
+        </div>
+      </div>
+
+      <!-- ==================== TAB 3: CLIENT INFORMATION ==================== -->
+      <div class="tab-content" *ngIf="activeTab === 'client' && claim.client">
+        <div class="info-card">
+          <div class="card-header">
+            <h3><i class="fas fa-user-circle me-2"></i> Client Information</h3>
+          </div>
+          <div class="client-profile">
+            <div class="client-avatar-large">
+              <i class="fas fa-user fa-3x"></i>
+            </div>
+            <div class="client-details-large">
+              <div class="info-grid">
+                <div class="info-item">
+                  <label>Full Name</label>
+                  <div class="value">{{ claim.client.firstName }} {{ claim.client.lastName }}</div>
+                </div>
+                <div class="info-item">
+                  <label>Email Address</label>
+                  <div class="value">{{ claim.client.email }}</div>
+                </div>
+                <div class="info-item">
+                  <label>Phone Number</label>
+                  <div class="value">{{ claim.client.telephone }}</div>
+                </div>
+                <div class="info-item" *ngIf="claim.client.cin">
+                  <label>CIN / National ID</label>
+                  <div class="value">{{ claim.client.cin }}</div>
+                </div>
+                <div class="info-item full-width" *ngIf="claim.client.address">
+                  <label>Address</label>
+                  <div class="value">{{ claim.client.address }}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==================== TAB 4: CONTRACT DETAILS ==================== -->
+      <div class="tab-content" *ngIf="activeTab === 'contract'">
+        <div class="info-card">
+          <div class="card-header">
+            <h3><i class="fas fa-file-signature me-2"></i> Insurance Contract</h3>
+          </div>
+          <div *ngIf="claim.contract; else noContract">
+            <div class="info-grid">
+              <div class="info-item">
+                <label>Contract Number</label>
+                <div class="value">{{ claim.contract.contractNumber }}</div>
+              </div>
+              <div class="info-item">
+                <label>Contract Type</label>
+                <div class="value">
+                  <span class="contract-type">{{ claim.contract.type }}</span>
+                </div>
+              </div>
+              <div class="info-item">
+                <label>Start Date</label>
+                <div class="value">{{ claim.contract.startDate | date }}</div>
+              </div>
+              <div class="info-item">
+                <label>End Date</label>
+                <div class="value">{{ claim.contract.endDate | date }}</div>
+              </div>
+              <div class="info-item">
+                <label>Premium Amount</label>
+                <div class="value">{{ claim.contract.premium | currency:'TND':'symbol':'1.2-2' }}</div>
+              </div>
+            </div>
+          </div>
+          <ng-template #noContract>
+            <div class="empty-docs">
+              <i class="fas fa-file-contract fa-3x mb-3"></i>
+              <p>No contract information available for this claim</p>
+            </div>
+          </ng-template>
+        </div>
+      </div>
+
+      <!-- ==================== TAB 5: COMPENSATION ==================== -->
+      <div class="tab-content" *ngIf="activeTab === 'compensation'">
+        <div class="info-card">
+          <div class="card-header">
+            <h3><i class="fas fa-chart-pie me-2"></i> Compensation Details</h3>
+          </div>
+          <div *ngIf="claim.compensation; else noCompensation">
+            <div class="info-grid">
+              <div class="info-item">
+                <label>Compensation Amount</label>
+                <div class="value amount approved">{{ claim.compensation.amount | currency:'TND':'symbol':'1.2-2' }}</div>
+              </div>
+              <div class="info-item">
+                <label>Status</label>
+                <div class="value">{{ claim.compensation.status }}</div>
+              </div>
+              <div class="info-item" *ngIf="claim.compensation.paymentDate">
+                <label>Payment Date</label>
+                <div class="value">{{ claim.compensation.paymentDate | date }}</div>
+              </div>
+            </div>
+          </div>
+          <ng-template #noCompensation>
+            <div class="empty-docs">
+              <i class="fas fa-chart-line fa-3x mb-3"></i>
+              <p>No compensation information available yet</p>
+              <p class="text-muted">Compensation will be calculated after claim approval</p>
+            </div>
+          </ng-template>
+        </div>
+      </div>
+    </div>
+
+    <!-- Approve Modal -->
+    <div class="modal-overlay" *ngIf="showApproveModal" (click)="showApproveModal = false">
+      <div class="modal-container" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3><i class="fas fa-check-circle text-success me-2"></i> Approve Claim</h3>
+          <button class="modal-close" (click)="showApproveModal = false">&times;</button>
+        </div>
+        <div class="modal-body">
+          <p>Claim ID: <strong>#{{ claim?.claimId }}</strong></p>
+          <p>Claimed Amount: <strong>{{ claim?.claimedAmount | currency:'TND':'symbol':'1.2-2' }}</strong></p>
+          
+          <div class="form-group">
+            <label>Approved Amount *</label>
+            <input type="number" class="form-control" [(ngModel)]="approvedAmount" 
+                   [placeholder]="'Max ' + claim?.claimedAmount + ' DT'">
+            <small>Enter the amount you approve for this claim</small>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-cancel" (click)="showApproveModal = false">Cancel</button>
+          <button class="btn-approve" (click)="approveClaim()">Confirm Approval</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Reject Modal -->
+    <div class="modal-overlay" *ngIf="showRejectModal" (click)="showRejectModal = false">
+      <div class="modal-container" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3><i class="fas fa-times-circle text-danger me-2"></i> Reject Claim</h3>
+          <button class="modal-close" (click)="showRejectModal = false">&times;</button>
+        </div>
+        <div class="modal-body">
+          <p>Claim ID: <strong>#{{ claim?.claimId }}</strong></p>
+          
+          <div class="form-group">
+            <label>Rejection Reason *</label>
+            <textarea class="form-control" rows="4" [(ngModel)]="rejectionReason" 
+                      placeholder="Please provide a detailed reason for rejection..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-cancel" (click)="showRejectModal = false">Cancel</button>
+          <button class="btn-reject" (click)="rejectClaim()">Confirm Rejection</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>

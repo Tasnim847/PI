@@ -1,5 +1,5 @@
 <div class="payment-page">
-  <!-- Header simplifié -->
+  <!-- Header simplified -->
   <div class="page-header">
     <div class="header-content">
       <div class="header-top">
@@ -70,7 +70,6 @@
 
             <div class="card-body p-4">
               <div class="row g-3">
-                <!-- Bootstrap Cards for Installments -->
                 <div class="col-md-6 col-xl-4" *ngFor="let payment of paginatedPayments; let i = index">
                   <div class="installment-card-modern card h-100 border-0 shadow-sm rounded-4 overflow-hidden transition-all"
                        [class.selected-card]="selectedPayments.has(payment.paymentId)"
@@ -80,14 +79,12 @@
                        [style.animation-delay]="i * 0.05 + 's'"
                        (click)="payment.status === 'PENDING' && togglePayment(payment.paymentId, payment.amount, payment.status)">
                     
-                    <!-- Indicateur visuel pour paiement refusé -->
                     <div class="rejected-badge" *ngIf="recentlyRejectedPaymentId === payment.paymentId">
                       <span class="badge bg-warning text-dark">
-                        ⚠️ Refusé - Vous pouvez le reselectionner
+                        ⚠️ Rejected - You can reselect it
                       </span>
                     </div>
                     
-                    <!-- Card Header -->
                     <div class="card-header bg-white border-0 pt-3 px-3">
                       <div class="d-flex justify-content-between align-items-start">
                         <div class="d-flex align-items-center gap-2">
@@ -106,9 +103,7 @@
                       </div>
                     </div>
                     
-                    <!-- Card Body -->
                     <div class="card-body p-3">
-                      <!-- Amount -->
                       <div class="text-center mb-3">
                         <div class="amount-circle mx-auto bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center">
                           <span class="fs-4 fw-bold text-primary">{{ payment.amount | number }}</span>
@@ -116,7 +111,6 @@
                         </div>
                       </div>
                       
-                      <!-- Details -->
                       <div class="details-list">
                         <div class="detail-row d-flex align-items-center justify-content-between py-2 border-bottom">
                           <div class="d-flex align-items-center gap-2 text-muted">
@@ -155,7 +149,6 @@
                         </div>
                       </div>
                       
-                      <!-- Penalty Badge -->
                       <div class="mt-3" *ngIf="payment.status === 'PENDING' && payment.lateFee">
                         <div class="alert alert-danger alert-sm mb-0 py-2 px-3 rounded-3">
                           <div class="d-flex align-items-center gap-2">
@@ -170,7 +163,6 @@
                       </div>
                     </div>
                     
-                    <!-- Card Footer - For pending payments -->
                     <div class="card-footer bg-white border-0 pb-3 px-3" *ngIf="payment.status === 'PENDING'">
                       <div class="form-check" (click)="$event.stopPropagation()">
                         <input class="form-check-input" 
@@ -184,7 +176,6 @@
                       </div>
                     </div>
                     
-                    <!-- Card Footer - For already paid payments -->
                     <div class="card-footer bg-white border-0 pb-3 px-3" *ngIf="payment.status === 'PAID'">
                       <div class="text-center text-success small">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" class="me-1">
@@ -197,7 +188,6 @@
                 </div>
               </div>
 
-              <!-- Pagination Section -->
               <div class="pagination-wrapper mt-4 pt-3" *ngIf="allPayments.length > pageSize">
                 <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
                   <div class="pagination-info">
@@ -242,7 +232,6 @@
                 </div>
               </div>
 
-              <!-- Empty state -->
               <div class="text-center py-5" *ngIf="allPayments.length === 0">
                 <div class="empty-icon-wrapper mx-auto mb-3">
                   <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1">
@@ -321,7 +310,7 @@
                   </div>
                 </label>
                 
-                <label class="payment-method-modern d-flex align-items-center gap-3 p-3 border rounded-3 cursor-pointer"
+                <label class="payment-method-modern d-flex align-items-center gap-3 p-3 border rounded-3 cursor-pointer" 
                        [class.active-method]="paymentMethod === 'BANK_TRANSFER'">
                   <input type="radio" name="paymentMethod" value="BANK_TRANSFER" class="d-none" [(ngModel)]="paymentMethod">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
@@ -337,6 +326,47 @@
                     </svg>
                   </div>
                 </label>
+
+                <!-- Bank Transfer Details Form -->
+                <div class="bank-details-modern bg-light rounded-3 p-3" *ngIf="paymentMethod === 'BANK_TRANSFER'">
+                  <div class="mb-3">
+                    <label class="form-label small fw-semibold">Your Account RIP (RIB)</label>
+                    <input type="text" class="form-control form-control-sm rounded-3" 
+                           placeholder="Enter your 21-digit RIB number" 
+                           [(ngModel)]="bankTransferDetails.rip" 
+                           (input)="checkBankBalance()" 
+                           maxlength="21" 
+                           pattern="\d*">
+                    <small class="text-muted">Format: 21 digits (e.g., 123456789012345678901)</small>
+                    <div class="invalid-feedback" *ngIf="bankTransferDetails.rip && bankTransferDetails.rip.length > 0 && bankTransferDetails.rip.length !== 21">
+                      RIP must contain exactly 21 digits
+                    </div>
+                  </div>
+
+                  <div class="mb-3" *ngIf="bankTransferDetails.rip && bankTransferDetails.rip.length === 21">
+                    <div class="alert alert-info alert-sm mb-0" *ngIf="checkingBalance">
+                      <div class="spinner-border spinner-border-sm me-2"></div>
+                      Checking balance...
+                    </div>
+                    <div class="alert alert-success alert-sm mb-0" *ngIf="bankBalanceInfo && !checkingBalance && bankBalanceInfo.sufficient">
+                      <strong>✓ Available balance:</strong> {{ bankBalanceInfo.balance | number }} DT
+                      <br>
+                      <small>Amount to pay: {{ totalSelectedAmount | number }} DT</small>
+                    </div>
+                    <div class="alert alert-danger alert-sm mb-0" *ngIf="bankBalanceInfo && !checkingBalance && !bankBalanceInfo.sufficient">
+                      <strong>❌ Insufficient balance!</strong>
+                      <br>
+                      Current balance: {{ bankBalanceInfo.balance | number }} DT
+                      <br>
+                      Required amount: {{ totalSelectedAmount | number }} DT
+                      <br>
+                      Shortage: {{ (totalSelectedAmount - bankBalanceInfo.balance) | number }} DT
+                    </div>
+                    <div class="alert alert-danger alert-sm mb-0" *ngIf="bankBalanceInfo && bankBalanceInfo.error">
+                      ❌ {{ bankBalanceInfo.error }}
+                    </div>
+                  </div>
+                </div>
                 
                 <label class="payment-method-modern d-flex align-items-center gap-3 p-3 border rounded-3 cursor-pointer"
                        [class.active-method]="paymentMethod === 'CASH'">
@@ -392,7 +422,7 @@
                   Cancel
                 </button>
                 <button class="btn btn-success flex-grow-1 rounded-pill" 
-                        [disabled]="processingPayment"
+                        [disabled]="processingPayment || (paymentMethod === 'BANK_TRANSFER' && !bankBalanceInfo?.sufficient)"
                         (click)="processPayment()">
                   <div class="d-flex align-items-center justify-content-center gap-2">
                     <div class="spinner-border spinner-border-sm" *ngIf="processingPayment" role="status"></div>

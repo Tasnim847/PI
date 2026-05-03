@@ -9,4 +9,5 @@ public class PaymentRequestDTO {
     private Double installmentAmount;
     private String paymentType;     // INSTALLMENT ou FULL
     private Double remainingAmount;
+    private String sourceRip;       // 🔥 AJOUTER CETTE PROPRIÉTÉ pour le virement bancaire
 }

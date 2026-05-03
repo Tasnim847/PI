@@ -4,9 +4,7 @@
     <h2>
       Compensation Management
     </h2>
-    <button class="btn btn-primary" (click)="loadAllCompensations()" [disabled]="loading">
-      <i class="fas fa-sync-alt me-1" [class.fa-spin]="loading"></i>
-    </button>
+    
   </div>
 
   <!-- Messages -->
@@ -168,7 +166,7 @@
           <thead class="table-dark">
             <tr>
               <th>ID</th>
-              <th>Claim ID</th>
+              <th>Client</th>
               <th>Insurance Amount</th>
               <th>Out of Pocket</th>
               <th>Status</th>
@@ -183,7 +181,14 @@
               <td>
                 <strong>#{{ comp.compensationId }}</strong>
               </td>
-              <td>{{ comp.claim?.claimId || 'N/A' }}</td>
+              <!-- Dans le corps du tableau -->
+              <td>
+                <div *ngIf="comp.client">
+                  <i class="fas fa-user me-1"></i>
+                  {{ comp.client.firstName }} {{ comp.client.lastName }}
+                </div>
+                <span *ngIf="!comp.client" class="text-muted">N/A</span>
+              </td>
               <td class="fw-bold text-success">{{ formatAmount(comp.amount) }}</td>
               <td>
                 <span [class.text-danger]="comp.clientOutOfPocket > 0">

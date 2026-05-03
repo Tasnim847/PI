@@ -210,15 +210,62 @@ export class ContractService {
   }
 
   activateContract(id: number): Observable<any> {
-    return this.http.put(`${this.apiUrl}/activate/${id}`, {}, { headers: this.getHeaders() })
-      .pipe(catchError(this.handleError));
-  }
+  console.log('📡 Appel API activation contrat:', id);
+  const token = localStorage.getItem('token');
+  console.log('🔑 Token présent:', !!token);
+  console.log('👤 Rôle utilisateur:', localStorage.getItem('role'));
+  console.log('📧 Email utilisateur:', localStorage.getItem('email'));
+  
+  // Vérifier que l'URL est correcte
+  const url = `${this.apiUrl}/activate/${id}`;
+  console.log('🌐 URL complète:', url);
+  
+  return this.http.put(url, {}, { 
+    headers: this.getHeaders(),
+    responseType: 'json'
+  }).pipe(
+    tap(response => console.log('✅ Réponse activation:', response)),
+    catchError((error) => {
+      console.error('❌ Erreur activation détaillée:', error);
+      console.error('Status:', error.status);
+      console.error('Status Text:', error.statusText);
+      console.error('Error Object:', JSON.stringify(error));
+      
+      if (error.status === 403) {
+        return throwError(() => new Error('Vous n\'avez pas les droits pour activer un contrat. Vérifiez que vous êtes connecté en tant qu\'agent assurance.'));
+      }
+      if (error.status === 404) {
+        return throwError(() => new Error(`Contrat ${id} non trouvé`));
+      }
+      if (error.status === 400) {
+        const errorMessage = error.error?.message || error.error || 'Impossible d\'activer ce contrat';
+        return throwError(() => new Error(errorMessage));
+      }
+      return this.handleError(error);
+    })
+  );
+}
 
-  activateContractWithNotification(id: number): Observable<any> {
-    return this.http.put(`${this.apiUrl}/activate-with-notification/${id}`, {}, { headers: this.getHeaders() })
-      .pipe(catchError(this.handleError));
-  }
+activateContractWithNotification(id: number): Observable<any> {
+  console.log('📡 Appel API activation avec notification:', id);
+  const token = localStorage.getItem('token');
+  console.log('🔑 Token présent:', !!token);
+  
+  return this.http.put(`${this.apiUrl}/activate-with-notification/${id}`, {}, { 
+    headers: this.getHeaders()
+  }).pipe(
+    tap(response => console.log('✅ Réponse activation avec notif:', response)),
+    catchError((error) => {
+      console.error('❌ Erreur activation avec notif:', error);
+      if (error.status === 403) {
+        return throwError(() => new Error('Vous n\'avez pas les droits pour activer un contrat'));
+      }
+      return this.handleError(error);
+    })
+  );
+}
 
+  
   rejectContract(id: number, reason: string): Observable<any> {
     return this.http.put(`${this.apiUrl}/reject/${id}`, { reason }, { headers: this.getHeaders() })
       .pipe(catchError(this.handleError));
@@ -661,5 +708,33 @@ export class ContractService {
   isClient(): boolean {
     const role = localStorage.getItem('role');
     return role === 'CLIENT';
+  }
+
+
+
+  // Vérifier le solde bancaire par RIP
+  checkBankBalance(rip: string, amountToPay: number): Observable<any> {
+    // ✅ CORRIGÉ : L'endpoint est dans PaymentController, pas dans TransactionController
+    return this.http.get(`${environment.apiUrl}/payments/check-balance/${rip}?amount=${amountToPay}`, {
+      headers: this.getHeaders()
+    }).pipe(catchError(this.handleError));
+  }
+
+  // Paiement par virement bancaire
+  payByBankTransfer(paymentData: any): Observable<any> {
+    const body = {
+      clientEmail: paymentData.clientEmail,
+      contractId: paymentData.contractId,
+      installmentAmount: paymentData.installmentAmount,
+      paymentType: 'BANK_TRANSFER',
+      remainingAmount: paymentData.remainingAmount || 0,
+      sourceRip: paymentData.sourceRip
+    };
+  
+    console.log('📤 Envoi paiement par virement bancaire:', body);
+  
+    return this.http.post(`${environment.apiUrl}/payments/pay-by-bank-transfer`, body, {
+      headers: this.getHeaders()
+    }).pipe(catchError(this.handleError));
   }
 }

@@ -7,18 +7,18 @@ import lombok.extern.slf4j.Slf4j;
 import org.example.projet_pi.Dto.PaymentDTO;
 import org.example.projet_pi.Dto.PaymentRequestDTO;
 import org.example.projet_pi.Mapper.PaymentMapper;
-import org.example.projet_pi.Repository.ClientRepository;
-import org.example.projet_pi.Repository.InsuranceContractRepository;
-import org.example.projet_pi.Repository.PaymentRepository;
+import org.example.projet_pi.Repository.*;
 import org.example.projet_pi.Service.EmailService;
 import org.example.projet_pi.Service.IPaymentService;
 import org.example.projet_pi.entity.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -35,6 +35,8 @@ public class PaymentController {
     private final ClientRepository clientRepository;
     private final InsuranceContractRepository contractRepository;
     private final EmailService emailService;
+    private final AccountRepository accountRepository;
+    private final TransactionRepository transactionRepository;
 
     // ==================== BASIC CRUD ====================
 
@@ -421,5 +423,198 @@ public class PaymentController {
         }
 
         return ResponseEntity.ok(response);
+    }
+
+    // Dans PaymentController.java
+
+    /**
+     * Vérifier le solde d'un compte par RIP
+     */
+    // Dans PaymentController.java - Modifier checkBankBalance
+
+    /**
+     * Vérifier le solde d'un compte par RIP (21 chiffres)
+     */
+    @GetMapping("/check-balance/{rip}")
+    @PreAuthorize("hasRole('CLIENT')")
+    public ResponseEntity<Map<String, Object>> checkBankBalance(
+            @PathVariable String rip,
+            @RequestParam Double amount,
+            @AuthenticationPrincipal UserDetails currentUser) {
+
+        Map<String, Object> response = new HashMap<>();
+
+        try {
+            // Valider que le RIP a exactement 21 chiffres
+            if (rip == null || !rip.matches("\\d{21}")) {
+                throw new RuntimeException("Le RIP doit contenir exactement 21 chiffres");
+            }
+
+            Client client = clientRepository.findByEmail(currentUser.getUsername())
+                    .orElseThrow(() -> new RuntimeException("Client non trouvé"));
+
+            // Trouver le compte par RIP
+            Account account = accountRepository.findByRip(rip)
+                    .orElseThrow(() -> new RuntimeException("Compte non trouvé pour ce RIP"));
+
+            // Vérifier que le compte appartient au client
+            if (!account.getClient().getId().equals(client.getId())) {
+                throw new RuntimeException("Ce compte ne vous appartient pas");
+            }
+
+            // Vérifier que le compte est actif
+            if (!"ACTIVE".equals(account.getStatus())) {
+                throw new RuntimeException("Votre compte n'est pas actif");
+            }
+
+            double currentBalance = account.getBalance();
+            boolean sufficient = currentBalance >= amount;
+
+            response.put("success", true);
+            response.put("balance", currentBalance);
+            response.put("sufficient", sufficient);
+            response.put("requiredAmount", amount);
+            response.put("shortage", sufficient ? 0 : amount - currentBalance);
+
+        } catch (Exception e) {
+            log.error("❌ Erreur vérification solde: {}", e.getMessage());
+            response.put("success", false);
+            response.put("error", e.getMessage());
+            return ResponseEntity.badRequest().body(response);
+        }
+
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Paiement par virement bancaire (Bank Transfer)
+     */
+    @PostMapping("/pay-by-bank-transfer")
+    @PreAuthorize("hasRole('CLIENT')")
+    public ResponseEntity<?> payByBankTransfer(@RequestBody PaymentRequestDTO request,
+                                               @AuthenticationPrincipal UserDetails currentUser) {
+
+        Map<String, Object> response = new HashMap<>();
+
+        try {
+            // Valider le RIP (21 chiffres)
+            String sourceRip = request.getSourceRip();
+            if (sourceRip == null || !sourceRip.matches("\\d{21}")) {
+                throw new RuntimeException("Le RIP source doit contenir exactement 21 chiffres");
+            }
+
+            Client client = clientRepository.findByEmail(request.getClientEmail())
+                    .orElseThrow(() -> new RuntimeException("Client non trouvé"));
+
+            // Vérifier le contrat
+            InsuranceContract contract = contractRepository.findById(request.getContractId())
+                    .orElseThrow(() -> new RuntimeException("Contrat non trouvé"));
+
+            // Vérifier que le contrat appartient au client
+            if (!contract.getClient().getId().equals(client.getId())) {
+                throw new RuntimeException("Ce contrat ne vous appartient pas");
+            }
+
+            // Vérifier qu'il y a des paiements en attente
+            List<Payment> pendingPayments = paymentRepository
+                    .findAllByContract_ContractIdAndStatusOrderByPaymentDateAsc(
+                            request.getContractId(),
+                            PaymentStatus.PENDING
+                    );
+
+            if (pendingPayments.isEmpty()) {
+                throw new RuntimeException("Aucune tranche en attente");
+            }
+
+            Payment pendingPayment = pendingPayments.get(0);
+
+            // Vérifier le montant
+            double amountToPay = request.getInstallmentAmount();
+            if (Math.abs(amountToPay - pendingPayment.getAmount()) > 0.01) {
+                throw new RuntimeException("Le montant ne correspond pas à la tranche due");
+            }
+
+            // Récupérer le compte source par RIP
+            Account sourceAccount = accountRepository.findByRip(sourceRip)
+                    .orElseThrow(() -> new RuntimeException("Compte source non trouvé pour ce RIP"));
+
+            // Vérifier que le compte appartient au client
+            if (!sourceAccount.getClient().getId().equals(client.getId())) {
+                throw new RuntimeException("Ce compte ne vous appartient pas");
+            }
+
+            // Vérifier que le compte est actif
+            if (!"ACTIVE".equals(sourceAccount.getStatus())) {
+                throw new RuntimeException("Votre compte n'est pas actif");
+            }
+
+            // Vérifier le solde
+            if (sourceAccount.getBalance() < amountToPay) {
+                throw new RuntimeException(String.format(
+                        "Solde insuffisant. Solde: %.2f DT, Montant requis: %.2f DT",
+                        sourceAccount.getBalance(), amountToPay
+                ));
+            }
+
+            // ✅ DÉBITER LE COMPTE
+            Transaction debitTransaction = new Transaction();
+            debitTransaction.setAccount(sourceAccount);
+            debitTransaction.setAmount(amountToPay);
+            debitTransaction.setType("WITHDRAW");
+            debitTransaction.setDate(LocalDate.now());
+            debitTransaction.setDescription(String.format("Paiement d'assurance - Contrat #%d - Tranche #%d",
+                    contract.getContractId(), pendingPayment.getPaymentId()));
+
+            // Mettre à jour le solde
+            sourceAccount.setBalance(sourceAccount.getBalance() - amountToPay);
+            accountRepository.save(sourceAccount);
+
+            // Marquer la tranche comme payée
+            pendingPayment.setStatus(PaymentStatus.PAID);
+            pendingPayment.setPaymentMethod(PaymentMethod.BANK_TRANSFER);
+            pendingPayment.setPaymentDate(new Date());
+            paymentRepository.save(pendingPayment);
+
+            // Mettre à jour le contrat
+            contract.setTotalPaid(contract.getTotalPaid() + amountToPay);
+            contract.setRemainingAmount(contract.getRemainingAmount() - amountToPay);
+
+            // Vérifier si toutes les tranches sont payées
+            long remainingPendingPayments = contract.getPayments().stream()
+                    .filter(p -> p.getStatus() == PaymentStatus.PENDING)
+                    .count();
+
+            if (remainingPendingPayments == 0 && contract.getRemainingAmount() <= 0.01) {
+                contract.setStatus(ContractStatus.COMPLETED);
+                contract.setRemainingAmount(0.0);
+                log.info("🎉 Contrat {} complété - toutes les tranches sont payées", contract.getContractId());
+            }
+
+            contractRepository.save(contract);
+            transactionRepository.save(debitTransaction);
+
+            // Envoyer email de confirmation
+            try {
+                emailService.sendPaymentConfirmationEmail(client, contract, pendingPayment);
+                log.info("📧 Email de confirmation de paiement par virement envoyé à {}", client.getEmail());
+            } catch (Exception e) {
+                log.error("❌ Erreur envoi email: {}", e.getMessage());
+            }
+
+            response.put("success", true);
+            response.put("message", "Paiement par virement bancaire effectué avec succès");
+            response.put("paymentId", pendingPayment.getPaymentId());
+            response.put("amountPaid", amountToPay);
+            response.put("newBalance", sourceAccount.getBalance());
+            response.put("remainingAmount", contract.getRemainingAmount());
+
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            log.error("❌ Erreur paiement par virement: {}", e.getMessage());
+            response.put("success", false);
+            response.put("error", e.getMessage());
+            return ResponseEntity.badRequest().body(response);
+        }
     }
 }
