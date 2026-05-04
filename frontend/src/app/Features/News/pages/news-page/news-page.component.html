@@ -111,126 +111,137 @@
     </div>
 
     <!-- MODAL FORMULAIRE -->
-    <div *ngIf="showForm" class="modal-overlay" (click)="closeForm()">
-        <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-overlay" *ngIf="showForm" (click)="closeForm()">
+        <div class="modal-container modal-form-container" (click)="$event.stopPropagation()">
             <div class="modal-header">
                 <h2>{{ isEditing ? '✏️ Modifier l\'actualité' : '➕ Nouvelle actualité' }}</h2>
                 <button class="close-btn" (click)="closeForm()">✖</button>
             </div>
             
-            <form [formGroup]="newsForm" (ngSubmit)="saveNews()">
-                <div class="form-group">
-                    <label>Titre <span class="required">*</span></label>
-                    <input type="text" formControlName="title" placeholder="Titre de l'actualité">
-                    <div class="error-message" *ngIf="newsForm.get('title')?.invalid && newsForm.get('title')?.touched">
-                        Titre requis (5-200 caractères)
+            <div class="modal-body">
+                <form [formGroup]="newsForm" (ngSubmit)="saveNews()">
+                    <div class="form-group">
+                        <label>Titre <span class="required">*</span></label>
+                        <input type="text" formControlName="title" placeholder="Titre de l'actualité">
+                        <div class="error-message" *ngIf="newsForm.get('title')?.invalid && newsForm.get('title')?.touched">
+                            Titre requis (5-200 caractères)
+                        </div>
                     </div>
-                </div>
 
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>Auteur <span class="required">*</span></label>
-                        <input type="text" formControlName="author" placeholder="Nom de l'auteur">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Auteur <span class="required">*</span></label>
+                            <input type="text" formControlName="author" placeholder="Nom de l'auteur">
+                            <div class="error-message" *ngIf="newsForm.get('author')?.invalid && newsForm.get('author')?.touched">
+                                Auteur requis
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Catégorie <span class="required">*</span></label>
+                            <select formControlName="category">
+                                <option value="" disabled>Sélectionner une catégorie</option>
+                                <option *ngFor="let cat of categories" [value]="cat">{{ cat }}</option>
+                            </select>
+                            <div class="error-message" *ngIf="newsForm.get('category')?.invalid && newsForm.get('category')?.touched">
+                                Catégorie requise
+                            </div>
+                        </div>
                     </div>
+
                     <div class="form-group">
-                        <label>Catégorie <span class="required">*</span></label>
-                        <select formControlName="category">
-                            <option *ngFor="let cat of categories" [value]="cat">{{ cat }}</option>
+                        <label>Résumé <span class="required">*</span></label>
+                        <textarea rows="3" formControlName="summary" placeholder="Résumé de l'actualité..."></textarea>
+                        <div class="error-message" *ngIf="newsForm.get('summary')?.invalid && newsForm.get('summary')?.touched">
+                            Résumé requis (10-500 caractères)
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Contenu <span class="required">*</span></label>
+                        <textarea rows="6" formControlName="content" placeholder="Contenu détaillé de l'actualité..."></textarea>
+                        <div class="error-message" *ngIf="newsForm.get('content')?.invalid && newsForm.get('content')?.touched">
+                            Contenu requis (minimum 20 caractères)
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Statut</label>
+                        <select formControlName="status">
+                            <option value="DRAFT">📝 Brouillon</option>
+                            <option value="PUBLISHED">✅ Publié</option>
+                            <option value="ARCHIVED">📦 Archivé</option>
                         </select>
                     </div>
-                </div>
 
-                <div class="form-group">
-                    <label>Résumé <span class="required">*</span></label>
-                    <textarea rows="2" formControlName="summary" placeholder="Résumé de l'actualité..."></textarea>
-                    <div class="error-message" *ngIf="newsForm.get('summary')?.invalid && newsForm.get('summary')?.touched">
-                        Résumé requis (10-500 caractères)
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" (click)="closeForm()">Annuler</button>
+                        <button type="submit" class="btn btn-primary" [disabled]="newsForm.invalid">
+                            {{ isEditing ? 'Mettre à jour' : 'Créer' }}
+                        </button>
                     </div>
-                </div>
-
-                <div class="form-group">
-                    <label>Contenu <span class="required">*</span></label>
-                    <textarea rows="5" formControlName="content" placeholder="Contenu détaillé de l'actualité..."></textarea>
-                    <div class="error-message" *ngIf="newsForm.get('content')?.invalid && newsForm.get('content')?.touched">
-                        Contenu requis (minimum 20 caractères)
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label>Statut</label>
-                    <select formControlName="status">
-                        <option value="DRAFT">📝 Brouillon</option>
-                        <option value="PUBLISHED">✅ Publié</option>
-                        <option value="ARCHIVED">📦 Archivé</option>
-                    </select>
-                </div>
-
-                <div class="form-actions">
-                    <button type="button" class="btn btn-secondary" (click)="closeForm()">Annuler</button>
-                    <button type="submit" class="btn btn-primary" [disabled]="newsForm.invalid">
-                        {{ isEditing ? 'Mettre à jour' : 'Créer' }}
-                    </button>
-                </div>
-            </form>
+                </form>
+            </div>
         </div>
     </div>
 
     <!-- MODAL DÉTAILS -->
-    <div *ngIf="selectedNews && !showForm" class="modal-overlay" (click)="closeDetails()">
-        <div class="modal-content modal-details" (click)="$event.stopPropagation()">
+    <div class="modal-overlay" *ngIf="selectedNews && !showForm" (click)="closeDetails()">
+        <div class="modal-container modal-details-container" (click)="$event.stopPropagation()">
             <div class="modal-header" [class]="getStatusClass(selectedNews.status)">
                 <h2>📄 Détails de l'actualité</h2>
                 <button class="close-btn" (click)="closeDetails()">✖</button>
             </div>
             
-            <div class="details-content">
-                <div class="detail-row">
-                    <div class="detail-label">ID :</div>
-                    <div class="detail-value">#{{ selectedNews.newsId }}</div>
-                </div>
-
-                <div class="detail-row">
-                    <div class="detail-label">Statut :</div>
-                    <div class="detail-value">
-                        <span class="badge" [class]="getStatusClass(selectedNews.status)">
-                            {{ getStatusIcon(selectedNews.status) }} {{ getStatusLabel(selectedNews.status) }}
-                        </span>
+            <div class="modal-body">
+                <div class="details-content">
+                    <div class="detail-row">
+                        <div class="detail-label">ID :</div>
+                        <div class="detail-value">#{{ selectedNews.newsId }}</div>
                     </div>
-                </div>
 
-                <div class="detail-row">
-                    <div class="detail-label">Titre :</div>
-                    <div class="detail-value">{{ selectedNews.title }}</div>
-                </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Statut :</div>
+                        <div class="detail-value">
+                            <span class="badge" [class]="getStatusClass(selectedNews.status)">
+                                {{ getStatusIcon(selectedNews.status) }} {{ getStatusLabel(selectedNews.status) }}
+                            </span>
+                        </div>
+                    </div>
 
-                <div class="detail-row">
-                    <div class="detail-label">Auteur :</div>
-                    <div class="detail-value">{{ selectedNews.author }}</div>
-                </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Titre :</div>
+                        <div class="detail-value">{{ selectedNews.title }}</div>
+                    </div>
 
-                <div class="detail-row">
-                    <div class="detail-label">Catégorie :</div>
-                    <div class="detail-value">{{ selectedNews.category }}</div>
-                </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Auteur :</div>
+                        <div class="detail-value">{{ selectedNews.author }}</div>
+                    </div>
 
-                <div class="detail-row">
-                    <div class="detail-label">Résumé :</div>
-                    <div class="detail-value">{{ selectedNews.summary }}</div>
-                </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Catégorie :</div>
+                        <div class="detail-value">{{ selectedNews.category }}</div>
+                    </div>
 
-                <div class="detail-row">
-                    <div class="detail-label">Contenu :</div>
-                    <div class="detail-value message-full">{{ selectedNews.content }}</div>
-                </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Résumé :</div>
+                        <div class="detail-value">{{ selectedNews.summary }}</div>
+                    </div>
 
-                <div class="detail-row">
-                    <div class="detail-label">Vues :</div>
-                    <div class="detail-value">👁️ {{ selectedNews.viewCount || 0 }} vues</div>
-                </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Contenu :</div>
+                        <div class="detail-value message-full">{{ selectedNews.content }}</div>
+                    </div>
 
-                <div class="detail-row">
-                    <div class="detail-label">Date de publication :</div>
-                    <div class="detail-value">{{ formatDate(selectedNews.publishDate) }}</div>
+                    <div class="detail-row">
+                        <div class="detail-label">Vues :</div>
+                        <div class="detail-value">👁️ {{ selectedNews.viewCount || 0 }} vues</div>
+                    </div>
+
+                    <div class="detail-row">
+                        <div class="detail-label">Date de publication :</div>
+                        <div class="detail-value">{{ formatDate(selectedNews.publishDate) }}</div>
+                    </div>
                 </div>
             </div>
 

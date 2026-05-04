@@ -135,31 +135,47 @@ checkAuthentication(): void {
 
         return filtered;
     }
-
-    openAddForm(): void {
-        this.isEditing = false;
-        this.showForm = true;
-        this.selectedNews = null;
-        
-        const userStr = localStorage.getItem('user');
-        let defaultAuthor = 'Admin';
-        if (userStr) {
-            try {
-                const user = JSON.parse(userStr);
-                defaultAuthor = user.firstName ? `${user.firstName} ${user.lastName}` : 'Admin';
-            } catch(e) {}
+openAddForm(): void {
+    console.log('🔍 Ouverture du formulaire');
+    this.isEditing = false;
+    this.showForm = true;
+    this.selectedNews = null;
+    
+    // Récupérer l'utilisateur connecté
+    const userStr = localStorage.getItem('user');
+    let defaultAuthor = 'Admin';
+    if (userStr) {
+        try {
+            const user = JSON.parse(userStr);
+            defaultAuthor = user.firstName ? `${user.firstName} ${user.lastName}` : 
+                           user.username || 'Admin';
+        } catch(e) {
+            console.error('Erreur parsing user:', e);
         }
-        
-        this.newsForm.reset({
-            title: '',
-            content: '',
-            summary: '',
-            author: defaultAuthor,
-            category: '',
-            status: NewsStatus.DRAFT
-        });
     }
-
+    
+    // Réinitialiser le formulaire avec les valeurs par défaut
+    this.newsForm.reset({
+        title: '',
+        content: '',
+        summary: '',
+        author: defaultAuthor,
+        category: '',
+        status: NewsStatus.DRAFT
+    });
+    
+    // Marquer les champs comme non touchés
+    Object.keys(this.newsForm.controls).forEach(key => {
+        const control = this.newsForm.get(key);
+        if (control) {
+            control.markAsUntouched();
+            control.markAsPristine();
+        }
+    });
+    
+    console.log('Formulaire réinitialisé:', this.newsForm.value);
+    console.log('showForm =', this.showForm);
+}
     editNews(news: News, event: Event): void {
         event.stopPropagation();
         this.isEditing = true;
