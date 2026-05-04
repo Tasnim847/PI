@@ -1,0 +1,105 @@
+/* ========== HIGH CONTRAST MODE ========== */
+body.high-contrast {
+  filter: contrast(1.5) !important;
+}
+
+body.high-contrast * {
+  border-color: #000 !important;
+}
+
+body.high-contrast .card,
+body.high-contrast .btn,
+body.high-contrast input,
+body.high-contrast select,
+body.high-contrast textarea {
+  border: 2px solid #000 !important;
+}
+
+body.high-contrast .text-muted {
+  color: #000 !important;
+}
+
+body.high-contrast a {
+  color: #0000FF !important;
+  text-decoration: underline !important;
+}
+
+body.high-contrast button {
+  border: 3px solid #000 !important;
+}
+
+/* ========== DYSLEXIA FONT ========== */
+body.dyslexia-font,
+body.dyslexia-font * {
+  font-family: 'Comic Sans MS', 'OpenDyslexic', Arial, sans-serif !important;
+  letter-spacing: 0.12em !important;
+  word-spacing: 0.16em !important;
+  line-height: 1.8 !important;
+}
+
+body.dyslexia-font h1,
+body.dyslexia-font h2,
+body.dyslexia-font h3,
+body.dyslexia-font h4,
+body.dyslexia-font h5,
+body.dyslexia-font h6 {
+  font-weight: 700 !important;
+}
+
+body.dyslexia-font p,
+body.dyslexia-font span,
+body.dyslexia-font div {
+  font-weight: 500 !important;
+}
+
+/* ========== REDUCE ANIMATIONS ========== */
+body.reduce-animations,
+body.reduce-animations * {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+
+body.reduce-animations *::before,
+body.reduce-animations *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+}
+
+/* Disable hover effects when animations are reduced */
+body.reduce-animations *:hover {
+  transform: none !important;
+}
+
+/* ========== FOCUS INDICATORS (Always visible for accessibility) ========== */
+*:focus {
+  outline: 3px solid #0891B2 !important;
+  outline-offset: 2px !important;
+}
+
+button:focus,
+a:focus,
+input:focus,
+select:focus,
+textarea:focus {
+  box-shadow: 0 0 0 4px rgba(8, 145, 178, 0.3) !important;
+}
+
+/* ========== SKIP TO CONTENT LINK ========== */
+.skip-to-content {
+  position: absolute;
+  top: -40px;
+  left: 0;
+  background: #0891B2;
+  color: white;
+  padding: 8px 16px;
+  text-decoration: none;
+  z-index: 10000;
+  font-weight: 700;
+}
+
+.skip-to-content:focus {
+  top: 0;
+}

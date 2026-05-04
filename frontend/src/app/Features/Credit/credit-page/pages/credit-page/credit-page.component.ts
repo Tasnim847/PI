@@ -6,6 +6,7 @@ import { Router, RouterModule } from '@angular/router';
 import { CreditService, Credit, CreditRequest, CreditStatus } from '../../../services/credit.service';
 import { ScoringService, CreditScore } from '../../../services/scoring.service';
 import { CreditScoringComponent } from '../scoring/credit-scoring/credit-scoring.component';
+import { AccessibilityToolbarComponent } from '../../../components/accessibility-toolbar/accessibility-toolbar.component';
 
 // ========== STATUS CONSTANTS ==========
 const STATUS_LABELS: Record<CreditStatus, string> = {
@@ -31,7 +32,8 @@ const STATUS_CLASSES: Record<CreditStatus, string> = {
     CommonModule,
     FormsModule,
     RouterModule,
-    CreditScoringComponent
+    CreditScoringComponent,
+    AccessibilityToolbarComponent
   ],
   templateUrl: './credit-page.component.html',
   styleUrls: ['./credit-page.component.css']

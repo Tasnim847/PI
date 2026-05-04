@@ -6,6 +6,7 @@ import { FormsModule } from '@angular/forms';
 import { CreditService, Credit } from '../../../../services/credit.service';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { ToastrService } from 'ngx-toastr';
+import { AccessibilityToolbarComponent } from '../../../../components/accessibility-toolbar/accessibility-toolbar.component';
 
 export interface Repayment {
   id: number;
@@ -40,7 +41,7 @@ export interface AutoRepaymentPlan {
 @Component({
   selector: 'app-client-repayment',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, AccessibilityToolbarComponent],
   templateUrl: './client-repayment.component.html',
   styleUrl: './client-repayment.component.css'
 })

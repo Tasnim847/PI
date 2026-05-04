@@ -332,3 +332,97 @@
 .text-center.py-5 p {
   margin-bottom: 1.5rem;
 }
+
+
+/* ========== NAVIGATION CLAVIER VISIBLE ========== */
+/* Contours visibles pour tous les éléments interactifs au focus */
+
+/* Boutons */
+button:focus,
+.btn:focus {
+  outline: 4px solid #0891B2 !important;
+  outline-offset: 3px !important;
+  box-shadow: 0 0 0 6px rgba(8, 145, 178, 0.25) !important;
+  position: relative;
+  z-index: 10;
+}
+
+/* Liens */
+a:focus {
+  outline: 4px solid #0891B2 !important;
+  outline-offset: 3px !important;
+  box-shadow: 0 0 0 6px rgba(8, 145, 178, 0.25) !important;
+  position: relative;
+  z-index: 10;
+}
+
+/* Inputs et selects */
+input:focus,
+select:focus,
+textarea:focus,
+.form-control:focus,
+.form-select:focus {
+  outline: 4px solid #0891B2 !important;
+  outline-offset: 2px !important;
+  box-shadow: 0 0 0 6px rgba(8, 145, 178, 0.25) !important;
+  border-color: #0891B2 !important;
+}
+
+/* Modal et éléments de fermeture */
+.modal-content:focus-within {
+  outline: 4px solid #0891B2 !important;
+  outline-offset: 3px !important;
+}
+
+.btn-close:focus {
+  outline: 4px solid #0891B2 !important;
+  outline-offset: 3px !important;
+  box-shadow: 0 0 0 6px rgba(8, 145, 178, 0.25) !important;
+}
+
+/* Amélioration de la visibilité du focus pour les éléments désactivés */
+button:disabled:focus,
+.btn:disabled:focus {
+  outline: 4px solid #6c757d !important;
+  outline-offset: 3px !important;
+  box-shadow: 0 0 0 6px rgba(108, 117, 125, 0.25) !important;
+}
+
+/* Indicateur visuel pour la navigation au clavier */
+body.keyboard-navigation *:focus {
+  animation: focusPulse 0.6s ease-in-out;
+}
+
+@keyframes focusPulse {
+  0% {
+    outline-width: 2px;
+    box-shadow: 0 0 0 0 rgba(8, 145, 178, 0.4);
+  }
+  50% {
+    outline-width: 4px;
+    box-shadow: 0 0 0 8px rgba(8, 145, 178, 0.1);
+  }
+  100% {
+    outline-width: 4px;
+    box-shadow: 0 0 0 6px rgba(8, 145, 178, 0.25);
+  }
+}
+
+/* Amélioration du contraste pour les éléments focusés */
+*:focus {
+  scroll-margin: 100px;
+}
+
+/* Cards avec focus */
+.card:focus-within {
+  outline: 3px solid #0891B2 !important;
+  outline-offset: 3px !important;
+  box-shadow: 0 0 0 6px rgba(8, 145, 178, 0.25), 0 8px 30px rgba(0,0,0,0.12) !important;
+}
+
+/* Score badge avec focus */
+.score-badge:focus {
+  outline: 4px solid #0891B2 !important;
+  outline-offset: 3px !important;
+  box-shadow: 0 0 0 6px rgba(8, 145, 178, 0.25) !important;
+}

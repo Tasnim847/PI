@@ -1,0 +1,338 @@
+/* ========== ACCESSIBILITY TOGGLE BUTTON ========== */
+.accessibility-toggle {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #0891B2, #06B6D4);
+  color: white;
+  border: none;
+  font-size: 28px;
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgba(8, 145, 178, 0.4);
+  transition: all 0.3s ease;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.accessibility-toggle:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 30px rgba(8, 145, 178, 0.6);
+}
+
+.accessibility-toggle.active {
+  background: linear-gradient(135deg, #06B6D4, #0891B2);
+}
+
+/* ========== TOOLBAR ========== */
+.accessibility-toolbar {
+  position: fixed;
+  top: 0;
+  right: -400px;
+  width: 380px;
+  height: 100vh;
+  background: white;
+  box-shadow: -4px 0 20px rgba(0, 0, 0, 0.15);
+  transition: right 0.3s ease;
+  z-index: 1001;
+  overflow-y: auto;
+}
+
+.accessibility-toolbar.open {
+  right: 0;
+}
+
+/* ========== HEADER ========== */
+.toolbar-header {
+  background: linear-gradient(135deg, #0891B2, #06B6D4);
+  color: white;
+  padding: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.toolbar-header h3 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.close-btn {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: white;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.close-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: rotate(90deg);
+}
+
+/* ========== CONTENT ========== */
+.toolbar-content {
+  padding: 20px;
+}
+
+.setting-section {
+  background: #f8f9fa;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 20px;
+  border: 2px solid #e9ecef;
+}
+
+.setting-section h4 {
+  margin: 0 0 15px 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #0891B2;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ========== SETTING ITEMS ========== */
+.setting-item {
+  margin-bottom: 15px;
+}
+
+.setting-item label {
+  display: block;
+  font-weight: 600;
+  color: #495057;
+  margin-bottom: 8px;
+  font-size: 0.9rem;
+}
+
+/* ========== SLIDER ========== */
+.slider {
+  width: 100%;
+  height: 8px;
+  border-radius: 5px;
+  background: #e9ecef;
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #0891B2, #06B6D4);
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(8, 145, 178, 0.4);
+  transition: all 0.3s ease;
+}
+
+.slider::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+  box-shadow: 0 4px 12px rgba(8, 145, 178, 0.6);
+}
+
+.slider::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #0891B2, #06B6D4);
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 2px 8px rgba(8, 145, 178, 0.4);
+}
+
+/* ========== COLOR BUTTONS ========== */
+.color-buttons {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.color-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 3px solid transparent;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.color-btn:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.color-btn.active {
+  border-color: #0891B2;
+  transform: scale(1.15);
+  box-shadow: 0 0 0 4px rgba(8, 145, 178, 0.2);
+}
+
+/* ========== ZOOM LABELS ========== */
+.zoom-labels {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 5px;
+  font-size: 0.8rem;
+  color: #6c757d;
+}
+
+/* ========== TOGGLE ITEMS ========== */
+.toggle-item {
+  margin-bottom: 12px;
+}
+
+.toggle-item label {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  padding: 12px;
+  background: white;
+  border-radius: 8px;
+  border: 2px solid #e9ecef;
+  transition: all 0.3s ease;
+}
+
+.toggle-item label:hover {
+  border-color: #0891B2;
+  background: rgba(8, 145, 178, 0.05);
+}
+
+.toggle-item input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  margin-right: 12px;
+  cursor: pointer;
+  accent-color: #0891B2;
+}
+
+.toggle-label {
+  font-weight: 600;
+  color: #495057;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.95rem;
+}
+
+/* ========== BUTTONS ========== */
+.reset-btn {
+  width: 100%;
+  padding: 10px;
+  background: linear-gradient(135deg, #6c757d, #5a6268);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.reset-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(108, 117, 125, 0.4);
+}
+
+.reset-all-btn {
+  width: 100%;
+  padding: 15px;
+  background: linear-gradient(135deg, #dc3545, #c82333);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.reset-all-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(220, 53, 69, 0.4);
+}
+
+/* ========== BACKDROP ========== */
+.toolbar-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* ========== SCROLLBAR ========== */
+.accessibility-toolbar::-webkit-scrollbar {
+  width: 8px;
+}
+
+.accessibility-toolbar::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.accessibility-toolbar::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #0891B2, #06B6D4);
+  border-radius: 4px;
+}
+
+.accessibility-toolbar::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #06B6D4, #0891B2);
+}
+
+/* ========== RESPONSIVE ========== */
+@media (max-width: 768px) {
+  .accessibility-toolbar {
+    width: 100%;
+    right: -100%;
+  }
+
+  .accessibility-toggle {
+    bottom: 15px;
+    right: 15px;
+    width: 50px;
+    height: 50px;
+    font-size: 24px;
+  }
+}
