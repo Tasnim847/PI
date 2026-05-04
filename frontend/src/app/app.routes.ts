@@ -58,6 +58,7 @@ import { InssAgentDashboardComponent } from './Features/Insurance/pages/agent/in
 import { AgentCreditApprovalsComponent } from './Features/Credit/credit-page/pages/agent/agent-credit-approvals.component';
 import { CompAgentDashboardComponent } from './Features/Compensation/agent/comp-agent-dashboard/comp-agent-dashboard.component';
 import { AgentClaimsDetailsComponent } from './Features/Claims/agent/agent-claims-details/agent-claims-details.component';
+import { DashboardNewsComponent } from './Features/Complaint/pages/Dashboard/dashboard-news.component';
 
 export const routes: Routes = [
 
@@ -286,7 +287,7 @@ export const routes: Routes = [
       { path: 'insurance/admin-dashboard', component: AdminDashboardComponent },
       { path: 'account', component: AccountPageComponent },
       { path: 'complaint', component: ComplaintPageComponent },
-      { path: 'complaint/kpi', component: ComplaintKpiComponent },
+      { path: 'dashboard/kpi', component: DashboardNewsComponent },
       { path: 'news', component: NewsPageComponent },
       { path: 'claims', component: ListAllClaimsComponent },
       {

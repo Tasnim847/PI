@@ -1,0 +1,340 @@
+/* src/app/Features/News/Dashboard/dashboard.component.css */
+
+.dashboard-container {
+    padding: 24px;
+    background: #f0f2f5;
+    min-height: 100vh;
+}
+
+.dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.dashboard-header h1 {
+    margin: 0;
+    font-size: 28px;
+    color: #1a2a3a;
+}
+
+.subtitle {
+    margin: 5px 0 0 0;
+    color: #6b7280;
+    font-size: 14px;
+}
+
+.btn-refresh {
+    background: #4f46e5;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background 0.2s;
+}
+
+.btn-refresh:hover {
+    background: #6366f1;
+}
+
+.btn-refresh:disabled {
+    background: #9ca3af;
+    cursor: not-allowed;
+}
+
+.alert-error {
+    background: #fee2e2;
+    color: #dc2626;
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    border-left: 4px solid #dc2626;
+}
+
+.loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 40px;
+    background: white;
+    border-radius: 12px;
+    margin: 20px 0;
+}
+
+.spinner {
+    width: 24px;
+    height: 24px;
+    border: 3px solid #e5e7eb;
+    border-top-color: #4f46e5;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.dashboard-card {
+    background: white;
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 24px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid #eef2f6;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.card-header h2 {
+    margin: 0;
+    font-size: 20px;
+    color: #1a2a3a;
+}
+
+.header-links {
+    display: flex;
+    gap: 16px;
+}
+
+.btn-link {
+    color: #4f46e5;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.btn-link:hover {
+    text-decoration: underline;
+}
+
+.btn-kpi {
+    background: #f0fdf4;
+    padding: 6px 12px;
+    border-radius: 20px;
+    color: #16a34a;
+}
+
+.stats-grid, .kpi-section {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.kpi-section {
+    margin-bottom: 32px;
+}
+
+.kpi-card, .stat-card {
+    flex: 1;
+    min-width: 180px;
+    padding: 20px;
+    border-radius: 12px;
+    text-align: center;
+    transition: transform 0.2s;
+}
+
+.kpi-card:hover, .stat-card:hover {
+    transform: translateY(-4px);
+}
+
+.kpi-card {
+    background: #f8fafc;
+    border: 1px solid #eef2f6;
+}
+
+.stat-card {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+}
+
+.stat-card.total { background: linear-gradient(135deg, #667eea, #764ba2); }
+.stat-card.published { background: linear-gradient(135deg, #11998e, #38ef7d); }
+.stat-card.draft { background: linear-gradient(135deg, #f093fb, #f5576c); }
+
+/* Complaint status colors */
+.stat-card.pending { background: linear-gradient(135deg, #f6d365, #fda085); }
+.stat-card.progress { background: linear-gradient(135deg, #4facfe, #00f2fe); }
+.stat-card.approved { background: linear-gradient(135deg, #11998e, #38ef7d); }
+.stat-card.rejected { background: linear-gradient(135deg, #eb3349, #f45c43); }
+.stat-card.closed { background: linear-gradient(135deg, #8e9eab, #eef2f3); color: #333; }
+
+/* KPI card dynamic colors */
+.kpi-card.resolution.high { background: linear-gradient(135deg, #11998e, #38ef7d); color: white; }
+.kpi-card.resolution.medium { background: linear-gradient(135deg, #f6d365, #fda085); color: white; }
+.kpi-card.resolution.low { background: linear-gradient(135deg, #eb3349, #f45c43); color: white; }
+.kpi-card.rejection.high { background: linear-gradient(135deg, #eb3349, #f45c43); color: white; }
+.kpi-card.rejection.medium { background: linear-gradient(135deg, #f6d365, #fda085); color: white; }
+.kpi-card.rejection.low { background: linear-gradient(135deg, #11998e, #38ef7d); color: white; }
+.kpi-card.time { background: linear-gradient(135deg, #4facfe, #00f2fe); color: white; }
+.kpi-card.agent { background: linear-gradient(135deg, #fa709a, #fee140); color: #1a2a3a; }
+
+.kpi-icon {
+    font-size: 32px;
+    margin-bottom: 12px;
+}
+
+.kpi-value, .stat-value {
+    font-size: 32px;
+    font-weight: 700;
+    margin-bottom: 8px;
+}
+
+.kpi-value.agent-name {
+    font-size: 18px;
+    word-break: break-word;
+}
+
+.kpi-label, .stat-label {
+    font-size: 14px;
+    margin-top: 8px;
+    opacity: 0.9;
+}
+
+.kpi-sub {
+    font-size: 11px;
+    margin-top: 4px;
+    opacity: 0.8;
+}
+
+.repartition-section h3 {
+    margin: 0 0 16px 0;
+    font-size: 18px;
+    color: #1a2a3a;
+}
+
+/* Navigation links */
+.nav-links {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 12px;
+}
+
+.nav-link {
+    background: #f1f5f9;
+    padding: 12px 16px;
+    border-radius: 8px;
+    text-decoration: none;
+    color: #334155;
+    font-weight: 500;
+    text-align: center;
+    transition: all 0.2s;
+}
+
+.nav-link:hover {
+    background: #4f46e5;
+    color: white;
+    transform: translateY(-2px);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .dashboard-container { padding: 16px; }
+    .dashboard-header { flex-direction: column; align-items: flex-start; }
+    .stats-grid, .kpi-section { flex-direction: column; }
+    .kpi-card, .stat-card { min-width: auto; }
+    .nav-links { grid-template-columns: 1fr; }
+}
+
+
+
+
+
+
+
+
+
+
+
+/* dashboard.component.css */
+
+/* Style pour le bouton retour */
+.btn-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background: white;
+    color: #4b5563;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-right: 16px;
+}
+
+.btn-back:hover {
+    background: #f3f4f6;
+    border-color: #d1d5db;
+    transform: translateX(-2px);
+}
+
+.btn-back:active {
+    transform: translateX(0);
+}
+
+/* Style pour l'icône seule */
+.btn-icon-back {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+    color: #6b7280;
+}
+
+.btn-icon-back:hover {
+    background: #f3f4f6;
+    transform: translateX(-2px);
+}
+
+/* Header left container */
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+/* Header actions container */
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+/* Ajustement du dashboard-header */
+.dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+/* Style pour le header-left dans la card */
+.card-header .header-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.card-header .header-left h2 {
+    margin: 0;
+}

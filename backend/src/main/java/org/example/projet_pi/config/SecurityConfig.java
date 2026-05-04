@@ -226,16 +226,17 @@ public class SecurityConfig {
 
 
                         // ========== NEWS ENDPOINTS ==========
-                        // CRUD - Admin uniquement
-                        .requestMatchers(HttpMethod.POST, "/api/v1/news").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PUT, "/api/v1/news/update/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/api/v1/news/delete/**").hasRole("ADMIN")
+                        // GET - Tout le monde peut voir
+                        .requestMatchers(HttpMethod.GET, "/api/v1/news", "/api/v1/news/**").permitAll()
 
-                        // ✅ Upload image - Admin uniquement (CORRIGÉ)
-                        .requestMatchers(HttpMethod.POST, "/api/v1/news/*/upload-image")
-                        .hasAnyRole("ADMIN", "AGENT_ASSURANCE")
-                        .requestMatchers(HttpMethod.DELETE, "/api/v1/news/*/image")
-                        .hasRole("ADMIN")
+                        // ✅ POST - ADMIN uniquement (ou permitAll pour test)
+                        .requestMatchers(HttpMethod.POST, "/api/v1/news").hasRole("ADMIN")
+
+                        .requestMatchers(HttpMethod.PUT, "/api/v1/news/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/v1/news/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PATCH, "/api/v1/news/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/v1/news/*/upload-image").hasAnyRole("ADMIN", "AGENT_ASSURANCE")
+                        .requestMatchers(HttpMethod.DELETE, "/api/v1/news/*/image").hasRole("ADMIN")
 
                         // ========== COMPLAINT ENDPOINTS ==========
                         .requestMatchers("/complaints/addComplaint").hasRole("CLIENT")

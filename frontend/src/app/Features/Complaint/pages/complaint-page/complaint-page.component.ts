@@ -52,7 +52,7 @@ export class ComplaintPageComponent implements OnInit {
 
   goToKpi(): void {
     console.log('📊 Navigation vers le tableau de bord KPI');
-    this.router.navigate(['/backoffice/complaint/kpi']);
+    this.router.navigate(['/backoffice/dashboard/kpi']);
   }
 
   checkAuthentication(): void {
