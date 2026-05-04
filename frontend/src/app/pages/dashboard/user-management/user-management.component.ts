@@ -78,48 +78,61 @@ export class UserManagementComponent implements OnInit {
   }
 
   loadUsers() {
-    this.loading = true;
-    this.error = null;
+  this.loading = true;
+  this.error = null;
 
-    if (this.type === 'clients') {
-      // Clients avec leurs agents
-      this.adminService.getClients().subscribe({
-        next: (data: ClientWithAgents[]) => {
-          this.clients = data;
-          this.filteredClients = [...data];
-          this.loading = false;
-        },
-        error: (err: any) => {
-          console.error(`❌ Erreur chargement clients:`, err);
-          this.error = err.status === 403
-            ? 'Access denied. Please log in again.'
-            : err.message || 'Loading error';
-          this.loading = false;
-        }
-      });
-    } else {
-      const methods: any = {
-        'agents-assurance': () => this.adminService.getAgentsAssurance(),
-        'agents-finance':   () => this.adminService.getAgentsFinance(),
-        'admins':           () => this.adminService.getAdmins()
-      };
+  if (this.type === 'clients') {
+    // Clients avec leurs agents
+    this.adminService.getClients().subscribe({
+      next: (data: any[]) => {  // Utilisez any[] temporairement
+        // Transformer les données pour extraire les noms des agents
+        this.clients = data.map(client => ({
+          ...client,
+          // Si le backend renvoie des objets agent
+          agentFinanceName: client.agentFinance?.firstName && client.agentFinance?.lastName 
+            ? `${client.agentFinance.firstName} ${client.agentFinance.lastName}`
+            : (client.agentFinanceName || null),
+          agentAssuranceName: client.agentAssurance?.firstName && client.agentAssurance?.lastName
+            ? `${client.agentAssurance.firstName} ${client.agentAssurance.lastName}`
+            : (client.agentAssuranceName || null),
+          agentFinanceId: client.agentFinance?.id || client.agentFinanceId || null,
+          agentAssuranceId: client.agentAssurance?.id || client.agentAssuranceId || null
+        }));
+        this.filteredClients = [...this.clients];
+        this.loading = false;
+      },
+      error: (err: any) => {
+        console.error(`❌ Erreur chargement clients:`, err);
+        this.error = err.status === 403
+          ? 'Access denied. Please log in again.'
+          : err.message || 'Loading error';
+        this.loading = false;
+      }
+    });
+  } else {
+    // ... reste du code inchangé
+    const methods: any = {
+      'agents-assurance': () => this.adminService.getAgentsAssurance(),
+      'agents-finance':   () => this.adminService.getAgentsFinance(),
+      'admins':           () => this.adminService.getAdmins()
+    };
 
-      methods[this.type]().subscribe({
-        next: (data: User[]) => {
-          this.users = data;
-          this.filteredUsers = [...data];
-          this.loading = false;
-        },
-        error: (err: any) => {
-          console.error(`❌ Erreur chargement ${this.type}:`, err);
-          this.error = err.status === 403
-            ? 'Access denied. Please log in again.'
-            : err.message || 'Loading error';
-          this.loading = false;
-        }
-      });
-    }
+    methods[this.type]().subscribe({
+      next: (data: User[]) => {
+        this.users = data;
+        this.filteredUsers = [...data];
+        this.loading = false;
+      },
+      error: (err: any) => {
+        console.error(`❌ Erreur chargement ${this.type}:`, err);
+        this.error = err.status === 403
+          ? 'Access denied. Please log in again.'
+          : err.message || 'Loading error';
+        this.loading = false;
+      }
+    });
   }
+}
 
   loadAgents() {
     this.adminService.getAgentsFinance().subscribe({
