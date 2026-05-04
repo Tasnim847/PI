@@ -1,0 +1,155 @@
+<!-- src/app/Features/News/Dashboard/dashboard.component.html -->
+
+<div class="dashboard-container">
+    
+    <!-- HEADER -->
+    <div class="dashboard-header">
+        <div class="header-left">
+            <button class="btn-back" (click)="goBackToComplaints()" title="Retour aux réclamations">
+                ← Retour
+            </button>
+            <div>
+                <h1>📊 Tableau de bord des performances</h1>
+                <p class="subtitle">Vue d'ensemble des statistiques</p>
+            </div>
+        </div>
+        <button class="btn-refresh" (click)="refresh()" [disabled]="isLoading">
+            🔄 {{ isLoading ? 'Chargement...' : 'Actualiser' }}
+        </button>
+    </div>
+
+    <!-- ERREUR -->
+    <div *ngIf="errorMessage" class="alert-error">
+        ⚠️ {{ errorMessage }}
+    </div>
+
+    <!-- LOADING -->
+    <div *ngIf="isLoading" class="loading">
+        <div class="spinner"></div>
+        <span>Chargement des statistiques...</span>
+    </div>
+
+    <!-- CONTENU PRINCIPAL -->
+    <div *ngIf="!isLoading && !errorMessage" class="dashboard-content">
+        
+        <!-- ========== SECTION ACTUALITÉS ========== -->
+        <div class="dashboard-card news-card">
+            <div class="card-header">
+                <h2>📰 Gestion des Actualités</h2>
+                <a routerLink="/news" class="btn-link">Voir tout →</a>
+            </div>
+            <div class="stats-grid">
+                <div class="stat-card total">
+                    <div class="stat-value">{{ newsStats.total }}</div>
+                    <div class="stat-label">Total actualités</div>
+                </div>
+                <div class="stat-card published">
+                    <div class="stat-value">{{ newsStats.published }}</div>
+                    <div class="stat-label">Publiées</div>
+                </div>
+                <div class="stat-card draft">
+                    <div class="stat-value">{{ newsStats.draft }}</div>
+                    <div class="stat-label">Brouillons / Archivées</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========== SECTION RÉCLAMATIONS - KPI ========== -->
+        <div class="dashboard-card complaint-card">
+            <div class="card-header">
+                <h2>📋 Gestion des Réclamations</h2>
+                <div class="header-links">
+                    <a routerLink="/complaint" class="btn-link">Voir tout →</a>
+                    <a routerLink="/complaint/kpi" class="btn-link btn-kpi">📊 KPIs détaillés</a>
+                </div>
+            </div>
+
+            <!-- 4 Cartes KPI principales -->
+            <div class="kpi-section">
+                <div class="kpi-card time">
+                    <div class="kpi-icon">⏱️</div>
+                    <div class="kpi-value">{{ getFormattedTime() }}</div>
+                    <div class="kpi-label">Temps moyen de traitement</div>
+                    <div class="kpi-sub">Délai création → résolution</div>
+                </div>
+
+                <div class="kpi-card resolution" 
+                     [class.high]="complaintStats.resolutionRate >= 80"
+                     [class.medium]="complaintStats.resolutionRate >= 50 && complaintStats.resolutionRate < 80"
+                     [class.low]="complaintStats.resolutionRate < 50">
+                    <div class="kpi-icon">✅</div>
+                    <div class="kpi-value">{{ getFormattedRate(complaintStats.resolutionRate) }}</div>
+                    <div class="kpi-label">Taux de résolution</div>
+                    <div class="kpi-sub">Réclamations approuvées</div>
+                </div>
+
+                <div class="kpi-card rejection"
+                     [class.high]="complaintStats.rejectionRate > 40"
+                     [class.medium]="complaintStats.rejectionRate > 20 && complaintStats.rejectionRate <= 40"
+                     [class.low]="complaintStats.rejectionRate <= 20">
+                    <div class="kpi-icon">❌</div>
+                    <div class="kpi-value">{{ getFormattedRate(complaintStats.rejectionRate) }}</div>
+                    <div class="kpi-label">Taux de rejet</div>
+                    <div class="kpi-sub">Réclamations rejetées</div>
+                </div>
+
+                <div class="kpi-card agent">
+                    <div class="kpi-icon">🏆</div>
+                    <div class="kpi-value agent-name">{{ complaintStats.topAgent | slice:0:25 }}{{ complaintStats.topAgent.length > 25 ? '...' : '' }}</div>
+                    <div class="kpi-label">Agent le plus actif</div>
+                    <div class="kpi-sub">Plus grand nombre de réclamations traitées</div>
+                </div>
+            </div>
+
+            <!-- Répartition des réclamations par statut -->
+            <div class="repartition-section">
+                <h3>Répartition des réclamations par statut</h3>
+                <div class="stats-grid">
+                    <div class="stat-card total">
+                        <div class="stat-value">{{ complaintStats.total }}</div>
+                        <div class="stat-label">Total</div>
+                    </div>
+                    <div class="stat-card pending">
+                        <div class="stat-value">{{ complaintStats.pending }}</div>
+                        <div class="stat-label">En attente</div>
+                    </div>
+                    <div class="stat-card progress">
+                        <div class="stat-value">{{ complaintStats.inProgress }}</div>
+                        <div class="stat-label">En cours</div>
+                    </div>
+                    <div class="stat-card approved">
+                        <div class="stat-value">{{ complaintStats.approved }}</div>
+                        <div class="stat-label">Approuvées</div>
+                    </div>
+                    <div class="stat-card rejected">
+                        <div class="stat-value">{{ complaintStats.rejected }}</div>
+                        <div class="stat-label">Rejetées</div>
+                    </div>
+                    <div class="stat-card closed">
+                        <div class="stat-value">{{ complaintStats.closed }}</div>
+                        <div class="stat-label">Fermées</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========== SECTION NAVIGATION RAPIDE ========== -->
+        <div class="dashboard-card nav-card">
+            <div class="card-header">
+                <h2>🧭 Navigation rapide</h2>
+            </div>
+            <div class="nav-links">
+                <a routerLink="/backoffice/clients" class="nav-link">👥 Clients</a>
+                <a routerLink="/backoffice/agents-assurance" class="nav-link">🛡️ Agents Assurance</a>
+                <a routerLink="/backoffice/agents-finance" class="nav-link">💰 Agents Finance</a>
+                <a routerLink="/backoffice/admins" class="nav-link">👑 Administrateurs</a>
+                <a routerLink="/backoffice/credit" class="nav-link">💳 Credit</a>
+                <a routerLink="/backoffice/repayment" class="nav-link">🔄 Repayment</a>
+                <a routerLink="/backoffice/insurance" class="nav-link">🏠 Insurance</a>
+                <a routerLink="/backoffice/account" class="nav-link">👤 Account</a>
+                <a routerLink="/complaint" class="nav-link">📋 Complaint</a>
+                <a routerLink="/complaint/kpi" class="nav-link">📊 KPIs</a>
+            </div>
+        </div>
+    </div>
+</div>
