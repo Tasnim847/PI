@@ -1,0 +1,129 @@
+<!-- Accessibility Button -->
+<button class="accessibility-toggle" (click)="toggleToolbar()" [class.active]="isOpen" title="Accessibility Options">
+  <i class="bi bi-universal-access"></i>
+</button>
+
+<!-- Accessibility Toolbar -->
+<div class="accessibility-toolbar" [class.open]="isOpen">
+  <div class="toolbar-header">
+    <h3><i class="bi bi-universal-access"></i> Accessibility</h3>
+    <button class="close-btn" (click)="toggleToolbar()" title="Close">
+      <i class="bi bi-x-lg"></i>
+    </button>
+  </div>
+
+  <div class="toolbar-content">
+    
+    <!-- ========== CURSOR SETTINGS ========== -->
+    <div class="setting-section">
+      <h4><i class="bi bi-cursor"></i> Cursor</h4>
+      
+      <div class="setting-item">
+        <label>Size: {{ settings.cursorSize }}px</label>
+        <input 
+          type="range" 
+          min="12" 
+          max="48" 
+          [(ngModel)]="settings.cursorSize"
+          (input)="updateCursorSize(settings.cursorSize)"
+          class="slider">
+      </div>
+
+      <div class="setting-item">
+        <label>Color</label>
+        <div class="color-buttons">
+          <button 
+            *ngFor="let color of cursorColors"
+            class="color-btn"
+            [style.background-color]="color.value"
+            [class.active]="settings.cursorColor === color.value"
+            (click)="updateCursorColor(color.value)"
+            [title]="color.name">
+          </button>
+        </div>
+      </div>
+
+      <button class="reset-btn" (click)="resetCursor()">
+        <i class="bi bi-arrow-counterclockwise"></i> Reset Cursor
+      </button>
+    </div>
+
+    <!-- ========== ZOOM ========== -->
+    <div class="setting-section">
+      <h4><i class="bi bi-zoom-in"></i> Zoom</h4>
+      
+      <div class="setting-item">
+        <label>Content Size: {{ settings.zoom }}%</label>
+        <input 
+          type="range" 
+          min="80" 
+          max="160" 
+          step="10"
+          [(ngModel)]="settings.zoom"
+          (input)="updateZoom(settings.zoom)"
+          class="slider">
+        <div class="zoom-labels">
+          <span>80%</span>
+          <span>100%</span>
+          <span>160%</span>
+        </div>
+      </div>
+
+      <button class="reset-btn" (click)="resetZoom()">
+        <i class="bi bi-arrow-counterclockwise"></i> Reset Zoom
+      </button>
+    </div>
+
+    <!-- ========== VISUAL OPTIONS ========== -->
+    <div class="setting-section">
+      <h4><i class="bi bi-eye"></i> Visual Options</h4>
+
+      <div class="toggle-item">
+        <label>
+          <input 
+            type="checkbox" 
+            [(ngModel)]="settings.highContrast"
+            (change)="toggleHighContrast()">
+          <span class="toggle-label">
+            <i class="bi bi-circle-half"></i> High Contrast
+          </span>
+        </label>
+      </div>
+
+      <div class="toggle-item">
+        <label>
+          <input 
+            type="checkbox" 
+            [(ngModel)]="settings.dyslexiaFont"
+            (change)="toggleDyslexiaFont()">
+          <span class="toggle-label">
+            <i class="bi bi-fonts"></i> Dyslexia Font
+          </span>
+        </label>
+      </div>
+
+      <div class="toggle-item">
+        <label>
+          <input 
+            type="checkbox" 
+            [(ngModel)]="settings.reduceAnimations"
+            (change)="toggleReduceAnimations()">
+          <span class="toggle-label">
+            <i class="bi bi-pause-circle"></i> Reduce Animations
+          </span>
+        </label>
+      </div>
+    </div>
+
+    <!-- ========== RESET ALL ========== -->
+    <div class="setting-section">
+      <button class="reset-all-btn" (click)="resetAll()">
+        <i class="bi bi-arrow-counterclockwise"></i> Reset All Settings
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<!-- Backdrop -->
+<div class="toolbar-backdrop" *ngIf="isOpen" (click)="toggleToolbar()"></div>

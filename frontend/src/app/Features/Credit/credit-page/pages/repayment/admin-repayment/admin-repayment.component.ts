@@ -4,6 +4,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { ToastrService } from 'ngx-toastr';
+import { AccessibilityToolbarComponent } from '../../../../components/accessibility-toolbar/accessibility-toolbar.component';
 
 export interface Repayment {
   repaymentId?: number;
@@ -22,7 +23,7 @@ export interface Repayment {
 @Component({
   selector: 'app-admin-repayment',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, AccessibilityToolbarComponent],
   templateUrl: './admin-repayment.component.html',
   styleUrl: './admin-repayment.component.css'
 })
@@ -37,6 +38,12 @@ export class AdminRepaymentComponent implements OnInit {
   searchTerm: string = '';
   filterStatus: string = '';
   filterMethod: string = '';
+  
+  // ========== PAGINATION ==========
+  currentPage: number = 1;
+  itemsPerPage: number = 10;
+  totalPages: number = 1;
+  Math = Math; // Pour utiliser Math.min dans le template
   
   // ========== ÉTATS ==========
   isLoading: boolean = false;
@@ -179,6 +186,10 @@ export class AdminRepaymentComponent implements OnInit {
     
     this.filteredRepayments = [...this.allRepayments];
     
+    // Initialiser la pagination
+    this.totalPages = Math.ceil(this.filteredRepayments.length / this.itemsPerPage);
+    this.currentPage = 1;
+    
     console.log('=== ENRICHMENT COMPLETE ===');
     console.log('With credit ID:', this.allRepayments.filter(r => r.creditId).length);
     console.log('Total repayments:', this.allRepayments.length);
@@ -218,6 +229,33 @@ export class AdminRepaymentComponent implements OnInit {
       
       return matchesSearch && matchesStatus && matchesMethod;
     });
+    
+    // Recalculer la pagination
+    this.totalPages = Math.ceil(this.filteredRepayments.length / this.itemsPerPage);
+    this.currentPage = 1;
+  }
+
+  // ========== OBTENIR LES REMBOURSEMENTS PAGINÉS ==========
+  getPaginatedRepayments(): Repayment[] {
+    const startIndex = (this.currentPage - 1) * this.itemsPerPage;
+    const endIndex = startIndex + this.itemsPerPage;
+    return this.filteredRepayments.slice(startIndex, endIndex);
+  }
+
+  // ========== CHANGER DE PAGE ==========
+  goToPage(page: number): void {
+    if (page >= 1 && page <= this.totalPages) {
+      this.currentPage = page;
+    }
+  }
+
+  // ========== GÉNÉRER LES NUMÉROS DE PAGE ==========
+  getPageNumbers(): number[] {
+    const pages: number[] = [];
+    for (let i = 1; i <= this.totalPages; i++) {
+      pages.push(i);
+    }
+    return pages;
   }
 
   // ========== DELETE REPAYMENT (ADMIN) ==========
