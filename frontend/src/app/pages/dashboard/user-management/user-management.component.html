@@ -60,33 +60,32 @@
           <td>{{ client.telephone }}</td>
 
           <!-- AGENT FINANCE avec plus d'informations -->
-<td>
-  <div class="agent-info" *ngIf="client.agentFinanceName; else noFinance">
-    <span class="agent-badge finance">
-      {{ client.agentFinanceName }}
-    </span>
-    
-  </div>
-  <ng-template #noFinance>
-    <span class="agent-badge finance unassigned">
-      Not assigned
-    </span>
-  </ng-template>
-</td>
+          <td>
+            <div class="agent-info" *ngIf="client.agentFinanceName; else noFinance">
+              <span class="agent-badge finance">
+                {{ client.agentFinanceName }}
+              </span> 
+            </div>
+            <ng-template #noFinance>
+              <span class="agent-badge finance unassigned">
+                Not assigned
+              </span>
+            </ng-template>
+          </td>
 
-<!-- AGENT ASSURANCE avec plus d'informations -->
-<td>
-  <div class="agent-info" *ngIf="client.agentAssuranceName; else noAssurance">
-    <span class="agent-badge assurance">
-      {{ client.agentAssuranceName }}
-    </span>
-  </div>
-  <ng-template #noAssurance>
-    <span class="agent-badge assurance unassigned">
-      Not assigned
-    </span>
-  </ng-template>
-</td>
+          <!-- AGENT ASSURANCE avec plus d'informations -->
+          <td>
+            <div class="agent-info" *ngIf="client.agentAssuranceName; else noAssurance">
+              <span class="agent-badge assurance">
+                {{ client.agentAssuranceName }}
+              </span>
+            </div>
+            <ng-template #noAssurance>
+              <span class="agent-badge assurance unassigned">
+                Not assigned
+              </span>
+            </ng-template>
+          </td>
 
           <!-- ACTIONS -->
           <td class="actions">
