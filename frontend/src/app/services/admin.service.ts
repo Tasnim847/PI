@@ -24,7 +24,20 @@ export interface ClientWithAgents {
   telephone: string;
   role: string;
   photo?: string;
-  // 🔥 Version simplifiée
+  // 🔥 Version complète avec les objets agents
+  agentFinance?: {
+    id: number;
+    firstName: string;
+    lastName: string;
+    email: string;
+  } | null;
+  agentAssurance?: {
+    id: number;
+    firstName: string;
+    lastName: string;
+    email: string;
+  } | null;
+  // Pour la compatibilité avec le code existant
   agentFinanceId?: number | null;
   agentFinanceName?: string | null;
   agentAssuranceId?: number | null;
@@ -62,7 +75,8 @@ export class AdminService {
 
   // ── Clients (retourne ClientWithAgents pour avoir les agents) ──
   getClients(): Observable<ClientWithAgents[]> {
-    return this.http.get<ClientWithAgents[]>(`${this.apiUrl}/api/clients/all`, { headers: this.getHeaders() });
+    // Changez l'URL de '/api/clients/all' vers '/api/clients/all-with-agents'
+    return this.http.get<ClientWithAgents[]>(`${this.apiUrl}/api/clients/all-with-agents`, { headers: this.getHeaders() });
   }
 
   addClient(client: FormData): Observable<Client> {
