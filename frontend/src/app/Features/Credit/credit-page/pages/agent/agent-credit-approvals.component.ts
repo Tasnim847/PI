@@ -118,12 +118,12 @@ export class AgentCreditApprovalsComponent implements OnInit {
 
   formatDate(date: any): string {
     if (!date) return 'N/A';
-    return new Date(date).toLocaleDateString('en-US');
+    return new Date(date).toLocaleDateString('fr-FR');
   }
 
   formatAmount(amount: number): string {
     if (!amount && amount !== 0) return '-';
-    return amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' TND';
+    return amount.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' TND';
   }
 
   getClientName(credit: Credit): string {
