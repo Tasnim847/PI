@@ -223,28 +223,28 @@
       </div>
     </div>
 
-    <!-- Charts Section -->
-    <div class="charts-section" *ngIf="stats">
-      <div class="chart-card">
-        <div class="chart-header">
-          <h4>📊 Financial Overview</h4>
-          <span class="chart-badge">Comparison</span>
-        </div>
-        <div class="chart-container">
-          <canvas id="barChart"></canvas>
-        </div>
-      </div>
-
-      <div class="chart-card">
-        <div class="chart-header">
-          <h4>🥧 Transaction Distribution</h4>
-          <span class="chart-badge">Distribution</span>
-        </div>
-        <div class="chart-container">
-          <canvas id="doughnutChart"></canvas>
-        </div>
-      </div>
+   <!-- Charts Section -->
+<div class="charts-section" *ngIf="stats && chartsReady">
+  <div class="chart-card">
+    <div class="chart-header">
+      <h4>📊 Financial Overview</h4>
+      <span class="chart-badge">Comparison</span>
     </div>
+    <div class="chart-container" style="position:relative; height:250px;">
+      <canvas id="barChart"></canvas>
+    </div>
+  </div>
+
+  <div class="chart-card">
+    <div class="chart-header">
+      <h4>🥧 Transaction Distribution</h4>
+      <span class="chart-badge">Distribution</span>
+    </div>
+    <div class="chart-container" style="position:relative; height:250px;">
+      <canvas id="doughnutChart"></canvas>
+    </div>
+  </div>
+</div>
 
     <!-- Loading State -->
     <div class="loading-overlay" *ngIf="isLoadingStats">

@@ -58,7 +58,7 @@ export class AgentClaimsComponent implements OnInit {
     this.loading = true;
     this.error = null;
     
-    this.http.get<Claim[]>('http://localhost:8081/claims/allClaim')
+    this.http.get<Claim[]>('http://localhost:8083/claims/allClaim')
       .subscribe({
         next: (data) => {
           this.claims = data;
@@ -137,7 +137,7 @@ export class AgentClaimsComponent implements OnInit {
     }
 
     this.loading = true;
-    this.http.post<Claim>(`http://localhost:8081/claims/approve/${claimId}`, null, {
+    this.http.post<Claim>(`http://localhost:8083/claims/approve/${claimId}`, null, {
       params: { approvedAmount: approvedAmount.toString() }
     }).subscribe({
       next: (updatedClaim) => {
@@ -166,7 +166,7 @@ export class AgentClaimsComponent implements OnInit {
     }
 
     this.loading = true;
-    this.http.post<Claim>(`http://localhost:8081/claims/reject/${claimId}`, null, {
+    this.http.post<Claim>(`http://localhost:8083/claims/reject/${claimId}`, null, {
       params: { reason: reason }
     }).subscribe({
       next: (updatedClaim) => {
@@ -188,7 +188,7 @@ export class AgentClaimsComponent implements OnInit {
 
   viewCompensation(claimId: number) {
     this.loading = true;
-    this.http.get(`http://localhost:8081/claims/calculate-compensation/${claimId}`, {
+    this.http.get(`http://localhost:8083/claims/calculate-compensation/${claimId}`, {
       responseType: 'json'
     }).subscribe({
       next: (data) => {
@@ -197,7 +197,7 @@ export class AgentClaimsComponent implements OnInit {
       },
       error: (err) => {
         this.loading = false;
-        this.http.get(`http://localhost:8081/claims/calculate-compensation/${claimId}/text`, {
+        this.http.get(`http://localhost:8083/claims/calculate-compensation/${claimId}/text`, {
           responseType: 'text'
         }).subscribe({
           next: (textData) => {

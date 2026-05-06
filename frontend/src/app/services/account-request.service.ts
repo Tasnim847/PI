@@ -19,7 +19,7 @@ export interface CreateAccountRequest {
 
 @Injectable({ providedIn: 'root' })
 export class AccountRequestService {
-  private baseUrl = 'http://localhost:8081/api/account-requests';
+  private baseUrl = 'http://localhost:8083/api/account-requests';
 
   constructor(private http: HttpClient) {}
 

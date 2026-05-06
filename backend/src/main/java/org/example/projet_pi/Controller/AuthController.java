@@ -512,6 +512,7 @@ public class AuthController {
             response.put("telephone", userPrincipal.getTelephone());
             response.put("role", userPrincipal.getRole());
             response.put("photo", userPrincipal.getPhoto());
+            System.out.println("📸 Photo field: " + userPrincipal.getPhoto());
 
             return ResponseEntity.ok(response);
         }

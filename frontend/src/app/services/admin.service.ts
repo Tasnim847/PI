@@ -46,7 +46,7 @@ export interface ClientWithAgents {
 
 @Injectable({ providedIn: 'root' })
 export class AdminService {
-  private apiUrl = 'http://localhost:8081';
+  private apiUrl = 'http://localhost:8083';
 
   constructor(
     private http: HttpClient,

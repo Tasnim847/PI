@@ -212,6 +212,7 @@ public class TransactionController {
 
     // 🆕 Statistiques du compte
     @GetMapping("/statistics/{accountId}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<AccountStatisticsDTO> getStatistics(
             @PathVariable Long accountId) {
 

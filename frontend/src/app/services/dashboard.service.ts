@@ -7,7 +7,7 @@ import { Observable, forkJoin, map } from 'rxjs';
 })
 export class DashboardService {
 
-    private apiUrl = 'http://localhost:8081';
+    private apiUrl = 'http://localhost:8083';
 
     constructor(private http: HttpClient) {}
 

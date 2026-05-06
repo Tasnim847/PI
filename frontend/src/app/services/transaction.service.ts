@@ -6,7 +6,7 @@ import { AccountStatisticsDTO } from '../shared/dto/account-statistics.dto';
 @Injectable({ providedIn: 'root' })
 export class TransactionService {
 
-  private baseUrl = 'http://localhost:8081/api/transactions';
+  private baseUrl = 'http://localhost:8083/api/transactions';
 
   constructor(private http: HttpClient) {}
 

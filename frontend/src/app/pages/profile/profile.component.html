@@ -1,7 +1,5 @@
-<!-- Main Content - Supprimer la navbar dupliquée et garder seulement le contenu -->
 <div class="profile-dashboard" style="margin-top: 76px;">
   <div class="container-fluid px-4 py-4">
-    <!-- Welcome Banner -->
     <div class="welcome-banner mb-4">
       <div class="row align-items-center">
         <div class="col-md-8">
@@ -25,12 +23,10 @@
         <div class="profile-card">
           <div class="card-body p-4 text-center">
             <div class="profile-photo-container">
-              <img
-                *ngIf="profilePhoto"
-                [src]="profilePhoto"
-                alt="Profile photo"
-                class="profile-photo"
-              />
+              <!-- ✅ Avatar avec initiales -->
+              <div class="profile-avatar">
+                <span class="profile-initials">{{ getInitials() }}</span>
+              </div>
               <label for="photoUpload" class="photo-upload-btn">
                 <i class="fas fa-camera"></i>
               </label>
@@ -169,52 +165,37 @@
             <h5 class="mb-0"><i class="fas fa-face-smile me-2"></i>Facial Recognition</h5>
           </div>
           <div class="card-body p-4">
-            <!-- Status message -->
-            <div *ngIf="faceStatusMessage" class="alert" [ngClass]="faceStatusMessage.includes('✅') ? 'alert-success' : 'alert-danger'">
+            <div *ngIf="faceStatusMessage" class="alert"
+              [ngClass]="faceStatusMessage.includes('✅') ? 'alert-success' : 'alert-danger'">
               {{ faceStatusMessage }}
             </div>
 
-            <!-- If face already registered -->
             <div *ngIf="hasFaceRegistered" class="face-success">
-              <div class="success-icon">
-                <i class="fas fa-check-circle"></i>
-              </div>
+              <div class="success-icon"><i class="fas fa-check-circle"></i></div>
               <div class="success-text">
                 <h6 class="mb-1">✓ Face registered</h6>
                 <p class="text-muted small mb-0">You can log in using facial recognition</p>
               </div>
-              <button
-                (click)="deleteFace()"
-                class="btn-face-delete"
-                [disabled]="faceStatusLoading">
+              <button (click)="deleteFace()" class="btn-face-delete" [disabled]="faceStatusLoading">
                 <i class="fas fa-trash-alt me-1"></i>
                 {{ faceStatusLoading ? 'Deleting...' : 'Delete' }}
               </button>
             </div>
 
-            <!-- If face not registered -->
             <div *ngIf="!hasFaceRegistered" class="face-empty">
-              <div class="empty-icon">
-                <i class="fas fa-camera"></i>
-              </div>
+              <div class="empty-icon"><i class="fas fa-camera"></i></div>
               <div class="empty-text">
                 <h6 class="mb-1">Register your face</h6>
-                <p class="text-muted small mb-0">
-                  Log in faster with facial recognition
-                </p>
+                <p class="text-muted small mb-0">Log in faster with facial recognition</p>
               </div>
               <button (click)="goToFaceRegister()" class="btn-face-register">
-                <i class="fas fa-plus-circle me-1"></i>
-                Register my face
+                <i class="fas fa-plus-circle me-1"></i>Register my face
               </button>
             </div>
 
             <div class="face-info mt-3">
               <i class="fas fa-info-circle"></i>
-              <small>
-                Facial recognition allows you to log in without a password.
-                Your face is secure and will not be shared.
-              </small>
+              <small>Facial recognition allows you to log in without a password. Your face is secure and will not be shared.</small>
             </div>
           </div>
         </div>

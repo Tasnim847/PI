@@ -18,7 +18,7 @@ export class ProductCardComponent {
   @Output() compareEvent = new EventEmitter<any>();
 
   private readonly DEFAULT_IMAGE = 'assets/images/produits-assurance.jpg';
-  private readonly BACKEND_IMAGE_BASE_URL = 'http://localhost:8081/products/images/';
+  private readonly BACKEND_IMAGE_BASE_URL = 'http://localhost:8083/products/images/';
 
   getImageUrl(): string {
     if (!this.product?.imageUrl) {

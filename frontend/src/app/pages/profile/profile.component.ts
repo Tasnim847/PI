@@ -1,9 +1,9 @@
-import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit, Inject, PLATFORM_ID } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
-import { FaceAuthService } from '../../services/face-auth.service';  // ✅ À AJOUTER
+import { FaceAuthService } from '../../services/face-auth.service';
 
 @Component({
   selector: 'app-profile',
@@ -18,60 +18,84 @@ export class ProfileComponent implements OnInit {
   email: string = '';
   telephone: string = '';
   role: string = '';
-  profilePhoto: string = '';
+  profilePhoto: string = 'assets/default-avatar.png';
   currentDate: Date = new Date();
 
   isEditing: boolean = false;
 
-  // Password change
   currentPassword: string = '';
   newPassword: string = '';
   confirmPassword: string = '';
 
-  // Backup for cancel
   private backupData: any = {};
 
-  // ✅ AJOUTER CES VARIABLES POUR LA RECONNAISSANCE FACIALE
   hasFaceRegistered: boolean = false;
   faceStatusMessage: string = '';
   faceStatusLoading: boolean = false;
 
+  private isBrowser: boolean;
+
   constructor(
     private auth: AuthService,
-    private faceAuth: FaceAuthService,  // ✅ À AJOUTER
-    private router: Router
-  ) {}
+    private faceAuth: FaceAuthService,
+    private router: Router,
+    @Inject(PLATFORM_ID) private platformId: Object
+  ) {
+    this.isBrowser = isPlatformBrowser(this.platformId);
+  }
 
   ngOnInit() {
+    // ✅ Guard SSR global
+    if (!this.isBrowser) return;
+
     this.checkAuth();
     this.loadUserData();
-    this.checkFaceStatus();  // ✅ À AJOUTER
+    this.checkFaceStatus();
   }
 
   checkAuth() {
     if (!this.auth.isLoggedIn()) {
       this.router.navigate(['/public/login']);
-      return;
     }
   }
 
   loadUserData() {
-    this.auth.getMe().subscribe(user => {
+  if (!this.isBrowser) return;
+
+  this.auth.getMe().subscribe({
+    next: (user) => {
+      console.log('User reçu:', user);
+      console.log('Photo:', user.photo);
+
       this.firstName = user.firstName;
       this.lastName = user.lastName;
       this.email = user.email;
       this.telephone = user.telephone;
       this.role = user.role;
-      if (user.photo) {
-        this.profilePhoto = `http://localhost:8083/uploads/${user.photo}`;
-      } else {
-        this.profilePhoto = '';
-      }
-    });
-  }
 
-  // ✅ AJOUTER CETTE MÉTHODE
+      if (user.photo && user.photo !== 'null' && user.photo !== '') {
+        if (user.photo.startsWith('http')) {
+          this.profilePhoto = user.photo;
+        } else if (user.photo.startsWith('uploads/')) {
+          this.profilePhoto = `http://localhost:8083/${user.photo}`;
+        } else {
+          this.profilePhoto = `http://localhost:8083/uploads/${user.photo}`;
+        }
+      } else {
+        this.profilePhoto = 'assets/default-avatar.png';
+      }
+
+      console.log('URL photo finale:', this.profilePhoto);
+    },
+    error: (err) => {
+      console.error('Erreur getMe:', err);
+      this.profilePhoto = 'assets/default-avatar.png';
+    }
+  });
+}
   checkFaceStatus() {
+    if (!this.isBrowser) return;
+
     this.faceAuth.getFaceStatus().subscribe({
       next: (res) => {
         this.hasFaceRegistered = res.hasFaceRegistered;
@@ -82,12 +106,10 @@ export class ProfileComponent implements OnInit {
     });
   }
 
-  // ✅ AJOUTER CETTE MÉTHODE
   goToFaceRegister() {
     this.router.navigate(['/face-register']);
   }
 
-  // ✅ AJOUTER CETTE MÉTHODE
   deleteFace() {
     if (confirm('Êtes-vous sûr de vouloir supprimer votre visage enregistré ?')) {
       this.faceStatusLoading = true;
@@ -99,8 +121,10 @@ export class ProfileComponent implements OnInit {
           this.faceStatusLoading = false;
         },
         error: (err) => {
-          this.faceStatusMessage = '❌ Erreur lors de la suppression';
-          setTimeout(() => this.faceStatusMessage = '', 3000);
+          console.error('Status:', err.status);
+          console.error('Error:', err.error);
+          this.faceStatusMessage = `❌ Erreur ${err.status}: ${err.error || 'Suppression échouée'}`;
+          setTimeout(() => this.faceStatusMessage = '', 5000);
           this.faceStatusLoading = false;
         }
       });
@@ -144,13 +168,11 @@ export class ProfileComponent implements OnInit {
     const role = this.auth.getRole();
     const userId = this.auth.getUserId();
 
-    const request = {
+    this.auth.changePassword(role, {
       id: userId,
       oldPassword: this.currentPassword,
       newPassword: this.newPassword
-    };
-
-    this.auth.changePassword(role, request).subscribe({
+    }).subscribe({
       next: () => {
         alert('✅ Mot de passe modifié avec succès');
         this.currentPassword = '';
@@ -158,22 +180,23 @@ export class ProfileComponent implements OnInit {
         this.confirmPassword = '';
       },
       error: () => {
-        alert('❌ erreur ou ancien mot de passe incorrect');
+        alert('❌ Erreur ou ancien mot de passe incorrect');
       }
     });
   }
 
   onPhotoSelected(event: any) {
+    if (!this.isBrowser) return;
+
     const file = event.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e: any) => {
-        this.profilePhoto = e.target.result;
-        localStorage.setItem('profilePhoto', this.profilePhoto);
-        alert('✅ Photo de profil mise à jour !');
-      };
-      reader.readAsDataURL(file);
-    }
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e: any) => {
+      this.profilePhoto = e.target.result;
+      alert('✅ Photo de profil mise à jour !');
+    };
+    reader.readAsDataURL(file);
   }
 
   logout() {
@@ -190,14 +213,19 @@ export class ProfileComponent implements OnInit {
 
     this.auth.updateMe(data).subscribe({
       next: () => {
-        alert("Profil mis à jour");
+        alert('Profil mis à jour');
         this.loadUserData();
         this.isEditing = false;
       },
       error: (err) => {
         console.error(err);
-        alert("Erreur update");
+        alert('Erreur update');
       }
     });
   }
+  getInitials(): string {
+  const f = this.firstName ? this.firstName.charAt(0).toUpperCase() : '';
+  const l = this.lastName ? this.lastName.charAt(0).toUpperCase() : '';
+  return f + l;
+}
 }
