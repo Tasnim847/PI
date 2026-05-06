@@ -52,7 +52,7 @@ export interface CreditHistoryWithAverageDTO {
   providedIn: 'root'
 })
 export class CreditService {
-  private apiUrl = 'http://localhost:8081/Credit';
+  private apiUrl = 'http://localhost:8083/Credit';
 
   constructor(private http: HttpClient) { }
 
@@ -145,7 +145,7 @@ export class CreditService {
 
   // ========== ADMIN - SEND AMORTIZATION EMAIL ==========
   sendAmortizationEmail(creditId: number): Observable<any> {
-    return this.http.post(`http://localhost:8081/Repayment/credits/${creditId}/send-pdf-email`, null, {
+    return this.http.post(`http://localhost:8083/Repayment/credits/${creditId}/send-pdf-email`, null, {
       headers: this.getHeaders()
     });
   }

@@ -97,7 +97,7 @@ export class AgentClaimsDetailsComponent implements OnInit {
   
     console.log('🔍 Loading claim details for ID:', this.claimId);
   
-    this.http.get<any>(`http://localhost:8081/claims/getClaim/${this.claimId}`)
+    this.http.get<any>(`http://localhost:8083/claims/getClaim/${this.claimId}`)
       .subscribe({
         next: (data) => {
           console.log('✅ Claim data received:', data);
@@ -148,7 +148,7 @@ export class AgentClaimsDetailsComponent implements OnInit {
      console.log('🔍 Loading contract details for ID:', contractId);
   
     // Utiliser le même endpoint que dans ContractService
-    const contractEndpoint = `http://localhost:8081/contrats/getCont/${contractId}`;
+    const contractEndpoint = `http://localhost:8083/contrats/getCont/${contractId}`;
   
     console.log('📡 Calling contract endpoint:', contractEndpoint);
   
@@ -244,13 +244,13 @@ export class AgentClaimsDetailsComponent implements OnInit {
 
   viewDocument(document: DocumentDetail) {
     // Utiliser le nouvel endpoint de téléchargement
-    const fileUrl = `http://localhost:8081/claims/download/${document.documentId}`;
+    const fileUrl = `http://localhost:8083/claims/download/${document.documentId}`;
     window.open(fileUrl, '_blank');
   }
 
   downloadDocument(document: DocumentDetail) {
     const link = this.documentObj.createElement('a');
-    const fileUrl = `http://localhost:8081/claims/download/${document.documentId}`;
+    const fileUrl = `http://localhost:8083/claims/download/${document.documentId}`;
     link.href = fileUrl;
     link.download = document.name;
     link.target = '_blank';
@@ -259,7 +259,7 @@ export class AgentClaimsDetailsComponent implements OnInit {
 
   // Ajoutez une méthode pour vérifier les fichiers (debug)
   checkFiles() {
-    this.http.get('http://localhost:8081/claims/debug/files')
+    this.http.get('http://localhost:8083/claims/debug/files')
         .subscribe({
             next: (data) => console.log('📁 Debug files:', data),
             error: (err) => console.error('Debug error:', err)
@@ -278,7 +278,7 @@ export class AgentClaimsDetailsComponent implements OnInit {
     }
 
     this.loading = true;
-    this.http.post(`http://localhost:8081/claims/approve/${this.claimId}`, null, {
+    this.http.post(`http://localhost:8083/claims/approve/${this.claimId}`, null, {
       params: { approvedAmount: this.approvedAmount.toString() }
     }).subscribe({
       next: () => {
@@ -301,7 +301,7 @@ export class AgentClaimsDetailsComponent implements OnInit {
     }
 
     this.loading = true;
-    this.http.post(`http://localhost:8081/claims/reject/${this.claimId}`, null, {
+    this.http.post(`http://localhost:8083/claims/reject/${this.claimId}`, null, {
       params: { reason: this.rejectionReason }
     }).subscribe({
       next: () => {

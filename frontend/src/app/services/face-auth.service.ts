@@ -7,7 +7,7 @@ import { Observable } from 'rxjs';
   providedIn: 'root'
 })
 export class FaceAuthService {
-  private API = 'http://localhost:8081/api/auth/face';
+  private API = 'http://localhost:8083/api/auth/face';
 
   constructor(private http: HttpClient) {}
 

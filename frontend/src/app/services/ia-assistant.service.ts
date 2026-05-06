@@ -16,7 +16,7 @@ export interface ChatResponse {
 
 @Injectable({ providedIn: 'root' })
 export class IAAssistantService {
-  private baseUrl = 'http://localhost:8081/api/ia-assistant';
+  private baseUrl = 'http://localhost:8083/api/ia-assistant';
   private sessionId: string | null = null;
 
   constructor(private http: HttpClient, private authService: AuthService) {}

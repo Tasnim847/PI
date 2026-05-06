@@ -550,8 +550,29 @@ public class ComplaintController {
             User agent = userRepository.findByEmail(email)
                     .orElseThrow(() -> new RuntimeException("Agent non trouvé"));
 
-            // ✅ Utilisez le bon nom de méthode avec underscore
+            // Log pour debug
+            System.out.println("=== Agent Finance ===");
+            System.out.println("Agent ID: " + agent.getId());
+            System.out.println("Agent Email: " + agent.getEmail());
+
             List<Complaint> complaints = complaintRepository.findByAgentFinance_Id(agent.getId());
+
+            System.out.println("Nombre de réclamations trouvées: " + complaints.size());
+
+            // Alternative sans méthodes Repository supplémentaires
+            List<Complaint> allComplaints = complaintRepository.findAll();
+            long totalComplaints = allComplaints.size();
+
+            long nullAgentCount = allComplaints.stream()
+                    .filter(c -> c.getAgentFinance() == null)
+                    .count();
+
+            System.out.println("Total des réclamations en base: " + totalComplaints);
+            System.out.println("Réclamations sans agent finance: " + nullAgentCount);
+
+            // Afficher les IDs des réclamations
+            System.out.println("IDs des réclamations trouvées:");
+            complaints.forEach(c -> System.out.println("  - ID: " + c.getId() + ", Status: " + c.getStatus()));
 
             Map<String, Object> response = new HashMap<>();
             response.put("message", "Réclamations pour agent financier");
@@ -559,7 +580,6 @@ public class ComplaintController {
             response.put("complaints", complaints);
 
             return ResponseEntity.ok(response);
-
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)

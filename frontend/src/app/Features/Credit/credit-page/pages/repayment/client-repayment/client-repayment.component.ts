@@ -68,7 +68,7 @@ export class ClientRepaymentComponent implements OnInit {
   successMessage: string = '';
   errorMessage: string = '';
 
-  private apiUrl = 'http://localhost:8081/Repayment';
+  private apiUrl = 'http://localhost:8083/Repayment';
 
   constructor(
     private route: ActivatedRoute,

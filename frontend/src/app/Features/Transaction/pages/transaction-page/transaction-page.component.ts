@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TransactionService } from '../../../../services/transaction.service';
@@ -15,7 +15,7 @@ declare var Chart: any;
   templateUrl: './transaction-page.component.html',
   styleUrls: ['./transaction-page.component.css']
 })
-export class TransactionPageComponent implements OnInit {
+export class TransactionPageComponent implements OnInit, OnDestroy {
 
   transactions: Transaction[] = [];
   selectedTransaction: Transaction | null = null;
@@ -35,16 +35,36 @@ export class TransactionPageComponent implements OnInit {
   statsPeriod: string = 'all';
   isLoadingStats: boolean = false;
   currentDate: Date = new Date();
+  chartsReady = false; // ✅ nouveau flag
 
   pdfAccountId: number = 0;
 
   private barChart: any = null;
   private doughnutChart: any = null;
 
-  constructor(private transactionService: TransactionService) {}
+  constructor(
+    private transactionService: TransactionService,
+    private ngZone: NgZone
+  ) {}
 
   ngOnInit(): void {
     this.loadTransactions();
+    this.loadChartJs(); // ✅ charger Chart.js au démarrage
+  }
+
+  ngOnDestroy(): void {
+    if (this.barChart) this.barChart.destroy();
+    if (this.doughnutChart) this.doughnutChart.destroy();
+  }
+
+  // ✅ Charger Chart.js dynamiquement si pas déjà présent
+  private loadChartJs(): void {
+    if (typeof Chart !== 'undefined') return;
+
+    const script = document.createElement('script');
+    script.src = 'https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js';
+    script.onload = () => console.log('Chart.js chargé');
+    document.head.appendChild(script);
   }
 
   loadTransactions(): void {
@@ -88,6 +108,7 @@ export class TransactionPageComponent implements OnInit {
     this.isTransferVisible = false;
     this.isPdfVisible = false;
     this.stats = null;
+    this.chartsReady = false;
   }
 
   openPdfDialog(): void {
@@ -108,20 +129,35 @@ export class TransactionPageComponent implements OnInit {
       alert('Please enter an Account ID!');
       return;
     }
-    
+
     this.isLoadingStats = true;
+    this.chartsReady = false;
     this.currentDate = new Date();
-    
+
+    // Détruire les anciens charts
+    if (this.barChart) { this.barChart.destroy(); this.barChart = null; }
+    if (this.doughnutChart) { this.doughnutChart.destroy(); this.doughnutChart = null; }
+
     this.transactionService.getAccountStatistics(this.statsAccountId).subscribe({
       next: (data) => {
         this.stats = data;
-        setTimeout(() => this.renderCharts(), 100);
         this.isLoadingStats = false;
+
+        // ✅ Attendre que Angular rende le *ngIf="stats" + les canvas
+        this.ngZone.runOutsideAngular(() => {
+          setTimeout(() => {
+            this.ngZone.run(() => {
+              this.chartsReady = true;
+              setTimeout(() => this.renderCharts(), 50);
+            });
+          }, 200);
+        });
       },
       error: (err) => {
-        console.error('Error loading statistics', err);
+        console.error('Status:', err.status);
+        console.error('Error body:', err.error);
         this.isLoadingStats = false;
-        alert('Error loading statistics');
+        alert(`Erreur ${err.status}: Compte introuvable. Vérifiez l'ID.`);
       }
     });
   }
@@ -141,11 +177,20 @@ export class TransactionPageComponent implements OnInit {
   }
 
   renderCharts(): void {
-    if (this.barChart) { this.barChart.destroy(); }
-    if (this.doughnutChart) { this.doughnutChart.destroy(); }
     if (!this.stats) return;
 
-    // Bar Chart with consistent colors
+    // ✅ Vérifier que Chart.js est disponible
+    if (typeof Chart === 'undefined') {
+      console.error('Chart.js non disponible, retry dans 500ms');
+      setTimeout(() => this.renderCharts(), 500);
+      return;
+    }
+
+    // Détruire si existants
+    if (this.barChart) { this.barChart.destroy(); this.barChart = null; }
+    if (this.doughnutChart) { this.doughnutChart.destroy(); this.doughnutChart = null; }
+
+    // ✅ Bar Chart
     const barCtx = document.getElementById('barChart') as HTMLCanvasElement;
     if (barCtx) {
       this.barChart = new Chart(barCtx, {
@@ -154,8 +199,16 @@ export class TransactionPageComponent implements OnInit {
           labels: ['Total Deposits', 'Total Withdrawals', 'Current Balance'],
           datasets: [{
             label: 'Amount (TND)',
-            data: [this.stats.totalDeposits, this.stats.totalWithdrawals, this.stats.currentBalance],
-            backgroundColor: ['rgba(79, 70, 229, 0.8)', 'rgba(212, 195, 241, 0.8)', 'rgba(99, 102, 241, 0.8)'],
+            data: [
+              this.stats.totalDeposits,
+              this.stats.totalWithdrawals,
+              this.stats.currentBalance
+            ],
+            backgroundColor: [
+              'rgba(79, 70, 229, 0.8)',
+              'rgba(212, 195, 241, 0.8)',
+              'rgba(99, 102, 241, 0.8)'
+            ],
             borderColor: ['#4f46e5', '#7c3aed', '#aeafea'],
             borderWidth: 2,
             borderRadius: 8
@@ -166,24 +219,31 @@ export class TransactionPageComponent implements OnInit {
           maintainAspectRatio: false,
           plugins: {
             legend: { display: false },
-            title: { display: true, text: 'Financial Overview', font: { size: 14, weight: 'bold' }, color: '#1e1b4b' }
+            title: {
+              display: true,
+              text: 'Financial Overview',
+              font: { size: 14, weight: 'bold' },
+              color: '#1e1b4b'
+            }
           },
           scales: {
-            y: { 
-              beginAtZero: true, 
+            y: {
+              beginAtZero: true,
               grid: { color: '#ede9fe' },
               title: { display: true, text: 'Amount (TND)', color: '#4f46e5' }
             },
-            x: { 
+            x: {
               grid: { display: false },
-              ticks: { color: '#4f46e5', weight: 'bold' }
+              ticks: { color: '#4f46e5' }
             }
           }
         }
       });
+    } else {
+      console.error('Canvas #barChart introuvable dans le DOM');
     }
 
-    // Doughnut Chart with consistent colors
+    // ✅ Doughnut Chart
     const doughnutCtx = document.getElementById('doughnutChart') as HTMLCanvasElement;
     if (doughnutCtx) {
       this.doughnutChart = new Chart(doughnutCtx, {
@@ -191,8 +251,14 @@ export class TransactionPageComponent implements OnInit {
         data: {
           labels: ['Deposits', 'Withdrawals'],
           datasets: [{
-            data: [this.stats.totalDepositCount, this.stats.totalWithdrawalCount],
-            backgroundColor: ['rgba(79, 70, 229, 0.8)', 'rgba(212, 195, 241, 0.8)'],
+            data: [
+              this.stats.totalDepositCount,
+              this.stats.totalWithdrawalCount
+            ],
+            backgroundColor: [
+              'rgba(79, 70, 229, 0.8)',
+              'rgba(212, 195, 241, 0.8)'
+            ],
             borderColor: ['#4f46e5', '#7c3aed'],
             borderWidth: 2
           }]
@@ -201,14 +267,21 @@ export class TransactionPageComponent implements OnInit {
           responsive: true,
           maintainAspectRatio: false,
           plugins: {
-            legend: { 
+            legend: {
               position: 'bottom',
               labels: { color: '#4f46e5', font: { weight: 'bold' } }
             },
-            title: { display: true, text: 'Transaction Distribution', font: { size: 14, weight: 'bold' }, color: '#1e1b4b' }
+            title: {
+              display: true,
+              text: 'Transaction Distribution',
+              font: { size: 14, weight: 'bold' },
+              color: '#1e1b4b'
+            }
           }
         }
       });
+    } else {
+      console.error('Canvas #doughnutChart introuvable dans le DOM');
     }
   }
 
@@ -222,7 +295,9 @@ export class TransactionPageComponent implements OnInit {
       });
     } else {
       if (!this.selectedAccountId) { alert('Please enter an Account ID!'); return; }
-      this.transactionService.createTransaction(this.selectedAccountId, this.formData as Transaction).subscribe({
+      this.transactionService.createTransaction(
+        this.selectedAccountId, this.formData as Transaction
+      ).subscribe({
         next: () => { this.loadTransactions(); this.isFormVisible = false; },
         error: (err) => console.error('Error creating transaction', err)
       });
@@ -231,7 +306,9 @@ export class TransactionPageComponent implements OnInit {
 
   submitTransfer(): void {
     this.transactionService.transfer(
-      this.transferData.fromAccountId, this.transferData.toAccountId, this.transferData.amount
+      this.transferData.fromAccountId,
+      this.transferData.toAccountId,
+      this.transferData.amount
     ).subscribe({
       next: () => { this.loadTransactions(); this.isTransferVisible = false; },
       error: (err) => console.error('Error during transfer', err)
@@ -248,11 +325,7 @@ export class TransactionPageComponent implements OnInit {
   }
 
   downloadStatement(accountId: number): void {
-    if (!accountId) {
-      alert('Account ID not found!');
-      return;
-    }
-    
+    if (!accountId) { alert('Account ID not found!'); return; }
     this.transactionService.getAccountStatement(accountId).subscribe({
       next: (blob: Blob) => {
         const url = window.URL.createObjectURL(blob);
@@ -261,7 +334,6 @@ export class TransactionPageComponent implements OnInit {
         link.download = `account_statement_${accountId}.pdf`;
         link.click();
         window.URL.revokeObjectURL(url);
-        console.log(`PDF successfully downloaded for account ${accountId}`);
       },
       error: (err) => {
         console.error('Error downloading PDF', err);
@@ -271,11 +343,7 @@ export class TransactionPageComponent implements OnInit {
   }
 
   downloadStatementByAccountId(): void {
-    if (!this.pdfAccountId) {
-      alert('Please enter an Account ID!');
-      return;
-    }
-    
+    if (!this.pdfAccountId) { alert('Please enter an Account ID!'); return; }
     this.downloadStatement(this.pdfAccountId);
     this.cancelPdf();
   }
@@ -286,6 +354,7 @@ export class TransactionPageComponent implements OnInit {
     this.isStatsVisible = false;
     this.isPdfVisible = false;
     this.stats = null;
+    this.chartsReady = false;
     if (this.barChart) { this.barChart.destroy(); this.barChart = null; }
     if (this.doughnutChart) { this.doughnutChart.destroy(); this.doughnutChart = null; }
   }

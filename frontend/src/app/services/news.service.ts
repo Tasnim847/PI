@@ -10,7 +10,7 @@ import { News, CreateNews, UpdateNews } from '../shared/models/news.model';
 export class NewsService {
 
   // ✅ URL DIRECTE - SANS API_CONFIG
-  private apiUrl = 'http://localhost:8081/api/v1/news';
+  private apiUrl = 'http://localhost:8083/api/v1/news';
 
   constructor(private http: HttpClient) {}
 
